@@ -91,7 +91,7 @@ E 			: E OPERADOR E
 ATRIBUICAO	: TK_ID '=' E
 			{
 				$$.traducao =  $3.traducao + "\t" +  $1.label + " = " + $3.label + ";\n";
-				tabela_simbolos[$1.label] = $1.label[0];
+				tabela_simbolos[$1.label] = 123;
 			}
 			;
 
@@ -131,7 +131,9 @@ string nextLabel()
 
 void checkLabel(string s)
 {
-	if (tabela_simbolos.find(s) == tabela_simbolos.end())
+	unordered_map<string,int>::const_iterator busca = tabela_simbolos.find(s);
+
+	if (busca == tabela_simbolos.end())
 	{
 		yyerror("\n | Erro na linha [" + to_string(linha) + "].\n | Variavel '" + s + "' nao foi declarada.\n"); 
 	}
