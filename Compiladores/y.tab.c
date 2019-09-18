@@ -71,6 +71,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 #define YYSTYPE atributos
 
@@ -84,13 +85,16 @@ struct atributos
 };
 
 int count = 0;
+int linha = 1;
+unordered_map<string, int> tabela_simbolos;
 
 int yylex(void);
 void yyerror(string);
 string nextLabel();
+void checkLabel(string);
 
 
-#line 94 "y.tab.c" /* yacc.c:337  */
+#line 98 "y.tab.c" /* yacc.c:337  */
 # ifndef YY_NULLPTR
 #  if defined __cplusplus
 #   if 201103L <= __cplusplus
@@ -451,8 +455,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    37,    37,    43,    49,    54,    59,    60,    63,    68,
-      73,    80,    86,    92,    93,    94,    95
+       0,    41,    41,    47,    53,    58,    63,    64,    67,    72,
+      77,    84,    91,    98,    99,   100,   101
 };
 #endif
 
@@ -1249,84 +1253,86 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 38 "sintatica.y" /* yacc.c:1652  */
+#line 42 "sintatica.y" /* yacc.c:1652  */
     {
-				cout << "\n/*Compilador FOCA*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\nint main(void)\n{\n" << yyvsp[0].traducao << "\treturn 0;\n}" << endl; 
+				cout << "\n/*Compilador FOCA*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\nint main(void)\n{\n" << yyvsp[0].traducao << "\treturn 0;\n}" << endl; 
 			}
-#line 1257 "y.tab.c" /* yacc.c:1652  */
+#line 1261 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 3:
-#line 44 "sintatica.y" /* yacc.c:1652  */
+#line 48 "sintatica.y" /* yacc.c:1652  */
     {
 				yyval.traducao = yyvsp[-1].traducao;
 			}
-#line 1265 "y.tab.c" /* yacc.c:1652  */
+#line 1269 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 4:
-#line 50 "sintatica.y" /* yacc.c:1652  */
+#line 54 "sintatica.y" /* yacc.c:1652  */
     {
 				yyval.traducao = yyvsp[-1].traducao + yyvsp[0].traducao;
 			}
-#line 1273 "y.tab.c" /* yacc.c:1652  */
+#line 1277 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 5:
-#line 54 "sintatica.y" /* yacc.c:1652  */
+#line 58 "sintatica.y" /* yacc.c:1652  */
     {
 				yyval.traducao = "";
 			}
-#line 1281 "y.tab.c" /* yacc.c:1652  */
+#line 1285 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 8:
-#line 64 "sintatica.y" /* yacc.c:1652  */
+#line 68 "sintatica.y" /* yacc.c:1652  */
     {
 				//count--;
 				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + yyvsp[-2].label + " = " + yyvsp[-2].label + " " + yyvsp[-1].traducao + " " + yyvsp[0].label + ";\n";
 			}
-#line 1290 "y.tab.c" /* yacc.c:1652  */
+#line 1294 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 9:
-#line 69 "sintatica.y" /* yacc.c:1652  */
+#line 73 "sintatica.y" /* yacc.c:1652  */
     {
 				yyval.label = yyvsp[-1].label;
 				yyval.traducao = yyvsp[-1].traducao;
 			}
-#line 1299 "y.tab.c" /* yacc.c:1652  */
+#line 1303 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 10:
-#line 74 "sintatica.y" /* yacc.c:1652  */
+#line 78 "sintatica.y" /* yacc.c:1652  */
     {	
 
 				yyval.label = nextLabel();
 				cout << "-- " + yyval.label + "\n";
 				yyval.traducao = "\t" + yyval.label + " = " + yyvsp[0].traducao + ";\n";
 			}
-#line 1310 "y.tab.c" /* yacc.c:1652  */
+#line 1314 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 11:
-#line 81 "sintatica.y" /* yacc.c:1652  */
+#line 85 "sintatica.y" /* yacc.c:1652  */
     {
+				checkLabel(yyvsp[0].label);
 				yyval.traducao = "";
 			}
-#line 1318 "y.tab.c" /* yacc.c:1652  */
+#line 1323 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 12:
-#line 87 "sintatica.y" /* yacc.c:1652  */
+#line 92 "sintatica.y" /* yacc.c:1652  */
     {
 				yyval.traducao =  yyvsp[0].traducao + "\t" +  yyvsp[-2].label + " = " + yyvsp[0].label + ";\n";
+				tabela_simbolos[yyvsp[-2].label] = yyvsp[-2].label[0];
 			}
-#line 1326 "y.tab.c" /* yacc.c:1652  */
+#line 1332 "y.tab.c" /* yacc.c:1652  */
     break;
 
 
-#line 1330 "y.tab.c" /* yacc.c:1652  */
+#line 1336 "y.tab.c" /* yacc.c:1652  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1557,10 +1563,12 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 98 "sintatica.y" /* yacc.c:1918  */
+#line 106 "sintatica.y" /* yacc.c:1918  */
 
 
 #include "lex.yy.c"
+//#include <unordered_map>
+
 
 int yyparse();
 
@@ -1575,9 +1583,17 @@ void yyerror( string MSG )
 {
 	cout << MSG << endl;
 	exit (0);
-}				
+}
 
 string nextLabel()
 {
 	return "$_temp" + std::to_string(count++);
+}
+
+void checkLabel(string s)
+{
+	if (tabela_simbolos.find(s) == tabela_simbolos.end())
+	{
+		yyerror("\n | Erro na linha [" + to_string(linha) + "].\n | Variavel '" + s + "' nao foi declarada.\n"); 
+	}
 }

@@ -1,5 +1,4 @@
 int main()
 {
-	bunda = 1;
-	a = bunda;
+	1 = 1;
 }

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
 #define YYSTYPE atributos
 
@@ -15,10 +16,13 @@ struct atributos
 };
 
 int count = 0;
+int linha = 1;
+unordered_map<string, int> tabela_simbolos;
 
 int yylex(void);
 void yyerror(string);
 string nextLabel();
+void checkLabel(string);
 
 %}
 
@@ -36,7 +40,7 @@ string nextLabel();
 
 S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			{
-				cout << "\n/*Compilador FOCA*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
+				cout << "\n/*Compilador FOCA*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
 			}
 			;
 
@@ -79,6 +83,7 @@ E 			: E OPERADOR E
 			}
 			| TK_ID
 			{
+				checkLabel($1.label);
 				$$.traducao = "";
 			}
 			;
@@ -86,6 +91,7 @@ E 			: E OPERADOR E
 ATRIBUICAO	: TK_ID '=' E
 			{
 				$$.traducao =  $3.traducao + "\t" +  $1.label + " = " + $3.label + ";\n";
+				tabela_simbolos[$1.label] = $1.label[0];
 			}
 			;
 
@@ -95,9 +101,13 @@ OPERADOR 	: '+'
 			| '/'
 			;
 
+
+
 %%
 
 #include "lex.yy.c"
+//#include <unordered_map>
+
 
 int yyparse();
 
@@ -112,9 +122,17 @@ void yyerror( string MSG )
 {
 	cout << MSG << endl;
 	exit (0);
-}				
+}
 
 string nextLabel()
 {
 	return "$_temp" + std::to_string(count++);
+}
+
+void checkLabel(string s)
+{
+	if (tabela_simbolos.find(s) == tabela_simbolos.end())
+	{
+		yyerror("\n | Erro na linha [" + to_string(linha) + "].\n | Variavel '" + s + "' nao foi declarada.\n"); 
+	}
 }
