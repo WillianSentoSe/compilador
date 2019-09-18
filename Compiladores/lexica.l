@@ -22,6 +22,8 @@ ID {LETRA}({LETRA}|{NUM})*
 "main"		{return TK_MAIN;}
 
 "int"		{return TK_TIPO_INT;}
+"float"		{return TK_TIPO_FLOAT;}
+"double"	{return TK_TIPO_DOUBLE;}
 
 [(){}[\];,]	{ return *yytext; }
 

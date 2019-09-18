@@ -23,7 +23,7 @@ string nextLabel();
 %}
 
 %token TK_NUM
-%token TK_MAIN TK_ID TK_TIPO_INT
+%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE
 %token TK_FIM TK_ERROR
 
 %start S
