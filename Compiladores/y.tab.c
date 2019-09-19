@@ -1326,7 +1326,7 @@ yyreduce:
 #line 92 "sintatica.y" /* yacc.c:1652  */
     {
 				yyval.traducao =  yyvsp[0].traducao + "\t" +  yyvsp[-2].label + " = " + yyvsp[0].label + ";\n";
-				tabela_simbolos[yyvsp[-2].label] = 123;
+				tabela_simbolos[yyvsp[-2].label] = yyvsp[-2].tipo;
 			}
 #line 1332 "y.tab.c" /* yacc.c:1652  */
     break;
@@ -1596,10 +1596,10 @@ void checkLabel(string s)
 
 	if (busca == tabela_simbolos.end())
 	{
-		yyerror("\n | Erro na linha [" + to_string(linha) + "].\n | Variavel '" + s + "' nao foi declarada.\n"); 
-	} 
+		yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variavel '" + s + "' nao foi declarada.\n"); 
+	}
 	else 
 	{
-		cout << " AAAAAAAAAAAAAAAAAA " << busca->second;
+		cout << "\n [LINHA " << to_string(linha) << "]\n | Variavel declarada encontrada '" << busca->first << "' do Tipo " << busca->second << ".\n";
 	}
 }
