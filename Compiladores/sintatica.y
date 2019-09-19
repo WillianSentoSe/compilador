@@ -22,12 +22,14 @@ unordered_map<string, int> tabela_simbolos;
 int yylex(void);
 void yyerror(string);
 string nextLabel();
+string typeName(int);
+bool checarTipo(int, int);
 void checkLabel(string);
 
 %}
 
-%token TK_NUM
-%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE
+%token TK_NUM TK_CHAR
+%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE TK_TIPO_STRING TK_TIPO_CHAR TK_TIPO_INDEFINIDO
 %token TK_FIM TK_ERROR
 
 %start S
@@ -40,7 +42,7 @@ void checkLabel(string);
 
 S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			{
-				cout << "\n/*Compilador FOCA*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
+				cout << "\n/*Compilador Ç*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\n\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
 			}
 			;
 
@@ -66,7 +68,7 @@ COMANDO 	: E ';'
 
 E 			: E OPERADOR E
 			{
-				//count--;
+				checarTipo($1.tipo, $3.tipo);
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " + $1.label + " " + $2.traducao + " " + $3.label + ";\n";
 			}
 			| '(' E ')'
@@ -76,23 +78,28 @@ E 			: E OPERADOR E
 			}
 			| TK_NUM
 			{	
-
 				$$.label = nextLabel();
-				cout << "-- " + $$.label + "\n";
-				$$.traducao = "\t" + $$.label + " = " + $1.traducao + ";\n";
+				$$.traducao = "\t" + typeName($1.tipo) + " " + $$.label + " = " + $1.traducao + ";\n";
 			}
 			| TK_ID
 			{
 				checkLabel($1.label);
+				$$.tipo = $1.tipo;
 				$$.traducao = "";
 			}
 			;
 
 ATRIBUICAO	: TK_ID '=' E
 			{
-				$$.traducao =  $3.traducao + "\t" +  $1.label + " = " + $3.label + ";\n";
-				tabela_simbolos[$1.label] = $1.tipo;
+				$$.traducao = $3.traducao + "\t" +  $1.label + " = " + $3.label + ";\n";
+				//checarTipo($1.tipo, $3.tipo);
+				tabela_simbolos[$1.label] = $3.tipo;
 			}
+			| TK_ID '=' TK_CHAR
+			{
+				$$.traducao = "\t" + typeName($3.tipo) + " " + $1.label + " = " + $3.traducao + ";\n";
+				tabela_simbolos[$1.label] = $3.tipo;
+			} 
 			;
 
 OPERADOR 	: '+'
@@ -127,6 +134,31 @@ void yyerror( string MSG )
 string nextLabel()
 {
 	return "$_temp" + std::to_string(count++);
+}
+
+string typeName (int token)
+{
+	string str;
+
+	switch (token)
+	{
+		case TK_TIPO_INT: 		str = "int"; 		break;
+		case TK_TIPO_FLOAT: 	str = "float"; 		break;
+		case TK_TIPO_CHAR: 		str = "char"; 		break;
+		default:				str = "undefined";	break;
+	}
+
+	return str;
+}
+
+bool checarTipo (int tipo1, int tipo2)
+{
+	if (tipo1 != tipo2)
+	{
+		yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Conversao implícita encontrada entre (" + typeName(tipo1) + ") e (" + typeName(tipo2) +").\n | É necessario explicitar uma conversão.\n");
+	}
+
+	return true;
 }
 
 void checkLabel(string s)

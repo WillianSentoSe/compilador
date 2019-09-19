@@ -3,35 +3,43 @@
 
 %}
 
-ESPACO [ \t]
-DIGITO [0-9]
-LETRA [A-Za-z_]
+ESPACO 		[ \t]
+DGT 		[0-9]
+LETRA 		[A-Za-z_]
 
-DELIM {ESPACO}+
-NUM {DIGITO}+
-REAL {NUM}+("."{NUM}+)?
-CHAR \'({LETRA}|{NUM})\'
-ID {LETRA}({LETRA}|{NUM})*
+DELIM 		{ESPACO}+
+
+INT 		[1-9]{DGT}*
+INT_8 		0[0-7]*
+INT_16		0x[1-9a-fA-F]+
+FLOAT 		{DGT}*\.{DGT}+|{DGT}+\.[DGT]*
+
+CHAR 		'.'
+ID 			{LETRA}({LETRA}|{DGT})*
 
 %%
 
-"\n"		{linha++;}
+"\n"							{linha++;}
 
-{DELIM} 	{}
+{DELIM} 						{}
 
-"main"		{return TK_MAIN;}
+"main"							{ return TK_MAIN; }
 
-"int"		{return TK_TIPO_INT;}
-"float"		{return TK_TIPO_FLOAT;}
-"double"	{return TK_TIPO_DOUBLE;}
+"int"							{ return TK_TIPO_INT; }
+"float"							{ return TK_TIPO_FLOAT; }
+"double"						{ return TK_TIPO_DOUBLE; }
+"string"						{ return TK_TIPO_STRING; }
 
-[(){}[\];,]	{ return *yytext; }
+[(){}[\];,]						{ return *yytext; }
 
-[+\-*/=]	{ yylval.traducao = yytext; return *yytext; }
+[+\-*/=]						{ yylval.traducao = yytext; return *yytext; }
 
-{NUM}		{ yylval.traducao = yytext; return TK_NUM; }
-{ID}		{ yylval.label = yytext; return TK_ID; }
+{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_NUM; }
+{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_NUM; }
+{CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_CHAR; }
 
-.			{ *yytext; }
+{ID}							{ yylval.label = yytext; yylval.tipo = TK_TIPO_INDEFINIDO; return TK_ID; }
+
+.								{ *yytext; }
 
 %%
