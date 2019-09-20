@@ -15,9 +15,18 @@ struct atributos
 	int tipo;
 };
 
+struct Simbolo
+{
+	int tipo;
+	int escopo;
+	int classe;
+	bool ativo;
+
+};
+
 int count = 0;
 int linha = 1;
-unordered_map<string, int> tabela_simbolos;
+unordered_map<string, Simbolo> tabela_simbolos;
 
 int yylex(void);
 void yyerror(string);
@@ -26,10 +35,16 @@ string typeName(int);
 bool checarTipo(int, int);
 void checkLabel(string);
 
+int getTipo(string);
+int getEscopo(string);
+int getClasse(string);
+bool isAtivo(string);
+
 %}
 
 %token TK_NUM TK_CHAR
 %token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE TK_TIPO_STRING TK_TIPO_CHAR TK_TIPO_INDEFINIDO
+%token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
 
 %start S
@@ -70,22 +85,25 @@ E 			: E OPERADOR E
 			{
 				checarTipo($1.tipo, $3.tipo);
 				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " + $1.label + " " + $2.traducao + " " + $3.label + ";\n";
+				$$.tipo = $1.tipo;		// PROVISORIO
 			}
 			| '(' E ')'
 			{
 				$$.label = $2.label;
 				$$.traducao = $2.traducao;
+				$$.tipo = $2.tipo;
 			}
 			| TK_NUM
 			{	
 				$$.label = nextLabel();
 				$$.traducao = "\t" + typeName($1.tipo) + " " + $$.label + " = " + $1.traducao + ";\n";
+				$$.tipo = $1.tipo;
 			}
 			| TK_ID
 			{
 				checkLabel($1.label);
-				$$.tipo = $1.tipo;
 				$$.traducao = "";
+				$$.tipo = getTipo($1.label);
 			}
 			;
 
@@ -93,12 +111,12 @@ ATRIBUICAO	: TK_ID '=' E
 			{
 				$$.traducao = $3.traducao + "\t" +  $1.label + " = " + $3.label + ";\n";
 				//checarTipo($1.tipo, $3.tipo);
-				tabela_simbolos[$1.label] = $3.tipo;
+				tabela_simbolos[$1.label] = {$3.tipo, -1, -1, true};
 			}
 			| TK_ID '=' TK_CHAR
 			{
 				$$.traducao = "\t" + typeName($3.tipo) + " " + $1.label + " = " + $3.traducao + ";\n";
-				tabela_simbolos[$1.label] = $3.tipo;
+				tabela_simbolos[$1.label] = {$3.tipo, -1, -1, true};
 			} 
 			;
 
@@ -133,7 +151,7 @@ void yyerror( string MSG )
 
 string nextLabel()
 {
-	return "$_temp" + std::to_string(count++);
+	return "$_temp" + to_string(count++);
 }
 
 string typeName (int token)
@@ -163,7 +181,7 @@ bool checarTipo (int tipo1, int tipo2)
 
 void checkLabel(string s)
 {
-	unordered_map<string,int>::const_iterator busca = tabela_simbolos.find(s);
+	unordered_map<string, Simbolo>::const_iterator busca = tabela_simbolos.find(s);
 
 	if (busca == tabela_simbolos.end())
 	{
@@ -171,6 +189,31 @@ void checkLabel(string s)
 	}
 	else 
 	{
-		cout << "\n [LINHA " << to_string(linha) << "]\n | Variavel declarada encontrada '" << busca->first << "' do Tipo " << busca->second << ".\n";
+		cout << "\n [LINHA " << to_string(linha) << "]\n | Variavel declarada encontrada '" << busca->first << "' (" << "typeName(busca->second.tipo)" << ").\n";
 	}
+}
+
+void setTipo(string label, int tipo)
+{
+	tabela_simbolos[label].tipo = tipo;
+}
+
+int getTipo(string label)
+{
+	return tabela_simbolos[label].tipo;
+}
+
+int getEscopo(string label)
+{
+	return tabela_simbolos[label].escopo;
+}
+
+int getClasse(string label)
+{
+	return tabela_simbolos[label].classe;
+}
+
+bool isAtivo(string label)
+{
+	return tabela_simbolos[label].ativo;
 }
