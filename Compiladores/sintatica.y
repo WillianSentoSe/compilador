@@ -21,7 +21,6 @@ struct Simbolo
 	int escopo;
 	int classe;
 	bool ativo;
-
 };
 
 int count = 0;
@@ -102,14 +101,20 @@ E 			: E OPERADOR E
 			| TK_ID
 			{
 				checkLabel($1.label);
-				$$.traducao = "";
 				$$.tipo = getTipo($1.label);
+				$$.traducao = "";
 			}
 			;
 
 ATRIBUICAO	: TK_ID '=' E
 			{
-				$$.traducao = $3.traducao + "\t" +  $1.label + " = " + $3.label + ";\n";
+				string declaracao = typeName($3.tipo) + " "; // TEMPORARIO
+
+				// SE ID EXISTE, DECLARACAO = ""
+				// SENAO, DECLARACAO = "<TIPO> "
+
+
+				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + $3.label + ";\n";
 				//checarTipo($1.tipo, $3.tipo);
 				tabela_simbolos[$1.label] = {$3.tipo, -1, -1, true};
 			}
@@ -132,7 +137,6 @@ OPERADOR 	: '+'
 
 #include "lex.yy.c"
 //#include <unordered_map>
-
 
 int yyparse();
 
@@ -187,7 +191,7 @@ void checkLabel(string s)
 	{
 		yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variavel '" + s + "' nao foi declarada.\n"); 
 	}
-	else 
+	else
 	{
 		cout << "\n [LINHA " << to_string(linha) << "]\n | Variavel declarada encontrada '" << busca->first << "' (" << "typeName(busca->second.tipo)" << ").\n";
 	}
