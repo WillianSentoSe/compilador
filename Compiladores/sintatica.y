@@ -34,15 +34,17 @@ string typeName(int);
 bool checarTipo(int, int);
 void checkLabel(string);
 
+void setTipo(string, int);
 int getTipo(string);
 int getEscopo(string);
 int getClasse(string);
 bool isAtivo(string);
+bool isDeclared(string);
 
 %}
 
-%token TK_NUM TK_CHAR
-%token TK_MAIN TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE TK_TIPO_STRING TK_TIPO_CHAR TK_TIPO_INDEFINIDO
+%token TK_LITERAL TK_CHAR
+%token TK_MAIN TK_VAR TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE TK_TIPO_STRING TK_TIPO_CHAR TK_TIPO_INDEFINIDO
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
 
@@ -78,13 +80,16 @@ COMANDOS	: COMANDO COMANDOS
 
 COMANDO 	: E ';'
 			| ATRIBUICAO ';'
+			| DECLARACAO ';'
 			;
 
 E 			: E OPERADOR E
 			{
 				checarTipo($1.tipo, $3.tipo);
-				$$.traducao = $1.traducao + $3.traducao + "\t" + $1.label + " = " + $1.label + " " + $2.traducao + " " + $3.label + ";\n";
 				$$.tipo = $1.tipo;		// PROVISORIO
+				$$.label = nextLabel();
+				string declaracao = typeName($$.tipo) + " ";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label + ";\n";
 			}
 			| '(' E ')'
 			{
@@ -92,7 +97,7 @@ E 			: E OPERADOR E
 				$$.traducao = $2.traducao;
 				$$.tipo = $2.tipo;
 			}
-			| TK_NUM
+			| TK_LITERAL
 			{	
 				$$.label = nextLabel();
 				$$.traducao = "\t" + typeName($1.tipo) + " " + $$.label + " = " + $1.traducao + ";\n";
@@ -102,27 +107,54 @@ E 			: E OPERADOR E
 			{
 				checkLabel($1.label);
 				$$.tipo = getTipo($1.label);
+
+				if ($$.tipo == TK_TIPO_INDEFINIDO)
+				{
+					yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | A variável '" + $1.label + "' possui valor indefinido.\n");
+				}
+
 				$$.traducao = "";
 			}
 			;
 
 ATRIBUICAO	: TK_ID '=' E
 			{
-				string declaracao = typeName($3.tipo) + " "; // TEMPORARIO
+				string declaracao = ""; // TEMPORARIO
 
-				// SE ID EXISTE, DECLARACAO = ""
-				// SENAO, DECLARACAO = "<TIPO> "
+				if (!isDeclared($1.label))
+				{
+					yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variável '" + $1.label + "' nao declarada.\n");
+				}
 
+				if (getTipo($1.label) == TK_TIPO_INDEFINIDO)
+				{
+					$1.tipo = $3.tipo;
+					setTipo($1.label, $1.tipo);
+					declaracao = typeName($1.tipo) + " ";
+				}
 
 				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + $3.label + ";\n";
-				//checarTipo($1.tipo, $3.tipo);
-				tabela_simbolos[$1.label] = {$3.tipo, -1, -1, true};
 			}
-			| TK_ID '=' TK_CHAR
+
+DECLARACAO 	: TK_VAR TK_ID
 			{
-				$$.traducao = "\t" + typeName($3.tipo) + " " + $1.label + " = " + $3.traducao + ";\n";
-				tabela_simbolos[$1.label] = {$3.tipo, -1, -1, true};
-			} 
+				tabela_simbolos[$2.label] = {TK_TIPO_INDEFINIDO, -1, -1, true};
+			}
+			| TK_VAR TK_ID '=' E
+			{
+
+				if (isDeclared($1.label))
+				{
+					yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variável '" + $1.label + "' já foi declarada.\n");
+				}
+
+				$2.tipo = $4.tipo;
+				string declaracao = typeName($2.tipo) + " ";
+
+				tabela_simbolos[$2.label] = {$2.tipo, -1, -1, true};
+
+				$$.traducao = $4.traducao + "\t" + declaracao + $2.label + " = " + $4.label + ";\n";
+			}
 			;
 
 OPERADOR 	: '+'
@@ -193,7 +225,7 @@ void checkLabel(string s)
 	}
 	else
 	{
-		cout << "\n [LINHA " << to_string(linha) << "]\n | Variavel declarada encontrada '" << busca->first << "' (" << "typeName(busca->second.tipo)" << ").\n";
+		//cout << "\n [LINHA " << to_string(linha) << "]\n | Variavel declarada encontrada '" << busca->first << "' (" << "typeName(busca->second.tipo)" << ").\n";
 	}
 }
 
@@ -220,4 +252,9 @@ int getClasse(string label)
 bool isAtivo(string label)
 {
 	return tabela_simbolos[label].ativo;
+}
+
+bool isDeclared(string label)
+{
+	return tabela_simbolos.find(label) != tabela_simbolos.end();
 }

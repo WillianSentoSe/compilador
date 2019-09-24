@@ -14,7 +14,7 @@ INT_8 		0[0-7]*
 INT_16		0x[1-9a-fA-F]+
 FLOAT 		{DGT}*\.{DGT}+|{DGT}+\.[DGT]*
 
-CHAR 		'.'
+CHAR 		'(\\)?.'
 ID 			{LETRA}({LETRA}|{DGT})*
 
 %%
@@ -24,6 +24,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 {DELIM} 						{}
 
 "main"							{ return TK_MAIN; }
+"var"							{ return TK_VAR; }
 
 "int"							{ return TK_TIPO_INT; }
 "float"							{ return TK_TIPO_FLOAT; }
@@ -34,9 +35,9 @@ ID 			{LETRA}({LETRA}|{DGT})*
 
 [+\-*/=]						{ yylval.traducao = yytext; return *yytext; }
 
-{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_NUM; }
-{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_NUM; }
-{CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_CHAR; }
+{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_LITERAL; }
+{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_LITERAL; }
+{CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_LITERAL; }
 
 {ID}							{ yylval.label = yytext; yylval.tipo = TK_TIPO_INDEFINIDO; return TK_ID; }
 
