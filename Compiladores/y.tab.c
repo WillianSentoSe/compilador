@@ -1328,12 +1328,12 @@ yyreduce:
 				//checarTipo($1.tipo, $3.tipo);
 				//$$.tipo = $1.tipo;				// PROVISORIO
 
-				int newType = convertType(yyvsp[-2].tipo, yyvsp[0].tipo);
-				string typeConvertion = "(" + typeName(newType) + ")";
+				yyval.tipo = convertType(yyvsp[-2].tipo, yyvsp[0].tipo);
+				string typeCast = "(" + typeName(yyval.tipo) + ")";
 
 				yyval.label = nextLabel();
 				string declaracao = typeName(yyval.tipo, false) + " ";
-				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + declaracao + yyval.label + " = " + typeConvertion + yyvsp[-2].label + " " + yyvsp[-1].traducao + " " + typeConvertion + yyvsp[0].label + ";\n";
+				yyval.traducao = yyvsp[-2].traducao + yyvsp[0].traducao + "\t" + declaracao + yyval.label + " = " + typeCast + yyvsp[-2].label + " " + yyvsp[-1].traducao + " " + typeCast + yyvsp[0].label + ";\n";
 			}
 #line 1339 "y.tab.c" /* yacc.c:1652  */
     break;

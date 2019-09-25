@@ -89,12 +89,12 @@ E 			: E OPERADOR E
 				//checarTipo($1.tipo, $3.tipo);
 				//$$.tipo = $1.tipo;				// PROVISORIO
 
-				int newType = convertType($1.tipo, $3.tipo);
-				string typeConvertion = "(" + typeName(newType) + ")";
+				$$.tipo = convertType($1.tipo, $3.tipo);
+				string typeCast = "(" + typeName($$.tipo) + ")";
 
 				$$.label = nextLabel();
 				string declaracao = typeName($$.tipo, false) + " ";
-				$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + typeConvertion + $1.label + " " + $2.traducao + " " + typeConvertion + $3.label + ";\n";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + typeCast + $1.label + " " + $2.traducao + " " + typeCast + $3.label + ";\n";
 			}
 			| '(' E ')'
 			{
