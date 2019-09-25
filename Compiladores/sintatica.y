@@ -30,9 +30,10 @@ unordered_map<string, Simbolo> tabela_simbolos;
 int yylex(void);
 void yyerror(string);
 string nextLabel();
-string typeName(int);
+string typeName(int, bool = false);
 bool checarTipo(int, int);
 void checkLabel(string);
+int convertType(int, int);
 
 void setTipo(string, int);
 int getTipo(string);
@@ -43,8 +44,9 @@ bool isDeclared(string);
 
 %}
 
-%token TK_LITERAL TK_CHAR
-%token TK_MAIN TK_VAR TK_ID TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_DOUBLE TK_TIPO_STRING TK_TIPO_CHAR TK_TIPO_INDEFINIDO
+%token TK_LITERAL TK_ID
+%token TK_MAIN TK_VAR 
+%token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_STRING TK_TIPO_CHAR
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
 
@@ -58,7 +60,7 @@ bool isDeclared(string);
 
 S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
 			{
-				cout << "\n/*Compilador Ç*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\n\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
+				cout << "\n/*Compilador Ç*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\n\n#define true 1\n#define false 0\n\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
 			}
 			;
 
@@ -78,18 +80,21 @@ COMANDOS	: COMANDO COMANDOS
 			}
 			;
 
-COMANDO 	: E ';'
-			| ATRIBUICAO ';'
-			| DECLARACAO ';'
+COMANDO 	: ATRIBUICAO ';'
+			| CMD_DECLARACOES ';'
 			;
 
 E 			: E OPERADOR E
 			{
-				checarTipo($1.tipo, $3.tipo);
-				$$.tipo = $1.tipo;		// PROVISORIO
+				//checarTipo($1.tipo, $3.tipo);
+				//$$.tipo = $1.tipo;				// PROVISORIO
+
+				int newType = convertType($1.tipo, $3.tipo);
+				string typeConvertion = "(" + typeName(newType) + ")";
+
 				$$.label = nextLabel();
-				string declaracao = typeName($$.tipo) + " ";
-				$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label + ";\n";
+				string declaracao = typeName($$.tipo, false) + " ";
+				$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + typeConvertion + $1.label + " " + $2.traducao + " " + typeConvertion + $3.label + ";\n";
 			}
 			| '(' E ')'
 			{
@@ -100,7 +105,7 @@ E 			: E OPERADOR E
 			| TK_LITERAL
 			{	
 				$$.label = nextLabel();
-				$$.traducao = "\t" + typeName($1.tipo) + " " + $$.label + " = " + $1.traducao + ";\n";
+				$$.traducao = "\t" + typeName($1.tipo, false) + " " + $$.label + " = " + $1.traducao + ";\n";
 				$$.tipo = $1.tipo;
 			}
 			| TK_ID
@@ -110,7 +115,7 @@ E 			: E OPERADOR E
 
 				if ($$.tipo == TK_TIPO_INDEFINIDO)
 				{
-					yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | A variável '" + $1.label + "' possui valor indefinido.\n");
+					yyerror("A variável '" + $1.label + "' possui valor indefinido.");
 				}
 
 				$$.traducao = "";
@@ -123,39 +128,63 @@ ATRIBUICAO	: TK_ID '=' E
 
 				if (!isDeclared($1.label))
 				{
-					yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variável '" + $1.label + "' nao declarada.\n");
+					yyerror("Variável '" + $1.label + "' nao declarada.");
 				}
 
-				if (getTipo($1.label) == TK_TIPO_INDEFINIDO)
+				$1.tipo = getTipo($1.label);
+
+				if ($1.tipo == TK_TIPO_INDEFINIDO)
 				{
 					$1.tipo = $3.tipo;
 					setTipo($1.label, $1.tipo);
 					declaracao = typeName($1.tipo) + " ";
 				}
 
-				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + $3.label + ";\n";
+				//checarTipo($1.tipo, $3.tipo);
+				int newType = convertType($1.tipo, $3.tipo);
+				string typeConvertion = "(" + typeName(newType) + ")";
+
+				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeConvertion + $3.label + ";\n";
 			}
 
-DECLARACAO 	: TK_VAR TK_ID
-			{
-				tabela_simbolos[$2.label] = {TK_TIPO_INDEFINIDO, -1, -1, true};
-			}
-			| TK_VAR TK_ID '=' E
-			{
+CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
+					{
+						$$.traducao = $2.traducao;
+					}
+					;
 
-				if (isDeclared($1.label))
-				{
-					yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variável '" + $1.label + "' já foi declarada.\n");
-				}
+LIST_DECLARACOES	: DECLARACAO ',' LIST_DECLARACOES
+					{
+						$$.traducao = $1.traducao + $3.traducao;
+					}
+					| DECLARACAO
+					{
+						$$.traducao = $1.traducao;
+					}
+					;
 
-				$2.tipo = $4.tipo;
-				string declaracao = typeName($2.tipo) + " ";
+DECLARACAO 			: TK_ID
+					{
+						tabela_simbolos[$1.label] = {TK_TIPO_INDEFINIDO, -1, -1, true};
+						$$.traducao = "";
+					}
+					| TK_ID '=' E
+					{
+						if (isDeclared($1.label))
+						{
+							yyerror("Variável '" + $1.label + "' já foi declarada.");
+						}
 
-				tabela_simbolos[$2.label] = {$2.tipo, -1, -1, true};
+						checarTipo($1.tipo, $3.tipo);
 
-				$$.traducao = $4.traducao + "\t" + declaracao + $2.label + " = " + $4.label + ";\n";
-			}
-			;
+						$1.tipo = $3.tipo;
+						string declaracao = typeName($1.tipo) + " ";
+
+						tabela_simbolos[$1.label] = {$1.tipo, -1, -1, true};
+
+						$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + $3.label + ";\n";
+					}
+					;
 
 OPERADOR 	: '+'
 			| '-'
@@ -168,7 +197,15 @@ OPERADOR 	: '+'
 %%
 
 #include "lex.yy.c"
-//#include <unordered_map>
+
+						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		*/
+int tab_conversao[5][5] = 	{	
+							{TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		}, /* TK_TIPO_INDEFINIDO 	*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_INT		, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		}, /* TK_TIPO_BOOL 			*/
+							};
 
 int yyparse();
 
@@ -181,7 +218,8 @@ int main( int argc, char* argv[] )
 
 void yyerror( string MSG )
 {
-	cout << MSG << endl;
+	cout << "\n [LINHA " << to_string(linha) << "] (!)\n";
+	cout << " | " << MSG << "\n\n";
 	exit (0);
 }
 
@@ -190,16 +228,17 @@ string nextLabel()
 	return "$_temp" + to_string(count++);
 }
 
-string typeName (int token)
+string typeName (int token, bool debug)
 {
 	string str;
 
 	switch (token)
 	{
-		case TK_TIPO_INT: 		str = "int"; 		break;
-		case TK_TIPO_FLOAT: 	str = "float"; 		break;
-		case TK_TIPO_CHAR: 		str = "char"; 		break;
-		default:				str = "undefined";	break;
+		case TK_TIPO_INT: 		str = "int"; 						break;
+		case TK_TIPO_FLOAT: 	str = "float"; 						break;
+		case TK_TIPO_CHAR: 		str = "char"; 						break;
+		case TK_TIPO_BOOL:		str = (debug)? "boolean" : "int";	break;
+		default:				str = "undefined";					break;
 	}
 
 	return str;
@@ -207,12 +246,27 @@ string typeName (int token)
 
 bool checarTipo (int tipo1, int tipo2)
 {
-	if (tipo1 != tipo2)
+	if (tipo1 != TK_TIPO_INDEFINIDO && tipo2 != TK_TIPO_INDEFINIDO && tipo1 != tipo2)
 	{
-		yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Conversao implícita encontrada entre (" + typeName(tipo1) + ") e (" + typeName(tipo2) +").\n | É necessario explicitar uma conversão.\n");
+		yyerror("Conversao implícita encontrada entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) +").\n | É necessario explicitar uma conversão.");
 	}
 
 	return true;
+}
+
+int convertType (int type1, int type2)
+{
+	int typeIndex1 = type1 - TK_TIPO_INDEFINIDO;
+	int typeIndex2 = type2 - TK_TIPO_INDEFINIDO;
+
+	int newType = tab_conversao[typeIndex1][typeIndex2];
+
+	if (newType == TK_ERROR)
+	{
+		yyerror("Conversão inválida entre (" + typeName(type1, true) + ") e (" + typeName(type2, true) +").");
+	}
+
+	return newType;
 }
 
 void checkLabel(string s)
@@ -221,7 +275,7 @@ void checkLabel(string s)
 
 	if (busca == tabela_simbolos.end())
 	{
-		yyerror("\n [LINHA " + to_string(linha) + "] (!) \n | Variavel '" + s + "' nao foi declarada.\n"); 
+		yyerror("Variável '" + s + "' nao foi declarada."); 
 	}
 	else
 	{
