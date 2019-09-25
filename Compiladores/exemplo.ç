@@ -1,5 +1,4 @@
 int main()
 {
-	var a, b = 3;
-	a = b + 0.5;
+	var itrue = 2;
 }

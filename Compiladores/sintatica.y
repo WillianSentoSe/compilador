@@ -46,7 +46,7 @@ bool isDeclared(string);
 
 %token TK_LITERAL TK_ID
 %token TK_MAIN TK_VAR 
-%token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_BOOL TK_TIPO_STRING TK_TIPO_CHAR
+%token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
 
@@ -140,11 +140,11 @@ ATRIBUICAO	: TK_ID '=' E
 					declaracao = typeName($1.tipo) + " ";
 				}
 
-				//checarTipo($1.tipo, $3.tipo);
 				int newType = convertType($1.tipo, $3.tipo);
-				string typeConvertion = "(" + typeName(newType) + ")";
+				checarTipo($1.tipo, newType);
+				string typeCast = "(" + typeName(newType) + ")";
 
-				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeConvertion + $3.label + ";\n";
+				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeCast + $3.label + ";\n";
 			}
 
 CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
@@ -201,9 +201,9 @@ OPERADOR 	: '+'
 						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		*/
 int tab_conversao[5][5] = 	{	
 							{TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		}, /* TK_TIPO_INDEFINIDO 	*/
-							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_INT		, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_INT 			*/
 							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
-							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
 							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		}, /* TK_TIPO_BOOL 			*/
 							};
 
@@ -244,11 +244,11 @@ string typeName (int token, bool debug)
 	return str;
 }
 
-bool checarTipo (int tipo1, int tipo2)
+bool checarTipo (int type1, int type2)
 {
-	if (tipo1 != TK_TIPO_INDEFINIDO && tipo2 != TK_TIPO_INDEFINIDO && tipo1 != tipo2)
+	if (type1 != TK_TIPO_INDEFINIDO && type2 != TK_TIPO_INDEFINIDO && type1 != type2)
 	{
-		yyerror("Conversao implícita encontrada entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) +").\n | É necessario explicitar uma conversão.");
+		yyerror("Conversão inválida entre (" + typeName(type1, true) + ") e (" + typeName(type2, true) +").");
 	}
 
 	return true;

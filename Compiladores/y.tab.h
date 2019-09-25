@@ -56,9 +56,9 @@ extern int yydebug;
     TK_TIPO_INDEFINIDO = 262,
     TK_TIPO_INT = 263,
     TK_TIPO_FLOAT = 264,
-    TK_TIPO_BOOL = 265,
-    TK_TIPO_STRING = 266,
-    TK_TIPO_CHAR = 267,
+    TK_TIPO_CHAR = 265,
+    TK_TIPO_BOOL = 266,
+    TK_TIPO_STRING = 267,
     TK_CLASSE_VARIAVEL = 268,
     TK_CLASSE_FUNCAO = 269,
     TK_FIM = 270,
@@ -73,9 +73,9 @@ extern int yydebug;
 #define TK_TIPO_INDEFINIDO 262
 #define TK_TIPO_INT 263
 #define TK_TIPO_FLOAT 264
-#define TK_TIPO_BOOL 265
-#define TK_TIPO_STRING 266
-#define TK_TIPO_CHAR 267
+#define TK_TIPO_CHAR 265
+#define TK_TIPO_BOOL 266
+#define TK_TIPO_STRING 267
 #define TK_CLASSE_VARIAVEL 268
 #define TK_CLASSE_FUNCAO 269
 #define TK_FIM 270

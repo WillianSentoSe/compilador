@@ -157,9 +157,9 @@ extern int yydebug;
     TK_TIPO_INDEFINIDO = 262,
     TK_TIPO_INT = 263,
     TK_TIPO_FLOAT = 264,
-    TK_TIPO_BOOL = 265,
-    TK_TIPO_STRING = 266,
-    TK_TIPO_CHAR = 267,
+    TK_TIPO_CHAR = 265,
+    TK_TIPO_BOOL = 266,
+    TK_TIPO_STRING = 267,
     TK_CLASSE_VARIAVEL = 268,
     TK_CLASSE_FUNCAO = 269,
     TK_FIM = 270,
@@ -174,9 +174,9 @@ extern int yydebug;
 #define TK_TIPO_INDEFINIDO 262
 #define TK_TIPO_INT 263
 #define TK_TIPO_FLOAT 264
-#define TK_TIPO_BOOL 265
-#define TK_TIPO_STRING 266
-#define TK_TIPO_CHAR 267
+#define TK_TIPO_CHAR 265
+#define TK_TIPO_BOOL 266
+#define TK_TIPO_STRING 267
 #define TK_CLASSE_VARIAVEL 268
 #define TK_CLASSE_FUNCAO 269
 #define TK_FIM 270
@@ -499,7 +499,7 @@ static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "TK_LITERAL", "TK_ID", "TK_MAIN",
   "TK_VAR", "TK_TIPO_INDEFINIDO", "TK_TIPO_INT", "TK_TIPO_FLOAT",
-  "TK_TIPO_BOOL", "TK_TIPO_STRING", "TK_TIPO_CHAR", "TK_CLASSE_VARIAVEL",
+  "TK_TIPO_CHAR", "TK_TIPO_BOOL", "TK_TIPO_STRING", "TK_CLASSE_VARIAVEL",
   "TK_CLASSE_FUNCAO", "TK_FIM", "TK_ERROR", "'='", "'+'", "'-'", "'*'",
   "'/'", "'('", "')'", "'{'", "'}'", "';'", "','", "$accept", "S", "BLOCO",
   "COMANDOS", "COMANDO", "E", "ATRIBUICAO", "CMD_DECLARACOES",
@@ -1393,11 +1393,11 @@ yyreduce:
 					declaracao = typeName(yyvsp[-2].tipo) + " ";
 				}
 
-				//checarTipo($1.tipo, $3.tipo);
 				int newType = convertType(yyvsp[-2].tipo, yyvsp[0].tipo);
-				string typeConvertion = "(" + typeName(newType) + ")";
+				checarTipo(yyvsp[-2].tipo, newType);
+				string typeCast = "(" + typeName(newType) + ")";
 
-				yyval.traducao = yyvsp[0].traducao + "\t" + declaracao + yyvsp[-2].label + " = " + typeConvertion + yyvsp[0].label + ";\n";
+				yyval.traducao = yyvsp[0].traducao + "\t" + declaracao + yyvsp[-2].label + " = " + typeCast + yyvsp[0].label + ";\n";
 			}
 #line 1403 "y.tab.c" /* yacc.c:1652  */
     break;
@@ -1695,9 +1695,9 @@ yyreturn:
 						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		*/
 int tab_conversao[5][5] = 	{	
 							{TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		}, /* TK_TIPO_INDEFINIDO 	*/
-							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_INT		, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_INT 			*/
 							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
-							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
 							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		}, /* TK_TIPO_BOOL 			*/
 							};
 
@@ -1738,11 +1738,11 @@ string typeName (int token, bool debug)
 	return str;
 }
 
-bool checarTipo (int tipo1, int tipo2)
+bool checarTipo (int type1, int type2)
 {
-	if (tipo1 != TK_TIPO_INDEFINIDO && tipo2 != TK_TIPO_INDEFINIDO && tipo1 != tipo2)
+	if (type1 != TK_TIPO_INDEFINIDO && type2 != TK_TIPO_INDEFINIDO && type1 != type2)
 	{
-		yyerror("Conversao implícita encontrada entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) +").\n | É necessario explicitar uma conversão.");
+		yyerror("Conversão inválida entre (" + typeName(type1, true) + ") e (" + typeName(type2, true) +").");
 	}
 
 	return true;
