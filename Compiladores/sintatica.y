@@ -15,7 +15,7 @@ struct atributos
 	int tipo;
 };
 
-struct Simbolo
+struct simbolo
 {
 	int tipo;
 	int escopo;
@@ -25,13 +25,13 @@ struct Simbolo
 
 int count = 0;
 int linha = 1;
-unordered_map<string, Simbolo> tabela_simbolos;
+unordered_map<string, simbolo> tabela_simbolos;
 
 int yylex(void);
 void yyerror(string);
 string nextLabel();
 string typeName(int, bool = false);
-bool checarTipo(int, int);
+bool checkTypes(int, int);
 void checkLabel(string);
 int convertType(int, int);
 
@@ -45,7 +45,7 @@ bool isDeclared(string);
 %}
 
 %token TK_LITERAL TK_ID
-%token TK_MAIN TK_VAR 
+%token TK_MAIN TK_VAR TK_TIPO
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
@@ -58,7 +58,7 @@ bool isDeclared(string);
 
 %%
 
-S 			: TK_TIPO_INT TK_MAIN '(' ')' BLOCO
+S 			: TK_TIPO TK_MAIN '(' ')' BLOCO
 			{
 				cout << "\n/*Compilador Ç*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\n\n#define true 1\n#define false 0\n\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
 			}
@@ -86,7 +86,7 @@ COMANDO 	: ATRIBUICAO ';'
 
 E 			: E OPERADOR E
 			{
-				//checarTipo($1.tipo, $3.tipo);
+				//checkTypes($1.tipo, $3.tipo);
 				//$$.tipo = $1.tipo;				// PROVISORIO
 
 				$$.tipo = convertType($1.tipo, $3.tipo);
@@ -101,6 +101,14 @@ E 			: E OPERADOR E
 				$$.label = $2.label;
 				$$.traducao = $2.traducao;
 				$$.tipo = $2.tipo;
+			}
+			| TK_TIPO '<' E '>'
+			{
+				convertType($1.tipo, $3.tipo);
+				$$.traducao = $3.traducao;
+				//$$.label = "(" + typeName($1.tipo) + ")" + $3.label;
+				$$.label = $3.label;
+				$$.tipo = $1.tipo;
 			}
 			| TK_LITERAL
 			{	
@@ -141,10 +149,10 @@ ATRIBUICAO	: TK_ID '=' E
 				}
 
 				int newType = convertType($1.tipo, $3.tipo);
-				checarTipo($1.tipo, newType);
+				checkTypes($1.tipo, newType);
 				string typeCast = "(" + typeName(newType) + ")";
 
-				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeCast + $3.label + ";\n";
+				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeCast + "(" + $3.label + ");\n";
 			}
 
 CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
@@ -175,7 +183,7 @@ DECLARACAO 			: TK_ID
 							yyerror("Variável '" + $1.label + "' já foi declarada.");
 						}
 
-						checarTipo($1.tipo, $3.tipo);
+						checkTypes($1.tipo, $3.tipo);
 
 						$1.tipo = $3.tipo;
 						string declaracao = typeName($1.tipo) + " ";
@@ -244,7 +252,7 @@ string typeName (int token, bool debug)
 	return str;
 }
 
-bool checarTipo (int type1, int type2)
+bool checkTypes (int type1, int type2)
 {
 	if (type1 != TK_TIPO_INDEFINIDO && type2 != TK_TIPO_INDEFINIDO && type1 != type2)
 	{
@@ -271,7 +279,7 @@ int convertType (int type1, int type2)
 
 void checkLabel(string s)
 {
-	unordered_map<string, Simbolo>::const_iterator busca = tabela_simbolos.find(s);
+	unordered_map<string, simbolo>::const_iterator busca = tabela_simbolos.find(s);
 
 	if (busca == tabela_simbolos.end())
 	{

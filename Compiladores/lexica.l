@@ -25,15 +25,17 @@ ID 			{LETRA}({LETRA}|{DGT})*
 {DELIM} 						{}
 
 "main"							{ return TK_MAIN; }
-"var"							{ return TK_VAR; }
+"new"							{ return TK_VAR; }
 
-"int"							{ return TK_TIPO_INT; }
-"float"							{ return TK_TIPO_FLOAT; }
-"string"						{ return TK_TIPO_STRING; }
+"int"							{ yylval.tipo = TK_TIPO_INT; return TK_TIPO; }
+"float"							{ yylval.tipo = TK_TIPO_FLOAT; return TK_TIPO; }
+"char"							{ yylval.tipo = TK_TIPO_CHAR; return TK_TIPO; }
+"bool"							{ yylval.tipo = TK_TIPO_BOOL; return TK_TIPO; }
+"string"						{ yylval.tipo = TK_TIPO_STRING; return TK_TIPO; }
 
 [(){}[\];,]						{ return *yytext; }
 
-[+\-*/=]						{ yylval.traducao = yytext; return *yytext; }
+[+\-*/=<>]						{ yylval.traducao = yytext; return *yytext; }
 
 {INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_LITERAL; }
 {FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_LITERAL; }
