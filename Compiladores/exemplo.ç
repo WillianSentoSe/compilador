@@ -1,5 +1,4 @@
 int main()
 {
-	new a, b, c = 1;
-	a = 2 * float<c + 1>;
+	new a = 1 + 2.0 * 3;
 }

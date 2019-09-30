@@ -46,6 +46,7 @@ bool isDeclared(string);
 
 %token TK_LITERAL TK_ID
 %token TK_MAIN TK_VAR TK_TIPO
+%token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIOR TK_OP_MENOR TK_OP_MAIORIGUAL TK_OP_MENORIGUAL
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
@@ -58,102 +59,133 @@ bool isDeclared(string);
 
 %%
 
-S 			: TK_TIPO TK_MAIN '(' ')' BLOCO
-			{
-				cout << "\n/*Compilador Ç*/\n\n" << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\n\n#define true 1\n#define false 0\n\nint main(void)\n{\n" << $5.traducao << "\treturn 0;\n}" << endl; 
-			}
-			;
+S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
+					{
+						cout << "\n/*Compilador Ç*/\n\n";
+						cout << "#include <iostream>\n#include <string.h>\n#include <stdio.h>\n#include <unordered_map>\n\n";
+						cout << "#define true 1\n#define false 0\n\n";
+						cout << "int main(void)\n{\n" << $5.traducao << "\treturn 0;\n}\n"; 
+					}
+					;
 
-BLOCO		: '{' COMANDOS '}'
-			{
-				$$.traducao = $2.traducao;
-			}
-			;
+BLOCO				: '{' COMANDOS '}'
+					{
+						$$.traducao = $2.traducao;
+					}
+					;
 
-COMANDOS	: COMANDO COMANDOS
-			{
-				$$.traducao = $1.traducao + $2.traducao;
-			}
-			|
-			{
-				$$.traducao = "";
-			}
-			;
+COMANDOS			: COMANDO COMANDOS
+					{
+						$$.traducao = $1.traducao + $2.traducao;
+					}
+					|
+					{
+						$$.traducao = "";
+					}
+					;
 
-COMANDO 	: ATRIBUICAO ';'
-			| CMD_DECLARACOES ';'
-			;
+COMANDO 			: ATRIBUICAO ';'
+					| CMD_DECLARACOES ';'
+					;
 
-E 			: E OPERADOR E
-			{
-				//checkTypes($1.tipo, $3.tipo);
-				//$$.tipo = $1.tipo;				// PROVISORIO
+EXPRESSAO			: EXP_ARITMETICA
+					{
+						$$.traducao = $1.traducao;
+						$$.label = $1.label;
+						$$.tipo = $1.tipo;
+					}
+					| EXP_RELACIONAL
+					{
+						$$.traducao = $1.traducao;
+						$$.label = $1.label;
+						$$.tipo = $1.tipo;
+					}
+					| EXP_SIMPLES
+					{
+						$$.traducao = $1.traducao;
+						$$.label = $1.label;
+						$$.tipo = $1.tipo;
+					}
+					;
 
-				$$.tipo = convertType($1.tipo, $3.tipo);
-				string typeCast = "(" + typeName($$.tipo) + ")";
+EXP_SIMPLES			: '(' EXPRESSAO ')'
+					{
+						$$.label = $2.label;
+						$$.traducao = $2.traducao;
+						$$.tipo = $2.tipo;
+					}
+					| TK_TIPO '<' EXPRESSAO '>'
+					{
+						convertType($1.tipo, $3.tipo);
+						$$.traducao = $3.traducao;
+						$$.label = $3.label;
+						$$.tipo = $1.tipo;
+					}
+					| TK_LITERAL
+					{	
+						$$.label = nextLabel();
+						$$.traducao = "\t" + typeName($1.tipo, false) + " " + $$.label + " = " + $1.traducao + ";\n";
+						$$.tipo = $1.tipo;
+					}
+					| TK_ID
+					{
+						checkLabel($1.label);
+						$$.tipo = getTipo($1.label);
 
-				$$.label = nextLabel();
-				string declaracao = typeName($$.tipo, false) + " ";
-				$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + typeCast + $1.label + " " + $2.traducao + " " + typeCast + $3.label + ";\n";
-			}
-			| '(' E ')'
-			{
-				$$.label = $2.label;
-				$$.traducao = $2.traducao;
-				$$.tipo = $2.tipo;
-			}
-			| TK_TIPO '<' E '>'
-			{
-				convertType($1.tipo, $3.tipo);
-				$$.traducao = $3.traducao;
-				//$$.label = "(" + typeName($1.tipo) + ")" + $3.label;
-				$$.label = $3.label;
-				$$.tipo = $1.tipo;
-			}
-			| TK_LITERAL
-			{	
-				$$.label = nextLabel();
-				$$.traducao = "\t" + typeName($1.tipo, false) + " " + $$.label + " = " + $1.traducao + ";\n";
-				$$.tipo = $1.tipo;
-			}
-			| TK_ID
-			{
-				checkLabel($1.label);
-				$$.tipo = getTipo($1.label);
+						if ($$.tipo == TK_TIPO_INDEFINIDO)
+						{
+							yyerror("A variável '" + $1.label + "' possui valor indefinido.");
+						}
 
-				if ($$.tipo == TK_TIPO_INDEFINIDO)
-				{
-					yyerror("A variável '" + $1.label + "' possui valor indefinido.");
-				}
+						$$.traducao = "";
+					}
+					;
 
-				$$.traducao = "";
-			}
-			;
+EXP_ARITMETICA		: EXPRESSAO OPERADOR EXPRESSAO
+					{
+						$$.tipo = convertType($1.tipo, $3.tipo);
+						string typeCast = "(" + typeName($$.tipo) + ")";
 
-ATRIBUICAO	: TK_ID '=' E
-			{
-				string declaracao = ""; // TEMPORARIO
+						$$.label = nextLabel();
+						string declaracao = typeName($$.tipo, false) + " ";
+						$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + typeCast + $1.label + " " + $2.traducao + " " + typeCast + $3.label + ";\n";
+					}
+					;
 
-				if (!isDeclared($1.label))
-				{
-					yyerror("Variável '" + $1.label + "' nao declarada.");
-				}
+EXP_RELACIONAL		: EXPRESSAO OP_RELACIONAL EXPRESSAO
+					{
+						$$.tipo = convertType($1.tipo, $3.tipo);
+						string typeCast = "(" + typeName($$.tipo) + ")";
 
-				$1.tipo = getTipo($1.label);
+						$$.label = nextLabel();
+						string declaracao = typeName($$.tipo, false) + " ";
+						$$.traducao = $1.traducao + $3.traducao + "\t" + declaracao + $$.label + " = " + typeCast + $1.label + " " + $2.traducao + " " + typeCast + $3.label + ";\n";
+					}
 
-				if ($1.tipo == TK_TIPO_INDEFINIDO)
-				{
-					$1.tipo = $3.tipo;
-					setTipo($1.label, $1.tipo);
-					declaracao = typeName($1.tipo) + " ";
-				}
+ATRIBUICAO			: TK_ID '=' EXPRESSAO
+					{
+						string declaracao = ""; // TEMPORARIO
 
-				int newType = convertType($1.tipo, $3.tipo);
-				checkTypes($1.tipo, newType);
-				string typeCast = "(" + typeName(newType) + ")";
+						if (!isDeclared($1.label))
+						{
+							yyerror("Variável '" + $1.label + "' nao declarada.");
+						}
 
-				$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeCast + "(" + $3.label + ");\n";
-			}
+						$1.tipo = getTipo($1.label);
+
+						if ($1.tipo == TK_TIPO_INDEFINIDO)
+						{
+							$1.tipo = $3.tipo;
+							setTipo($1.label, $1.tipo);
+							declaracao = typeName($1.tipo) + " ";
+						}
+
+						int newType = convertType($1.tipo, $3.tipo);
+						checkTypes($1.tipo, newType);
+						string typeCast = "(" + typeName(newType) + ")";
+
+						$$.traducao = $3.traducao + "\t" + declaracao + $1.label + " = " + typeCast + "(" + $3.label + ");\n";
+					}
 
 CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
 					{
@@ -176,7 +208,7 @@ DECLARACAO 			: TK_ID
 						tabela_simbolos[$1.label] = {TK_TIPO_INDEFINIDO, -1, -1, true};
 						$$.traducao = "";
 					}
-					| TK_ID '=' E
+					| TK_ID '=' EXPRESSAO
 					{
 						if (isDeclared($1.label))
 						{
@@ -194,11 +226,20 @@ DECLARACAO 			: TK_ID
 					}
 					;
 
-OPERADOR 	: '+'
-			| '-'
-			| '*'
-			| '/'
-			;
+OPERADOR 			: '+'
+					| '-'
+					| '*'
+					| '/'
+					;
+
+OP_RELACIONAL		: '<'
+					| '>'
+					| '='
+					| TK_OP_MAIORIGUAL
+					| TK_OP_MENORIGUAL
+					| TK_OP_IGUALDADE
+					| TK_OP_DESIGUALDADE
+					;
 
 
 

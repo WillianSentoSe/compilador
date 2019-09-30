@@ -20,30 +20,35 @@ ID 			{LETRA}({LETRA}|{DGT})*
 
 %%
 
-"\n"							{linha++;}
+"\n"							{ linha++;																		}
 
-{DELIM} 						{}
+{DELIM} 						{																				}
 
-"main"							{ return TK_MAIN; }
-"new"							{ return TK_VAR; }
+"main"							{ return TK_MAIN; 																}
+"new"							{ return TK_VAR; 																}
 
-"int"							{ yylval.tipo = TK_TIPO_INT; return TK_TIPO; }
-"float"							{ yylval.tipo = TK_TIPO_FLOAT; return TK_TIPO; }
-"char"							{ yylval.tipo = TK_TIPO_CHAR; return TK_TIPO; }
-"bool"							{ yylval.tipo = TK_TIPO_BOOL; return TK_TIPO; }
-"string"						{ yylval.tipo = TK_TIPO_STRING; return TK_TIPO; }
+"int"							{ yylval.tipo = TK_TIPO_INT; return TK_TIPO;									}
+"float"							{ yylval.tipo = TK_TIPO_FLOAT; return TK_TIPO;									}
+"char"							{ yylval.tipo = TK_TIPO_CHAR; return TK_TIPO;									}
+"bool"							{ yylval.tipo = TK_TIPO_BOOL; return TK_TIPO;									}
+"string"						{ yylval.tipo = TK_TIPO_STRING; return TK_TIPO;									}
 
-[(){}[\];,]						{ return *yytext; }
+">="							{ yylval.traducao = yytext; return TK_OP_MAIORIGUAL;							}
+"<="							{ yylval.traducao = yytext; return TK_OP_MENORIGUAL;							}
+"=="							{ yylval.traducao = yytext; return TK_OP_IGUALDADE;								}
+"!="							{ yylval.traducao = yytext; return TK_OP_DESIGUALDADE;							}
 
-[+\-*/=<>]						{ yylval.traducao = yytext; return *yytext; }
+[(){}[\];,]						{ return *yytext; 																}
 
-{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_LITERAL; }
-{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_LITERAL; }
-{CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_LITERAL; }
-{BOOL}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_BOOL; return TK_LITERAL; }
+[+\-*/=<>]						{ yylval.traducao = yytext; return *yytext; 									}
 
-{ID}							{ yylval.label = yytext; yylval.tipo = TK_TIPO_INDEFINIDO; return TK_ID; }
+{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_LITERAL; 		}
+{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_LITERAL; 	}
+{CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_LITERAL; 		}
+{BOOL}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_BOOL; return TK_LITERAL; 		}
 
-.								{ *yytext; }
+{ID}							{ yylval.label = yytext; yylval.tipo = TK_TIPO_INDEFINIDO; return TK_ID; 		}
+
+.								{ *yytext; 																		}
 
 %%
