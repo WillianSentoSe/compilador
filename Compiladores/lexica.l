@@ -38,11 +38,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "=="|"!="						{ yylval.traducao = yytext; return TK_OP_IGUALDADE;								}
 
 "and"							{ yylval.traducao = "&&"; 	return TK_OP_LOGICAL_AND;							}
-"band"							{ yylval.traducao = "&"; 	return TK_OP_AND;									}
 "or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}
-"xor"							{ yylval.traducao = "^"; 	return TK_OP_XOR;									}
-"bor"							{ yylval.traducao = "|"; 	return TK_OP_IOR;									}
-"not"							{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
 [(){}[\];,<>]					{ return *yytext; 																}
 
