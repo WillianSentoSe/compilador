@@ -25,25 +25,34 @@ ID 			{LETRA}({LETRA}|{DGT})*
 {DELIM} 						{																				}
 
 "main"							{ return TK_MAIN; 																}
-"new"							{ return TK_VAR; 																}
+"var"							{ return TK_VAR; 																}
 
-"int"							{ yylval.tipo = TK_TIPO_INT; return TK_TIPO;									}
-"float"							{ yylval.tipo = TK_TIPO_FLOAT; return TK_TIPO;									}
-"char"							{ yylval.tipo = TK_TIPO_CHAR; return TK_TIPO;									}
-"bool"							{ yylval.tipo = TK_TIPO_BOOL; return TK_TIPO;									}
-"string"						{ yylval.tipo = TK_TIPO_STRING; return TK_TIPO;									}
+"int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
+"float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}
+"char"							{ yylval.tipo = TK_TIPO_CHAR; 	return TK_TIPO;									}
+"bool"							{ yylval.tipo = TK_TIPO_BOOL; 	return TK_TIPO;									}
+"string"						{ yylval.tipo = TK_TIPO_STRING;	return TK_TIPO;									}
 
 ">="							{ yylval.traducao = yytext; return TK_OP_MAIORIGUAL;							}
 "<="							{ yylval.traducao = yytext; return TK_OP_MENORIGUAL;							}
-"=="							{ yylval.traducao = yytext; return TK_OP_IGUALDADE;								}
-"!="							{ yylval.traducao = yytext; return TK_OP_DESIGUALDADE;							}
+"=="|"!="						{ yylval.traducao = yytext; return TK_OP_IGUALDADE;								}
 
-[(){}[\];,]						{ return *yytext; 																}
+"and"							{ yylval.traducao = "&&"; 	return TK_OP_LOGICAL_AND;							}
+"band"							{ yylval.traducao = "&"; 	return TK_OP_AND;									}
+"or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}
+"xor"							{ yylval.traducao = "^"; 	return TK_OP_XOR;									}
+"bor"							{ yylval.traducao = "|"; 	return TK_OP_IOR;									}
+"not"							{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
-[+\-*/=<>]						{ yylval.traducao = yytext; return *yytext; 									}
+[(){}[\];,<>]					{ return *yytext; 																}
 
-{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; return TK_LITERAL; 		}
-{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT; return TK_LITERAL; 	}
+
+[=]								{ yylval.traducao = yytext; return *yytext; 									}
+[+-]							{ yylval.traducao = yytext; return TK_OP_ADD; 									}
+[*/]							{ yylval.traducao = yytext; return TK_OP_MUL; 									}
+
+{INT}|{INT_8}|{INT_16}			{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_INT; 	return TK_LITERAL; 		}
+{FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT;return TK_LITERAL; 		}
 {CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_LITERAL; 		}
 {BOOL}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_BOOL; return TK_LITERAL; 		}
 

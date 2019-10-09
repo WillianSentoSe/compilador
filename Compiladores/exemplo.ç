@@ -1,4 +1,4 @@
 int main()
 {
-	new a = 1 + 2.0 * 3;
+	var b = int(0.5 + 1);
 }

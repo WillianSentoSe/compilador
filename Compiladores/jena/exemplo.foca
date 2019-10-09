@@ -1,8 +1,0 @@
-int main()
-{	
-	t = 1; 
-	b = 2; 
-	bunda = 1.41;
-	a = bunda;
-	batata = b; 
-}
