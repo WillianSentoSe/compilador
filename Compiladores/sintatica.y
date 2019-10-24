@@ -51,7 +51,7 @@ bool isDeclared(string);
 %}
 
 %token TK_LITERAL TK_ID
-%token TK_MAIN TK_VAR TK_TIPO
+%token TK_MAIN TK_VAR TK_TIPO TK_IF
 %token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
@@ -70,13 +70,14 @@ S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
 						cout << "\n/*Compilador Ç*/\n\n";
 						cout << "\n#include <stdio.h>\n\n";
 						cout << "#define true 1\n#define false 0\n\n";
-						cout << "int main(void)\n{\n" << $5.traducao << "\n\treturn 0;\n}\n"; 
+						cout << "int main(void)\n{\n" << $5.declaracao + "\n" + $5.traducao << "\n\treturn 0;\n}\n"; 
 					}
 					;
 
 BLOCO				: '{' COMANDOS '}'
 					{
-						$$.traducao = $2.declaracao + "\n" + $2.traducao;
+						$$.traducao = $2.traducao;
+						$$.declaracao = $2.declaracao;
 					}
 					;
 
@@ -93,6 +94,7 @@ COMANDOS			: COMANDO COMANDOS
 
 COMANDO 			: ATRIBUICAO ';'
 					| CMD_DECLARACOES ';'
+					| CMD_IF
 					;
 
 EXP_SIMPLES			: TK_LITERAL
@@ -283,6 +285,19 @@ DECLARACAO 			: TK_ID
 						$$.traducao = $3.traducao + cmd($1.label + " = " + $3.label);
 					}
 					;
+
+CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
+					{
+						$$.traducao = $3.traducao;
+						$$.declaracao = $3.declaracao;
+						string newLabel = nextLabel();
+						string labelGoto = nextLabel();
+						$$.declaracao += dcl(TK_TIPO_BOOL, newLabel);
+						$$.traducao += cmd(newLabel + " = !" + $3.label);
+						$$.traducao += cmd("if (" + newLabel + ") goto " + labelGoto);
+						$$.traducao += "\t{\n" + $5.declaracao + "\n" + $5.traducao + "\t}\n";
+						$$.traducao += '\t' + labelGoto + ":\n";
+					}
 
 OP_RELACIONAL		: '<'
 					{

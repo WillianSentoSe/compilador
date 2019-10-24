@@ -1,9 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
-   Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,9 +30,6 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
-
 #ifndef YY_YY_Y_TAB_H_INCLUDED
 # define YY_YY_Y_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -54,28 +50,29 @@ extern int yydebug;
     TK_MAIN = 260,
     TK_VAR = 261,
     TK_TIPO = 262,
-    TK_OP_IGUALDADE = 263,
-    TK_OP_DESIGUALDADE = 264,
-    TK_OP_MAIORIGUAL = 265,
-    TK_OP_MENORIGUAL = 266,
-    TK_OP_NOT = 267,
-    TK_OP_LOGICAL_AND = 268,
-    TK_OP_AND = 269,
-    TK_OP_LOGICAL_OR = 270,
-    TK_OP_XOR = 271,
-    TK_OP_IOR = 272,
-    TK_OP_ADD = 273,
-    TK_OP_MUL = 274,
-    TK_TIPO_INDEFINIDO = 275,
-    TK_TIPO_INT = 276,
-    TK_TIPO_FLOAT = 277,
-    TK_TIPO_CHAR = 278,
-    TK_TIPO_BOOL = 279,
-    TK_TIPO_STRING = 280,
-    TK_CLASSE_VARIAVEL = 281,
-    TK_CLASSE_FUNCAO = 282,
-    TK_FIM = 283,
-    TK_ERROR = 284
+    TK_IF = 263,
+    TK_OP_IGUALDADE = 264,
+    TK_OP_DESIGUALDADE = 265,
+    TK_OP_MAIORIGUAL = 266,
+    TK_OP_MENORIGUAL = 267,
+    TK_OP_NOT = 268,
+    TK_OP_LOGICAL_AND = 269,
+    TK_OP_AND = 270,
+    TK_OP_LOGICAL_OR = 271,
+    TK_OP_XOR = 272,
+    TK_OP_IOR = 273,
+    TK_OP_ADD = 274,
+    TK_OP_MUL = 275,
+    TK_TIPO_INDEFINIDO = 276,
+    TK_TIPO_INT = 277,
+    TK_TIPO_FLOAT = 278,
+    TK_TIPO_CHAR = 279,
+    TK_TIPO_BOOL = 280,
+    TK_TIPO_STRING = 281,
+    TK_CLASSE_VARIAVEL = 282,
+    TK_CLASSE_FUNCAO = 283,
+    TK_FIM = 284,
+    TK_ERROR = 285
   };
 #endif
 /* Tokens.  */
@@ -84,28 +81,29 @@ extern int yydebug;
 #define TK_MAIN 260
 #define TK_VAR 261
 #define TK_TIPO 262
-#define TK_OP_IGUALDADE 263
-#define TK_OP_DESIGUALDADE 264
-#define TK_OP_MAIORIGUAL 265
-#define TK_OP_MENORIGUAL 266
-#define TK_OP_NOT 267
-#define TK_OP_LOGICAL_AND 268
-#define TK_OP_AND 269
-#define TK_OP_LOGICAL_OR 270
-#define TK_OP_XOR 271
-#define TK_OP_IOR 272
-#define TK_OP_ADD 273
-#define TK_OP_MUL 274
-#define TK_TIPO_INDEFINIDO 275
-#define TK_TIPO_INT 276
-#define TK_TIPO_FLOAT 277
-#define TK_TIPO_CHAR 278
-#define TK_TIPO_BOOL 279
-#define TK_TIPO_STRING 280
-#define TK_CLASSE_VARIAVEL 281
-#define TK_CLASSE_FUNCAO 282
-#define TK_FIM 283
-#define TK_ERROR 284
+#define TK_IF 263
+#define TK_OP_IGUALDADE 264
+#define TK_OP_DESIGUALDADE 265
+#define TK_OP_MAIORIGUAL 266
+#define TK_OP_MENORIGUAL 267
+#define TK_OP_NOT 268
+#define TK_OP_LOGICAL_AND 269
+#define TK_OP_AND 270
+#define TK_OP_LOGICAL_OR 271
+#define TK_OP_XOR 272
+#define TK_OP_IOR 273
+#define TK_OP_ADD 274
+#define TK_OP_MUL 275
+#define TK_TIPO_INDEFINIDO 276
+#define TK_TIPO_INT 277
+#define TK_TIPO_FLOAT 278
+#define TK_TIPO_CHAR 279
+#define TK_TIPO_BOOL 280
+#define TK_TIPO_STRING 281
+#define TK_CLASSE_VARIAVEL 282
+#define TK_CLASSE_FUNCAO 283
+#define TK_FIM 284
+#define TK_ERROR 285
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

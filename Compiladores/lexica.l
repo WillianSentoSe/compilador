@@ -25,7 +25,9 @@ ID 			{LETRA}({LETRA}|{DGT})*
 {DELIM} 						{																				}
 
 "main"							{ return TK_MAIN; 																}
+"if"							{ return TK_IF; 																}
 "var"							{ return TK_VAR; 																}
+
 
 "int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
 "float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}

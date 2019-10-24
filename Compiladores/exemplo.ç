@@ -1,4 +1,12 @@
 int main()
 {
-	var sadasdsadsad = 1 + 1;
+	var a;
+	a = true;
+
+	if (true)
+	{
+		a = 1;
+	}
+
+	a = true;
 }
