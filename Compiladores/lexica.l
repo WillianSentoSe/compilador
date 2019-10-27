@@ -28,6 +28,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "if"							{ return TK_IF; 																}
 "var"							{ return TK_VAR; 																}
 "else"							{ return TK_ELSE;																}
+"while"							{ return TK_WHILE;																}
 
 "int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
 "float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}

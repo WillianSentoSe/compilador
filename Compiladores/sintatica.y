@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #define YYSTYPE atributos
-#define DISPLAY_COLOR false
+#define DISPLAY_COLOR true
 
 using namespace std;
 
@@ -45,6 +45,7 @@ int neoConvertType (atributos*, atributos*, atributos*, int forceType = 0);
 string cmd(string, string = "");
 string dcl(int, string);
 string cst (string, int, string);
+string lbl(string);
 
 void setTipo(string, int);
 int getTipo(string);
@@ -59,7 +60,7 @@ void printHash();
 %}
 
 %token TK_LITERAL TK_ID
-%token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE
+%token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE
 %token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
@@ -103,6 +104,7 @@ COMANDOS			: COMANDO COMANDOS
 COMANDO 			: ATRIBUICAO ';'
 					| CMD_DECLARACOES ';'
 					| CMD_IF
+					| CMD_WHILE
 					;
 
 EXP_SIMPLES			: TK_LITERAL
@@ -321,7 +323,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						$$.traducao += cmd("if (" + newLabel + ") goto " + labelGoto);
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
-						$$.traducao += '\t' + labelGoto + ":\n";
+						$$.traducao += lbl(labelGoto);
 					}
 					| TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 					{
@@ -339,10 +341,48 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						$$.traducao += cmd("if (" + newLabel + ") goto " + labelGoto);
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
-						$$.traducao += '\t' + labelGoto + ":\n";
+						$$.traducao += lbl(labelGoto);
 
 						$$.declaracao += $7.declaracao;
 						$$.traducao += $7.traducao;
+					}
+					;
+
+CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' BLOCO
+					{
+						if ($3.tipo != TK_TIPO_BOOL)
+						{
+							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+						}
+
+						// Declarando novos Labels
+						string lblInicio = nextLBL();
+						string lblFim = nextLBL();
+
+						// Imprimir Label de Inicio
+						$$.traducao = lbl(lblInicio);
+
+						// Obter Tradução e Declaração da Expressão
+						$$.declaracao += $3.declaracao;
+						$$.traducao += $3.traducao;
+
+						// Negar Expressão
+						string tmpExpNegada = nextTMP();
+						$$.declaracao += dcl(TK_TIPO_BOOL, tmpExpNegada);
+						$$.traducao += cmd(tmpExpNegada + " = !" + $3.label);
+
+						// Imprimir Salto Condicional para o Fim
+						$$.traducao += cmd("if (" + tmpExpNegada + ") goto " + lblFim);
+
+						// Imprimir Bloco
+						$$.declaracao += $5.declaracao;
+						$$.traducao += $5.traducao;
+
+						// Imprimir Salto Incondicional para o Inicio
+						$$.traducao += cmd("goto " + lblInicio);
+
+						// Imprimir Label de Fim
+						$$.traducao += lbl(lblFim);
 					}
 					;
 
@@ -532,6 +572,11 @@ string cmd (string s, string c)
 string dcl (int tipo, string label)
 {
 	return cmd(typeName(tipo) + "\t" + label);
+}
+
+string lbl (string label)
+{
+	return "\t" + label + ":\n";
 }
 
 string cst (string label1, int tipo, string label2)

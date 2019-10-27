@@ -1,4 +1,9 @@
 int main()
 {
-	var a = 1, b = 0.5, c = a * a + b * b;
+	var a = 0;
+
+	while (a < 3){
+		a = a + 1;
+	}
+
 }
