@@ -74,27 +74,28 @@ Gramática
    32           | TK_ID '=' EXPRESSAO
 
    33 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO
+   34       | TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 
-   34 OP_RELACIONAL: '<'
-   35              | '>'
-   36              | TK_OP_MAIORIGUAL
-   37              | TK_OP_MENORIGUAL
+   35 OP_RELACIONAL: '<'
+   36              | '>'
+   37              | TK_OP_MAIORIGUAL
+   38              | TK_OP_MENORIGUAL
 
 
 Terminais, com as regras onde eles aparecem
 
 $end (0) 0
-'(' (40) 1 10 11 33
-')' (41) 1 10 11 33
+'(' (40) 1 10 11 33 34
+')' (41) 1 10 11 33 34
 '*' (42)
 '+' (43)
 ',' (44) 29
 '-' (45)
 '/' (47)
 ';' (59) 5 6
-'<' (60) 34
+'<' (60) 35
 '=' (61) 27 32
-'>' (62) 35
+'>' (62) 36
 '{' (123) 2
 '}' (125) 2
 error (256)
@@ -103,73 +104,74 @@ TK_ID (259) 9 27 31 32
 TK_MAIN (260) 1
 TK_VAR (261) 28
 TK_TIPO (262) 1 11
-TK_IF (263) 33
-TK_OP_IGUALDADE (264) 21
-TK_OP_DESIGUALDADE (265)
-TK_OP_MAIORIGUAL (266) 36
-TK_OP_MENORIGUAL (267) 37
-TK_OP_NOT (268) 13
-TK_OP_LOGICAL_AND (269) 23
-TK_OP_AND (270)
-TK_OP_LOGICAL_OR (271) 25
-TK_OP_XOR (272)
-TK_OP_IOR (273)
-TK_OP_ADD (274) 17
-TK_OP_MUL (275) 15
-TK_TIPO_INDEFINIDO (276)
-TK_TIPO_INT (277)
-TK_TIPO_FLOAT (278)
-TK_TIPO_CHAR (279)
-TK_TIPO_BOOL (280)
-TK_TIPO_STRING (281)
-TK_CLASSE_VARIAVEL (282)
-TK_CLASSE_FUNCAO (283)
-TK_FIM (284)
-TK_ERROR (285)
+TK_IF (263) 33 34
+TK_ELSE (264) 34
+TK_OP_IGUALDADE (265) 21
+TK_OP_DESIGUALDADE (266)
+TK_OP_MAIORIGUAL (267) 37
+TK_OP_MENORIGUAL (268) 38
+TK_OP_NOT (269) 13
+TK_OP_LOGICAL_AND (270) 23
+TK_OP_AND (271)
+TK_OP_LOGICAL_OR (272) 25
+TK_OP_XOR (273)
+TK_OP_IOR (274)
+TK_OP_ADD (275) 17
+TK_OP_MUL (276) 15
+TK_TIPO_INDEFINIDO (277)
+TK_TIPO_INT (278)
+TK_TIPO_FLOAT (279)
+TK_TIPO_CHAR (280)
+TK_TIPO_BOOL (281)
+TK_TIPO_STRING (282)
+TK_CLASSE_VARIAVEL (283)
+TK_CLASSE_FUNCAO (284)
+TK_FIM (285)
+TK_ERROR (286)
 
 
 Não terminais com as regras onde eles aparecem
 
-$accept (44)
+$accept (45)
     à esquerda: 0
-S (45)
+S (46)
     à esquerda: 1, à direita: 0
-BLOCO (46)
-    à esquerda: 2, à direita: 1 33
-COMANDOS (47)
+BLOCO (47)
+    à esquerda: 2, à direita: 1 33 34
+COMANDOS (48)
     à esquerda: 3 4, à direita: 2 3
-COMANDO (48)
+COMANDO (49)
     à esquerda: 5 6 7, à direita: 3
-EXP_SIMPLES (49)
+EXP_SIMPLES (50)
     à esquerda: 8 9 10 11, à direita: 12
-EXP_NOT (50)
+EXP_NOT (51)
     à esquerda: 12 13, à direita: 13 14 15
-EXP_ARITMETICA_MUL (51)
+EXP_ARITMETICA_MUL (52)
     à esquerda: 14 15, à direita: 15 16 17
-EXP_ARITMETICA_ADD (52)
+EXP_ARITMETICA_ADD (53)
     à esquerda: 16 17, à direita: 17 18 19
-EXP_RELACIONAL (53)
+EXP_RELACIONAL (54)
     à esquerda: 18 19, à direita: 19 20 21
-EXP_IGUALDADE (54)
+EXP_IGUALDADE (55)
     à esquerda: 20 21, à direita: 21 22 23
-EXP_LOGICAL_AND (55)
+EXP_LOGICAL_AND (56)
     à esquerda: 22 23, à direita: 23 24 25
-EXP_LOGICAL_OR (56)
+EXP_LOGICAL_OR (57)
     à esquerda: 24 25, à direita: 25 26
-EXPRESSAO (57)
-    à esquerda: 26, à direita: 10 11 27 32 33
-ATRIBUICAO (58)
+EXPRESSAO (58)
+    à esquerda: 26, à direita: 10 11 27 32 33 34
+ATRIBUICAO (59)
     à esquerda: 27, à direita: 5
-CMD_DECLARACOES (59)
+CMD_DECLARACOES (60)
     à esquerda: 28, à direita: 6
-LIST_DECLARACOES (60)
+LIST_DECLARACOES (61)
     à esquerda: 29 30, à direita: 28 29
-DECLARACAO (61)
+DECLARACAO (62)
     à esquerda: 31 32, à direita: 29 30
-CMD_IF (62)
-    à esquerda: 33, à direita: 7
-OP_RELACIONAL (63)
-    à esquerda: 34 35 36 37, à direita: 19
+CMD_IF (63)
+    à esquerda: 33 34, à direita: 7
+OP_RELACIONAL (64)
+    à esquerda: 35 36 37 38, à direita: 19
 
 
 Estado 0
@@ -269,6 +271,7 @@ Estado 10
 Estado 11
 
    33 CMD_IF: TK_IF . '(' EXPRESSAO ')' BLOCO
+   34       | TK_IF . '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 
     '('  deslocar, e ir ao estado 21
 
@@ -369,6 +372,7 @@ Estado 20
 Estado 21
 
    33 CMD_IF: TK_IF '(' . EXPRESSAO ')' BLOCO
+   34       | TK_IF '(' . EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 
     TK_LITERAL  deslocar, e ir ao estado 26
     TK_ID       deslocar, e ir ao estado 27
@@ -591,6 +595,7 @@ Estado 41
 Estado 42
 
    33 CMD_IF: TK_IF '(' EXPRESSAO . ')' BLOCO
+   34       | TK_IF '(' EXPRESSAO . ')' BLOCO TK_ELSE BLOCO
 
     ')'  deslocar, e ir ao estado 58
 
@@ -661,30 +666,30 @@ Estado 47
 
 Estado 48
 
-   36 OP_RELACIONAL: TK_OP_MAIORIGUAL .
-
-    $padrão  reduzir usando a regra 36 (OP_RELACIONAL)
-
-
-Estado 49
-
-   37 OP_RELACIONAL: TK_OP_MENORIGUAL .
+   37 OP_RELACIONAL: TK_OP_MAIORIGUAL .
 
     $padrão  reduzir usando a regra 37 (OP_RELACIONAL)
 
 
+Estado 49
+
+   38 OP_RELACIONAL: TK_OP_MENORIGUAL .
+
+    $padrão  reduzir usando a regra 38 (OP_RELACIONAL)
+
+
 Estado 50
 
-   34 OP_RELACIONAL: '<' .
+   35 OP_RELACIONAL: '<' .
 
-    $padrão  reduzir usando a regra 34 (OP_RELACIONAL)
+    $padrão  reduzir usando a regra 35 (OP_RELACIONAL)
 
 
 Estado 51
 
-   35 OP_RELACIONAL: '>' .
+   36 OP_RELACIONAL: '>' .
 
-    $padrão  reduzir usando a regra 35 (OP_RELACIONAL)
+    $padrão  reduzir usando a regra 36 (OP_RELACIONAL)
 
 
 Estado 52
@@ -774,6 +779,7 @@ Estado 57
 Estado 58
 
    33 CMD_IF: TK_IF '(' EXPRESSAO ')' . BLOCO
+   34       | TK_IF '(' EXPRESSAO ')' . BLOCO TK_ELSE BLOCO
 
     '{'  deslocar, e ir ao estado 7
 
@@ -859,6 +865,9 @@ Estado 66
 Estado 67
 
    33 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO .
+   34       | TK_IF '(' EXPRESSAO ')' BLOCO . TK_ELSE BLOCO
+
+    TK_ELSE  deslocar, e ir ao estado 69
 
     $padrão  reduzir usando a regra 33 (CMD_IF)
 
@@ -868,3 +877,19 @@ Estado 68
    11 EXP_SIMPLES: TK_TIPO '(' EXPRESSAO ')' .
 
     $padrão  reduzir usando a regra 11 (EXP_SIMPLES)
+
+
+Estado 69
+
+   34 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE . BLOCO
+
+    '{'  deslocar, e ir ao estado 7
+
+    BLOCO  ir ao estado 70
+
+
+Estado 70
+
+   34 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO .
+
+    $padrão  reduzir usando a regra 34 (CMD_IF)

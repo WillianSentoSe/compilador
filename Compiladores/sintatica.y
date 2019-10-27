@@ -5,8 +5,10 @@
 #include <unordered_map>
 
 #define YYSTYPE atributos
+#define DISPLAY_COLOR false
 
 using namespace std;
+
 
 struct atributos {
 	string label;
@@ -23,13 +25,17 @@ struct simbolo {
 	string label;
 };
 
-int count = 0;
+int countTMP = 0;
+int countVAR = 0;
+int countLBL = 0;
 int linha = 1;
 unordered_map<string, simbolo> tabela_simbolos;
 
 int yylex(void);
 void yyerror(string);
-string nextLabel(bool = true);
+string nextTMP();
+string nextVAR();
+string nextLBL();
 string typeName(int, bool = false);
 bool checkTypes(int, int);
 void checkLabel(string);
@@ -48,10 +54,12 @@ bool isAtivo(string);
 string getLabel(string);
 bool isDeclared(string);
 
+void printHash();
+
 %}
 
 %token TK_LITERAL TK_ID
-%token TK_MAIN TK_VAR TK_TIPO TK_IF
+%token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE
 %token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
@@ -99,7 +107,11 @@ COMANDO 			: ATRIBUICAO ';'
 
 EXP_SIMPLES			: TK_LITERAL
 					{	
-						$$.label = nextLabel();
+						// EXPERIMENTAL (ATRIBUICAO DIRETA)
+						// $$.label = $1.traducao;
+						// $$.traducao = "";
+
+						$$.label = nextTMP();
 						$$.declaracao = dcl($1.tipo, $$.label);
 						$$.traducao = cmd($$.label + " = " + $1.traducao);
 						$$.tipo = $1.tipo;
@@ -132,7 +144,7 @@ EXP_SIMPLES			: TK_LITERAL
 						convertType($1.tipo, $3.tipo, &out);
 						$$.tipo = $1.tipo;
 
-						string newLabel = nextLabel();
+						string newLabel = nextTMP();
 						$$.declaracao = $3.declaracao + dcl($1.tipo, newLabel);
 						$$.traducao = $3.traducao + cst(newLabel, $1.tipo, $3.label);
 						$$.label = newLabel;
@@ -142,16 +154,23 @@ EXP_SIMPLES			: TK_LITERAL
 EXP_NOT				: EXP_SIMPLES
 					| TK_OP_NOT EXP_NOT
 					{
-						$$.label = nextLabel();
+
+						if ($2.tipo != TK_TIPO_BOOL)
+						{
+							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+						}
+
+						$$.label = nextTMP();
 						$$.tipo = TK_TIPO_BOOL;
-						string declaracao = typeName($$.tipo, false) + " ";
-						$$.traducao = $2.traducao + "\t" + declaracao + $$.label + " = !" + $2.label + ";\n";
+						$$.declaracao = $2.declaracao + dcl($$.tipo, $$.label);
+						$$.traducao = $2.traducao + cmd($$.label + " = !" + $2.label);
+						//$$.traducao = $2.traducao + "\t" + declaracao + $$.label + " = !" + $2.label + ";\n";
 					}
 
 EXP_ARITMETICA_MUL	: EXP_NOT
 					| EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT
 					{
-						$$.label = nextLabel();
+						$$.label = nextTMP();
 						neoConvertType(&$$, &$1, &$3);
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
@@ -160,7 +179,7 @@ EXP_ARITMETICA_MUL	: EXP_NOT
 EXP_ARITMETICA_ADD	: EXP_ARITMETICA_MUL
 					| EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL
 					{
-						$$.label = nextLabel();
+						$$.label = nextTMP();
 						neoConvertType(&$$, &$1, &$3);
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
@@ -169,7 +188,7 @@ EXP_ARITMETICA_ADD	: EXP_ARITMETICA_MUL
 EXP_RELACIONAL		: EXP_ARITMETICA_ADD
 					| EXP_RELACIONAL OP_RELACIONAL EXP_ARITMETICA_ADD
 					{
-						$$.label = nextLabel();
+						$$.label = nextTMP();
 						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
@@ -178,7 +197,7 @@ EXP_RELACIONAL		: EXP_ARITMETICA_ADD
 EXP_IGUALDADE		: EXP_RELACIONAL
 					| EXP_IGUALDADE TK_OP_IGUALDADE EXP_RELACIONAL
 					{
-						$$.label = nextLabel();
+						$$.label = nextTMP();
 						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
@@ -187,7 +206,7 @@ EXP_IGUALDADE		: EXP_RELACIONAL
 EXP_LOGICAL_AND  	: EXP_IGUALDADE
 					| EXP_LOGICAL_AND TK_OP_LOGICAL_AND EXP_IGUALDADE
 					{
-						$$.label = nextLabel();
+						$$.label = nextTMP();
 						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
@@ -196,7 +215,7 @@ EXP_LOGICAL_AND  	: EXP_IGUALDADE
 EXP_LOGICAL_OR		: EXP_LOGICAL_AND
 					| EXP_LOGICAL_OR TK_OP_LOGICAL_OR EXP_LOGICAL_AND
 					{
-						$$.label = nextLabel();
+						$$.label = nextTMP();
 						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
@@ -213,7 +232,6 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						}
 
 						$1.tipo = getTipo($1.label);
-						$1.label = getLabel($1.label);
 						$$.declaracao = $3.declaracao;
 						$$.traducao = $3.traducao;
 
@@ -221,7 +239,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						{
 							$1.tipo = $3.tipo;
 							setTipo($1.label, $1.tipo);
-							$$.declaracao += dcl($1.tipo, $1.label);
+							$$.declaracao += dcl($1.tipo, getLabel($1.label));
 						}
 
 						int out;
@@ -229,12 +247,13 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						checkTypes($1.tipo, newType);
 
 						if (out == 2){
-							string newLabel = nextLabel();
+							string newLabel = nextTMP();
 							$$.declaracao += dcl($1.tipo, newLabel);
 							$$.traducao += cst(newLabel, $1.tipo, $3.label);
 							$3.label = newLabel;
 						}
 
+						$1.label = getLabel($1.label);
 						$$.traducao += cmd($1.label + " = " + $3.label);
 					}
 					;
@@ -263,7 +282,7 @@ DECLARACAO 			: TK_ID
 						if (isDeclared($1.label))
 							yyerror("Variável '" + $1.label + "' já foi declarada.");
 
-						string newLabel = nextLabel(false);
+						string newLabel = nextVAR();
 						tabela_simbolos[$1.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, newLabel};
 						$1.label = newLabel;
 
@@ -277,7 +296,7 @@ DECLARACAO 			: TK_ID
 						$1.tipo = $3.tipo;
 						string declaracao = typeName($1.tipo) + " " + $1.label + ";\n";
 
-						string newLabel = nextLabel(false);
+						string newLabel = nextVAR();
 						tabela_simbolos[$1.label] = {$1.tipo, -1, -1, true, newLabel};
 						$1.label = newLabel;
 
@@ -288,16 +307,45 @@ DECLARACAO 			: TK_ID
 
 CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 					{
+						if ($3.tipo != TK_TIPO_BOOL)
+						{
+							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+						}
+
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
-						string newLabel = nextLabel();
-						string labelGoto = nextLabel();
+						string newLabel = nextTMP();
+						string labelGoto = nextLBL();
 						$$.declaracao += dcl(TK_TIPO_BOOL, newLabel);
 						$$.traducao += cmd(newLabel + " = !" + $3.label);
 						$$.traducao += cmd("if (" + newLabel + ") goto " + labelGoto);
-						$$.traducao += "\t{\n" + $5.declaracao + "\n" + $5.traducao + "\t}\n";
+						$$.declaracao += $5.declaracao;
+						$$.traducao += $5.traducao;
 						$$.traducao += '\t' + labelGoto + ":\n";
 					}
+					| TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
+					{
+						if ($3.tipo != TK_TIPO_BOOL)
+						{
+							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+						}
+
+						$$.traducao = $3.traducao;
+						$$.declaracao = $3.declaracao;
+						string newLabel = nextTMP();
+						string labelGoto = nextLBL();
+						$$.declaracao += dcl(TK_TIPO_BOOL, newLabel);
+						$$.traducao += cmd(newLabel + " = !" + $3.label);
+						$$.traducao += cmd("if (" + newLabel + ") goto " + labelGoto);
+						$$.declaracao += $5.declaracao;
+						$$.traducao += $5.traducao;
+						$$.traducao += '\t' + labelGoto + ":\n";
+
+						$$.declaracao += $7.declaracao;
+						$$.traducao += $7.traducao;
+					}
+					;
+
 
 OP_RELACIONAL		: '<'
 					{
@@ -323,7 +371,7 @@ int tab_conversao[5][5] = 	{
 							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_INT 			*/
 							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
 							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
-							{TK_ERROR			, TK_TIPO_INT		, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		}, /* TK_TIPO_BOOL 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		}, /* TK_TIPO_BOOL 			*/
 							};
 
 int yyparse();
@@ -342,10 +390,34 @@ void yyerror( string MSG )
 	exit (0);
 }
 
-string nextLabel(bool temp)
+string nextTMP()
 {
-	string pref = (temp)? "tmp" : "var";
-	return pref + to_string(count++);
+	string tmp = "TMP" + to_string(countTMP++);
+
+	if (DISPLAY_COLOR) 
+		return "\033[1;35m" + tmp + "\033[0m";
+	else 
+		return tmp;
+}
+
+string nextVAR()
+{
+	string var = "VAR" + to_string(countVAR++);
+
+	if (DISPLAY_COLOR) 
+		return "\033[1;34m" + var + "\033[0m";
+	else 
+		return var;
+}
+
+string nextLBL()
+{
+	string lbl = "LBL" + to_string(countLBL++);
+
+	if (DISPLAY_COLOR) 
+		return "\033[1;33m" + lbl + "\033[0m";
+	else 
+		return lbl;
 }
 
 string typeName (int token, bool debug)
@@ -411,7 +483,7 @@ int neoConvertType (atributos* $$,atributos* $1, atributos* $2, int forceType)
 	if (out != 0)
 	{
 		string tipo = typeName(numTipo);
-		string label = nextLabel();
+		string label = nextTMP();
 		declaracaoConvertida = dcl(numTipo, label);
 
 		// Caso $1 precise ser convertido
@@ -500,4 +572,12 @@ string getLabel(string id)
 bool isDeclared(string id)
 {
 	return tabela_simbolos.find(id) != tabela_simbolos.end();
+}
+
+void printHash()
+{
+	for (auto& it: tabela_simbolos) {
+    // Do stuff
+    cout << it.first;
+	}
 }

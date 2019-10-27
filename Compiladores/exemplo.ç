@@ -1,12 +1,4 @@
 int main()
 {
-	var a;
-	a = true;
-
-	if (true)
-	{
-		a = 1;
-	}
-
-	a = true;
+	var a = 1, b = 0.5, c = a * a + b * b;
 }

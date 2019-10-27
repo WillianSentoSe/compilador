@@ -27,7 +27,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "main"							{ return TK_MAIN; 																}
 "if"							{ return TK_IF; 																}
 "var"							{ return TK_VAR; 																}
-
+"else"							{ return TK_ELSE;																}
 
 "int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
 "float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}
@@ -41,6 +41,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 
 "and"							{ yylval.traducao = "&&"; 	return TK_OP_LOGICAL_AND;							}
 "or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}
+[!]								{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
 [(){}[\];,<>]					{ return *yytext; 																}
 
