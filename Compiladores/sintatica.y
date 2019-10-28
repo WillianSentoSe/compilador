@@ -60,7 +60,7 @@ void printHash();
 %}
 
 %token TK_LITERAL TK_ID
-%token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE
+%token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE TK_DO TK_FOR TK_SWITCH TK_CASE TK_BREAK TK_CONTINUE TK_DEFAULT
 %token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
@@ -101,10 +101,12 @@ COMANDOS			: COMANDO COMANDOS
 					}
 					;
 
-COMANDO 			: ATRIBUICAO ';'
-					| CMD_DECLARACOES ';'
+COMANDO 			: CMD_DECLARACOES ';'
 					| CMD_IF
 					| CMD_WHILE
+					| CMD_DOWHILE
+					| CMD_FOR
+					| CMD_SWITCH
 					;
 
 EXP_SIMPLES			: TK_LITERAL
@@ -265,6 +267,11 @@ CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
 						$$.declaracao = $2.declaracao;
 						$$.traducao = $2.traducao;
 					}
+					| ATRIBUICAO
+					{
+						$$.declaracao = $1.declaracao;
+						$$.traducao = $1.traducao;
+					}
 					;
 
 LIST_DECLARACOES	: DECLARACAO ',' LIST_DECLARACOES
@@ -314,16 +321,27 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
 						}
 
+						// Definindo novo Label de Fim
+						string lblFim = nextLBL();
+
+						// Imprimir Traducão e Declaracão da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
+
+						// Negar valor da Expressão
 						string newLabel = nextTMP();
-						string labelGoto = nextLBL();
 						$$.declaracao += dcl(TK_TIPO_BOOL, newLabel);
 						$$.traducao += cmd(newLabel + " = !" + $3.label);
-						$$.traducao += cmd("if (" + newLabel + ") goto " + labelGoto);
+
+						// Imprimir Goto para Label de Fim
+						$$.traducao += cmd("if (" + newLabel + ") goto " + lblFim);
+
+						// Imprimir Bloco
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
-						$$.traducao += lbl(labelGoto);
+
+						// Imprimir Label de Fim
+						$$.traducao += lbl(lblFim);
 					}
 					| TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 					{
@@ -332,6 +350,33 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
 						}
 
+						// Definindo novo Label de Fim
+						string lblFim = nextLBL();
+
+						// Imprimir Traducão e Declaracão da Expressão
+						$$.traducao = $3.traducao;
+						$$.declaracao = $3.declaracao;
+
+						// Negar valor da Expressão
+						string newLabel = nextTMP();
+						$$.declaracao += dcl(TK_TIPO_BOOL, newLabel);
+						$$.traducao += cmd(newLabel + " = !" + $3.label);
+
+						// Imprimir Goto para Label de Fim
+						$$.traducao += cmd("if (" + newLabel + ") goto " + lblFim);
+
+						// Imprimir Bloco If
+						$$.declaracao += $5.declaracao;
+						$$.traducao += $5.traducao;
+
+						// Imprimir Label de Fim
+						$$.traducao += lbl(lblFim);
+
+						// Imprimindo Bloco Else
+						$$.declaracao += $7.declaracao;
+						$$.traducao += $7.traducao;
+
+						/*
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
 						string newLabel = nextTMP();
@@ -345,6 +390,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 
 						$$.declaracao += $7.declaracao;
 						$$.traducao += $7.traducao;
+						*/
 					}
 					;
 
@@ -355,7 +401,7 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' BLOCO
 							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
 						}
 
-						// Declarando novos Labels
+						// Definindo novos Labels
 						string lblInicio = nextLBL();
 						string lblFim = nextLBL();
 
@@ -386,6 +432,201 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' BLOCO
 					}
 					;
 
+CMD_DOWHILE			: TK_DO BLOCO TK_WHILE '(' EXPRESSAO ')'
+					{
+						if ($5.tipo != TK_TIPO_BOOL)
+						{
+							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+						}
+
+						// Definindo Label Inicio
+						string lblInicio = nextLBL();
+
+						// Imprimindo Label Inicio
+						$$.traducao = lbl(lblInicio);
+
+						// Imprimir Bloco
+						$$.declaracao = $2.declaracao;
+						$$.traducao += $2.traducao;
+
+						// Imprimir Expressão
+						$$.declaracao += $5.declaracao;
+						$$.traducao += $5.traducao;
+
+						// Imprimir Salto Condicional para Label Inicio
+						$$.traducao += cmd("if (" + $5.label + ") goto " + lblInicio);
+					}
+					;
+
+CMD_FOR				: TK_FOR '(' CMD_DECLARACOES ';' EXPRESSAO ';' CMD_DECLARACOES ')' BLOCO
+					{
+						if ($5.tipo != TK_TIPO_BOOL)
+						{
+							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+						}
+
+						// Definindo Label Inicio e Fim
+						string lblInicio = nextLBL();
+						string lblFim = nextLBL();
+
+						// Imprimindo Expressão 1
+						$$.declaracao = $3.declaracao;
+						$$.traducao = $3.traducao;
+
+						// Imprimindo Label Inicio
+						$$.traducao += lbl(lblInicio);
+
+						// Imprimindo Expressao 2
+						$$.declaracao += $5.declaracao;
+						$$.traducao += $5.traducao;
+
+						// Negando Expressao 2
+						string tmpExpNegada = nextTMP();
+						$$.declaracao += dcl(TK_TIPO_BOOL, tmpExpNegada);
+						$$.traducao += cmd(tmpExpNegada + " = !" + $5.label);
+
+						// Imprimir Salto Condicional para Label Fim
+						$$.traducao += cmd("if (" + tmpExpNegada + ") goto " + lblFim);
+
+						// Imprimir Bloco
+						$$.declaracao += $9.declaracao;
+						$$.traducao += $9.traducao;
+
+						// Imprimir Expressao 3
+						$$.declaracao += $7.declaracao;
+						$$.traducao += $7.traducao;
+
+						// Imprimir Salto Incondicional para Inicio
+						$$.traducao += cmd("goto " + lblInicio);
+
+						// Imprimir Label Fim
+						$$.traducao += lbl(lblFim);
+
+					}
+					| TK_FOR TK_ID '(' EXPRESSAO ',' OP_COMPARATIVOS EXPRESSAO ')' BLOCO
+					{
+						// !!! EXPERIMENTAL !!! //
+
+						string var = "";
+
+						// Declarar Váriavel caso necessário
+						if (!isDeclared($2.label))
+						{
+							var = nextVAR();
+							tabela_simbolos[$2.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, var};
+						} else
+						{
+							$2.tipo = getTipo($2.label);
+							var = getLabel($2.label);
+						}
+
+						// Definindo Labels
+						string lblInicio = nextLBL();
+						string lblFim = nextLBL();
+
+						// Imprimir Expressao 1
+						$$.declaracao = $4.declaracao;
+						$$.traducao = $4.traducao;
+
+						// Declarar Variável caso necessário
+						if ($2.tipo == TK_TIPO_INDEFINIDO)
+						{
+							$2.tipo = $4.tipo;
+							setTipo($2.label, $2.tipo);
+							$$.declaracao += dcl($2.tipo, var);
+						}
+
+						int out;
+						int newType = convertType($2.tipo, $4.tipo, &out);
+						checkTypes($2.tipo, newType);
+
+						if (out == 2){
+							string newLabel = nextTMP();
+							$$.declaracao += dcl($2.tipo, newLabel);
+							$$.traducao += cst(newLabel, $2.tipo, $4.label);
+							$4.label = newLabel;
+						}
+
+						// Atribuir a Variável o valor da Expressão 1
+						//$1.label = getLabel($1.label);
+						$$.traducao += cmd(var + " = " + $4.label);
+
+						// Imprimir Label Inicio
+						$$.traducao += lbl(lblInicio);
+
+						// Imprimir Expressao 2
+						$$.declaracao += $7.declaracao;
+						$$.traducao += $7.traducao;
+
+						// Imprimir Comparacao
+						string tmpExp = nextTMP();
+						$$.declaracao += dcl(TK_TIPO_BOOL, tmpExp);
+						$$.traducao += cmd(tmpExp + " = " + var + " " + $6.traducao + " " + $7.label);
+
+						// Negando Expressão
+						string tmpExpNegada = nextTMP();
+						$$.declaracao += dcl(TK_TIPO_BOOL, tmpExpNegada);
+						$$.traducao += cmd(tmpExpNegada + " = !" + tmpExp);
+
+						// Imprimir Salto Condicional para Label Fim
+						$$.traducao += cmd("if (" + tmpExpNegada + ") goto " + lblFim);
+
+						// Imprimir Bloco
+						$$.declaracao += $9.declaracao;
+						$$.traducao += $9.traducao;
+
+						// Criar Temporária de Incremento
+						string tmpIncremento = nextTMP();
+						$$.declaracao += dcl($2.tipo, tmpIncremento);
+						$$.traducao += cmd (tmpIncremento + " = 1");
+
+						// Realizar soma
+						string tmpSoma = nextTMP();
+						$$.declaracao += dcl($2.tipo, tmpSoma);
+						$$.traducao += cmd (tmpSoma + " = " + var + " + " + tmpIncremento);
+
+						// Incrementar Variável
+						$$.traducao += cmd (var + " = " + tmpSoma);
+
+						// Salto Incondicional para Label Inicio
+						$$.traducao += cmd ("goto " + lblInicio);
+
+						// Imprimir Label Fim
+						$$.traducao += lbl(lblFim);
+
+					} 
+					;
+
+CMD_SWITCH			: TK_SWITCH '(' EXPRESSAO ')' '{' BLOCO_SWITCH '}'
+					{
+						$$.declaracao = $6.declaracao;
+						$$.traducao = $6.traducao;
+					}
+					;
+
+BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
+					{
+						$$.declaracao = $1.declaracao + $2.declaracao;
+						$$.traducao = $1.traducao + $2.traducao;
+						$$.tipo = $2.tipo;
+					}
+					| 
+					;
+				
+
+EXP_CASE			: TK_CASE TK_LITERAL BLOCO
+					{
+						$$.tipo = $2.tipo;
+						$$.traducao = lbl(nextLBL()) + $3.traducao;
+						$$.declaracao = $3.declaracao;
+					}
+					| TK_DEFAULT BLOCO
+					{
+						$$.traducao = lbl(nextLBL()) + $2.traducao;
+						$$.declaracao = $2.declaracao;
+					}
+					;
+
 
 OP_RELACIONAL		: '<'
 					{
@@ -397,6 +638,14 @@ OP_RELACIONAL		: '<'
 					}
 					| TK_OP_MAIORIGUAL
 					| TK_OP_MENORIGUAL
+					;
+
+OP_COMPARATIVOS		: OP_RELACIONAL
+					{
+						$$.traducao = $1.traducao;
+					}
+					| TK_OP_IGUALDADE
+					| TK_OP_DESIGUALDADE
 					;
 
 

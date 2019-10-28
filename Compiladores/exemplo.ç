@@ -1,9 +1,18 @@
 int main()
 {
-	var a = 0;
-
-	while (a < 3){
-		a = a + 1;
+	switch (2) 
+	{
+		case 1 
+		{
+			var a = 0;
+		}
+		case 2
+		{
+			var b = 1;
+		}
+		default
+		{
+			var c = 2;
+		}
 	}
-
 }

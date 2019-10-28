@@ -57,28 +57,35 @@ extern int yydebug;
     TK_IF = 263,
     TK_ELSE = 264,
     TK_WHILE = 265,
-    TK_OP_IGUALDADE = 266,
-    TK_OP_DESIGUALDADE = 267,
-    TK_OP_MAIORIGUAL = 268,
-    TK_OP_MENORIGUAL = 269,
-    TK_OP_NOT = 270,
-    TK_OP_LOGICAL_AND = 271,
-    TK_OP_AND = 272,
-    TK_OP_LOGICAL_OR = 273,
-    TK_OP_XOR = 274,
-    TK_OP_IOR = 275,
-    TK_OP_ADD = 276,
-    TK_OP_MUL = 277,
-    TK_TIPO_INDEFINIDO = 278,
-    TK_TIPO_INT = 279,
-    TK_TIPO_FLOAT = 280,
-    TK_TIPO_CHAR = 281,
-    TK_TIPO_BOOL = 282,
-    TK_TIPO_STRING = 283,
-    TK_CLASSE_VARIAVEL = 284,
-    TK_CLASSE_FUNCAO = 285,
-    TK_FIM = 286,
-    TK_ERROR = 287
+    TK_DO = 266,
+    TK_FOR = 267,
+    TK_SWITCH = 268,
+    TK_CASE = 269,
+    TK_BREAK = 270,
+    TK_CONTINUE = 271,
+    TK_DEFAULT = 272,
+    TK_OP_IGUALDADE = 273,
+    TK_OP_DESIGUALDADE = 274,
+    TK_OP_MAIORIGUAL = 275,
+    TK_OP_MENORIGUAL = 276,
+    TK_OP_NOT = 277,
+    TK_OP_LOGICAL_AND = 278,
+    TK_OP_AND = 279,
+    TK_OP_LOGICAL_OR = 280,
+    TK_OP_XOR = 281,
+    TK_OP_IOR = 282,
+    TK_OP_ADD = 283,
+    TK_OP_MUL = 284,
+    TK_TIPO_INDEFINIDO = 285,
+    TK_TIPO_INT = 286,
+    TK_TIPO_FLOAT = 287,
+    TK_TIPO_CHAR = 288,
+    TK_TIPO_BOOL = 289,
+    TK_TIPO_STRING = 290,
+    TK_CLASSE_VARIAVEL = 291,
+    TK_CLASSE_FUNCAO = 292,
+    TK_FIM = 293,
+    TK_ERROR = 294
   };
 #endif
 /* Tokens.  */
@@ -90,28 +97,35 @@ extern int yydebug;
 #define TK_IF 263
 #define TK_ELSE 264
 #define TK_WHILE 265
-#define TK_OP_IGUALDADE 266
-#define TK_OP_DESIGUALDADE 267
-#define TK_OP_MAIORIGUAL 268
-#define TK_OP_MENORIGUAL 269
-#define TK_OP_NOT 270
-#define TK_OP_LOGICAL_AND 271
-#define TK_OP_AND 272
-#define TK_OP_LOGICAL_OR 273
-#define TK_OP_XOR 274
-#define TK_OP_IOR 275
-#define TK_OP_ADD 276
-#define TK_OP_MUL 277
-#define TK_TIPO_INDEFINIDO 278
-#define TK_TIPO_INT 279
-#define TK_TIPO_FLOAT 280
-#define TK_TIPO_CHAR 281
-#define TK_TIPO_BOOL 282
-#define TK_TIPO_STRING 283
-#define TK_CLASSE_VARIAVEL 284
-#define TK_CLASSE_FUNCAO 285
-#define TK_FIM 286
-#define TK_ERROR 287
+#define TK_DO 266
+#define TK_FOR 267
+#define TK_SWITCH 268
+#define TK_CASE 269
+#define TK_BREAK 270
+#define TK_CONTINUE 271
+#define TK_DEFAULT 272
+#define TK_OP_IGUALDADE 273
+#define TK_OP_DESIGUALDADE 274
+#define TK_OP_MAIORIGUAL 275
+#define TK_OP_MENORIGUAL 276
+#define TK_OP_NOT 277
+#define TK_OP_LOGICAL_AND 278
+#define TK_OP_AND 279
+#define TK_OP_LOGICAL_OR 280
+#define TK_OP_XOR 281
+#define TK_OP_IOR 282
+#define TK_OP_ADD 283
+#define TK_OP_MUL 284
+#define TK_TIPO_INDEFINIDO 285
+#define TK_TIPO_INT 286
+#define TK_TIPO_FLOAT 287
+#define TK_TIPO_CHAR 288
+#define TK_TIPO_BOOL 289
+#define TK_TIPO_STRING 290
+#define TK_CLASSE_VARIAVEL 291
+#define TK_CLASSE_FUNCAO 292
+#define TK_FIM 293
+#define TK_ERROR 294
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -29,6 +29,14 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "var"							{ return TK_VAR; 																}
 "else"							{ return TK_ELSE;																}
 "while"							{ return TK_WHILE;																}
+"do"							{ return TK_DO;																	}
+"for"							{ return TK_FOR;																}
+"switch"						{ return TK_SWITCH;																}
+"case"							{ return TK_CASE;																}
+"default"						{ return TK_DEFAULT;															}
+
+"break"							{ return TK_BREAK;																}
+"continue"						{ return TK_CONTINUE;															}
 
 "int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
 "float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}
@@ -44,7 +52,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}
 [!]								{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
-[(){}[\];,<>]					{ return *yytext; 																}
+[(){}[\];,<>:]					{ return *yytext; 																}
 
 
 [=]								{ yylval.traducao = yytext; return *yytext; 									}
