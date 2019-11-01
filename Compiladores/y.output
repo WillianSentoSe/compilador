@@ -88,7 +88,7 @@ Gramática
    41 CMD_FOR: TK_FOR '(' CMD_DECLARACOES ';' EXPRESSAO ';' CMD_DECLARACOES ')' BLOCO
    42        | TK_FOR TK_ID '(' EXPRESSAO ',' OP_COMPARATIVOS EXPRESSAO ')' BLOCO
 
-   43 CMD_SWITCH: TK_SWITCH '(' EXPRESSAO ')' '{' BLOCO_SWITCH '}'
+   43 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' '{' BLOCO_SWITCH '}'
 
    44 BLOCO_SWITCH: BLOCO_SWITCH EXP_CASE
    45             | %empty
@@ -124,7 +124,7 @@ $end (0) 0
 '}' (125) 2 43
 error (256)
 TK_LITERAL (258) 11 46
-TK_ID (259) 12 30 35 36 42
+TK_ID (259) 12 30 35 36 42 43
 TK_MAIN (260) 1
 TK_VAR (261) 31
 TK_TIPO (262) 1 14
@@ -191,7 +191,7 @@ EXP_LOGICAL_AND (64)
 EXP_LOGICAL_OR (65)
     à esquerda: 27 28, à direita: 28 29
 EXPRESSAO (66)
-    à esquerda: 29, à direita: 13 14 30 36 37 38 39 40 41 42 43
+    à esquerda: 29, à direita: 13 14 30 36 37 38 39 40 41 42
 ATRIBUICAO (67)
     à esquerda: 30, à direita: 32
 CMD_DECLARACOES (68)
@@ -357,7 +357,7 @@ Estado 14
 
 Estado 15
 
-   43 CMD_SWITCH: TK_SWITCH . '(' EXPRESSAO ')' '{' BLOCO_SWITCH '}'
+   43 CMD_SWITCH: TK_SWITCH . '(' TK_ID ')' '{' BLOCO_SWITCH '}'
 
     '('  deslocar, e ir ao estado 34
 
@@ -561,23 +561,9 @@ Estado 33
 
 Estado 34
 
-   43 CMD_SWITCH: TK_SWITCH '(' . EXPRESSAO ')' '{' BLOCO_SWITCH '}'
+   43 CMD_SWITCH: TK_SWITCH '(' . TK_ID ')' '{' BLOCO_SWITCH '}'
 
-    TK_LITERAL  deslocar, e ir ao estado 38
-    TK_ID       deslocar, e ir ao estado 39
-    TK_TIPO     deslocar, e ir ao estado 40
-    TK_OP_NOT   deslocar, e ir ao estado 41
-    '('         deslocar, e ir ao estado 42
-
-    EXP_SIMPLES         ir ao estado 43
-    EXP_NOT             ir ao estado 44
-    EXP_ARITMETICA_MUL  ir ao estado 45
-    EXP_ARITMETICA_ADD  ir ao estado 46
-    EXP_RELACIONAL      ir ao estado 47
-    EXP_IGUALDADE       ir ao estado 48
-    EXP_LOGICAL_AND     ir ao estado 49
-    EXP_LOGICAL_OR      ir ao estado 50
-    EXPRESSAO           ir ao estado 59
+    TK_ID  deslocar, e ir ao estado 59
 
 
 Estado 35
@@ -826,7 +812,7 @@ Estado 58
 
 Estado 59
 
-   43 CMD_SWITCH: TK_SWITCH '(' EXPRESSAO . ')' '{' BLOCO_SWITCH '}'
+   43 CMD_SWITCH: TK_SWITCH '(' TK_ID . ')' '{' BLOCO_SWITCH '}'
 
     ')'  deslocar, e ir ao estado 80
 
@@ -1077,7 +1063,7 @@ Estado 79
 
 Estado 80
 
-   43 CMD_SWITCH: TK_SWITCH '(' EXPRESSAO ')' . '{' BLOCO_SWITCH '}'
+   43 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' . '{' BLOCO_SWITCH '}'
 
     '{'  deslocar, e ir ao estado 94
 
@@ -1206,7 +1192,7 @@ Estado 93
 
 Estado 94
 
-   43 CMD_SWITCH: TK_SWITCH '(' EXPRESSAO ')' '{' . BLOCO_SWITCH '}'
+   43 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' '{' . BLOCO_SWITCH '}'
 
     $padrão  reduzir usando a regra 45 (BLOCO_SWITCH)
 
@@ -1291,7 +1277,7 @@ Estado 102
 
 Estado 103
 
-   43 CMD_SWITCH: TK_SWITCH '(' EXPRESSAO ')' '{' BLOCO_SWITCH . '}'
+   43 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' '{' BLOCO_SWITCH . '}'
    44 BLOCO_SWITCH: BLOCO_SWITCH . EXP_CASE
 
     TK_CASE     deslocar, e ir ao estado 107
@@ -1340,7 +1326,7 @@ Estado 108
 
 Estado 109
 
-   43 CMD_SWITCH: TK_SWITCH '(' EXPRESSAO ')' '{' BLOCO_SWITCH '}' .
+   43 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' '{' BLOCO_SWITCH '}' .
 
     $padrão  reduzir usando a regra 43 (CMD_SWITCH)
 

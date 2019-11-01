@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <vector>
+#include <stdlib.h>
 
 #define YYSTYPE atributos
 #define DISPLAY_COLOR true
@@ -19,17 +21,23 @@ struct atributos {
 
 struct simbolo {
 	int tipo;
-	int escopo;
-	int classe;
-	bool ativo;
 	string label;
 };
+
+class Contexto
+{
+public:
+	unordered_map<string, simbolo> simbolos;
+	Contexto* anterior;
+};
+
 
 int countTMP = 0;
 int countVAR = 0;
 int countLBL = 0;
 int linha = 1;
-unordered_map<string, simbolo> tabela_simbolos;
+//unordered_map<string, simbolo> tabela_simbolos;
+Contexto* contextoAtual;
 
 int yylex(void);
 void yyerror(string);
@@ -49,13 +57,21 @@ string lbl(string);
 
 void setTipo(string, int);
 int getTipo(string);
-int getEscopo(string);
 int getClasse(string);
 bool isAtivo(string);
 string getLabel(string);
 bool isDeclared(string);
 
+
 void printHash();
+vector<string> split(string, char);
+
+void addSimbolo(string, simbolo);
+void novoSimbolo(string, string, int);
+simbolo* getSimbolo(string);
+Contexto* novoContexto();
+void empilharContexto();
+void desempilharContexto();
 
 %}
 
@@ -291,9 +307,10 @@ DECLARACAO 			: TK_ID
 						if (isDeclared($1.label))
 							yyerror("Variável '" + $1.label + "' já foi declarada.");
 
-						string newLabel = nextVAR();
-						tabela_simbolos[$1.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, newLabel};
-						$1.label = newLabel;
+						string var = nextVAR();
+						novoSimbolo($1.label, var, TK_TIPO_INDEFINIDO);
+						//tabela_simbolos[$1.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, newLabel};
+						$1.label = var;
 
 						//$$.traducao = "";
 					}
@@ -306,7 +323,8 @@ DECLARACAO 			: TK_ID
 						string declaracao = typeName($1.tipo) + " " + $1.label + ";\n";
 
 						string newLabel = nextVAR();
-						tabela_simbolos[$1.label] = {$1.tipo, -1, -1, true, newLabel};
+						novoSimbolo($1.label, newLabel, $1.tipo);
+						//tabela_simbolos[$1.label] = {$1.tipo, -1, -1, true, newLabel};
 						$1.label = newLabel;
 
 						$$.declaracao = $3.declaracao + dcl($1.tipo, $1.label);
@@ -513,7 +531,8 @@ CMD_FOR				: TK_FOR '(' CMD_DECLARACOES ';' EXPRESSAO ';' CMD_DECLARACOES ')' BL
 						if (!isDeclared($2.label))
 						{
 							var = nextVAR();
-							tabela_simbolos[$2.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, var};
+							novoSimbolo($2.label, var, TK_TIPO_INDEFINIDO);
+							//tabela_simbolos[$2.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, var};
 						} else
 						{
 							$2.tipo = getTipo($2.label);
@@ -597,10 +616,19 @@ CMD_FOR				: TK_FOR '(' CMD_DECLARACOES ';' EXPRESSAO ';' CMD_DECLARACOES ')' BL
 					} 
 					;
 
-CMD_SWITCH			: TK_SWITCH '(' EXPRESSAO ')' '{' BLOCO_SWITCH '}'
+CMD_SWITCH			: TK_SWITCH '(' TK_ID ')' '{' BLOCO_SWITCH '}'
 					{
 						$$.declaracao = $6.declaracao;
 						$$.traducao = $6.traducao;
+
+						vector<string> s = split($6.label, '&');
+
+						cout << "\n ->" + $6.label + "\n";
+
+						for (int i = 0; i < s.size(); i++)
+						{
+							cout << "----> " + s[i] + "\n";
+						}
 					}
 					;
 
@@ -608,7 +636,9 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 					{
 						$$.declaracao = $1.declaracao + $2.declaracao;
 						$$.traducao = $1.traducao + $2.traducao;
+
 						$$.tipo = $2.tipo;
+						$$.label = $1.label + $2.label + "&";
 					}
 					| 
 					;
@@ -616,9 +646,15 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 
 EXP_CASE			: TK_CASE TK_LITERAL BLOCO
 					{
-						$$.tipo = $2.tipo;
-						$$.traducao = lbl(nextLBL()) + $3.traducao;
 						$$.declaracao = $3.declaracao;
+
+						string lblCase = nextLBL();
+						$$.traducao = lbl(lblCase);
+						$$.traducao += $3.traducao;
+
+						$$.tipo = $2.tipo;
+						$$.label = $2.traducao + "@" + lblCase;
+						
 					}
 					| TK_DEFAULT BLOCO
 					{
@@ -667,7 +703,11 @@ int yyparse();
 
 int main( int argc, char* argv[] )
 {
+	empilharContexto();
+
 	yyparse();
+
+	printHash();
 
 	return 0;
 }
@@ -800,9 +840,9 @@ int neoConvertType (atributos* $$,atributos* $1, atributos* $2, int forceType)
 
 void checkLabel(string s)
 {
-	unordered_map<string, simbolo>::const_iterator busca = tabela_simbolos.find(s);
+	simbolo* simbolo = getSimbolo(s);
 
-	if (busca == tabela_simbolos.end())
+	if (simbolo == NULL)
 	{
 		yyerror("Variável '" + s + "' nao foi declarada."); 
 	}
@@ -835,43 +875,134 @@ string cst (string label1, int tipo, string label2)
 
 void setTipo(string id, int tipo)
 {
-	tabela_simbolos[id].tipo = tipo;
+	getSimbolo(id)->tipo = tipo;
 }
+
 
 int getTipo(string id)
 {
-	return tabela_simbolos[id].tipo;
-}
-
-int getEscopo(string id)
-{
-	return tabela_simbolos[id].escopo;
-}
-
-int getClasse(string id)
-{
-	return tabela_simbolos[id].classe;
-}
-
-bool isAtivo(string id)
-{
-	return tabela_simbolos[id].ativo;
+	return getSimbolo(id)->tipo;
 }
 
 string getLabel(string id)
 {
-	return tabela_simbolos[id].label;
+	return getSimbolo(id)->label;
 }
 
 bool isDeclared(string id)
 {
-	return tabela_simbolos.find(id) != tabela_simbolos.end();
+	return getSimbolo(id) != NULL;
+}
+
+
+void novoSimbolo(string id, string lbl, int tipo)
+{
+	simbolo novoSimbolo;
+
+	novoSimbolo.label = lbl;
+	novoSimbolo.tipo = tipo;
+
+	addSimbolo(id, novoSimbolo);
 }
 
 void printHash()
 {
-	for (auto& it: tabela_simbolos) {
-    // Do stuff
-    cout << it.first;
+	unordered_map<string, simbolo>:: iterator itr;
+	Contexto* aux = contextoAtual;
+
+	cout << "\n== Pilha de Contexto ======== \n"; 
+
+	while (aux != NULL){
+	    for (itr = aux->simbolos.begin(); itr != aux->simbolos.end(); itr++) 
+	    { 
+	        cout << "   " << itr->first << " : " << itr->second.label << "\t(" << typeName(itr->second.tipo) << ")\n"; 
+	    }
+
+	    cout << "-----------------------------\n"; 
+	    aux = aux->anterior;
 	}
+}
+
+vector<string> split(string s, char c){
+	vector<string> aux;
+	vector<string>::iterator it;
+
+	it = aux.begin();
+
+	string palavra = "";
+	int i = 0;
+
+	while (i < s.size())
+	{
+		if (s[i] != c)
+		{
+			palavra += s[i];
+		}
+		else
+		{
+			it = aux.insert(it, palavra);
+			palavra = "";
+		}
+
+		i++;
+	}
+
+	return aux;
+
+}
+
+Contexto* novoContexto()
+{
+	Contexto* novoCtx = new Contexto();
+
+	novoCtx->anterior = NULL;
+
+	return novoCtx;
+}
+
+void empilharContexto()
+{
+
+	Contexto* novoCtx = novoContexto();
+
+	novoCtx->anterior = contextoAtual;
+
+	contextoAtual = novoCtx;
+}
+
+void desempilharContexto()
+{
+	Contexto* aux = contextoAtual->anterior;
+
+	free(contextoAtual);
+
+	contextoAtual = aux;
+}
+
+void addSimbolo(string id, simbolo s)
+{
+	contextoAtual->simbolos[id] = s;
+}
+
+simbolo* getSimbolo(string id)
+{
+	
+	Contexto* it = contextoAtual;
+
+	while (it != NULL)
+	{
+
+		if (it->simbolos.find(id) != it->simbolos.end())
+		{
+			return &(it->simbolos[id]);
+		} 
+		else
+		{
+			it = it->anterior;
+		}
+	}
+
+
+	//yyerror("Variável '" + id + "' nao declarada.");
+	return NULL;
 }
