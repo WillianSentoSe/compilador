@@ -1,7 +1,8 @@
 int main()
 {
-
-	var a = 'a', b, c;
-	a = 1;
-	b = 'x';
+	var a = 1;
+	if (true)
+	{
+		var b = 2;
+	}
 }
