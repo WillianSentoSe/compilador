@@ -38,6 +38,7 @@ int countLBL = 0;
 int linha = 1;
 //unordered_map<string, simbolo> tabela_simbolos;
 Contexto* contextoAtual;
+string espacamentoDeIndexacao;
 
 int yylex(void);
 void yyerror(string);
@@ -50,7 +51,7 @@ void checkLabel(string);
 int convertType(int, int, int*);
 int neoConvertType (atributos*, atributos*, atributos*, int forceType = 0);
 
-string cmd(string, string = "");
+string cmd(string);
 string dcl(int, string);
 string cst (string, int, string);
 string lbl(string);
@@ -292,8 +293,9 @@ CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
 
 LIST_DECLARACOES	: DECLARACAO ',' LIST_DECLARACOES
 					{
-						$$.declaracao = $1.declaracao + $3.declaracao;
-						$$.traducao = $1.traducao + $3.traducao;
+						//Tinha + $3 declaracao e traducao
+						$$.declaracao = $1.declaracao;
+						$$.traducao = $1.traducao;
 					}
 					| DECLARACAO
 					{
@@ -643,7 +645,6 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 					| 
 					;
 				
-
 EXP_CASE			: TK_CASE TK_LITERAL BLOCO
 					{
 						$$.declaracao = $3.declaracao;
@@ -662,7 +663,6 @@ EXP_CASE			: TK_CASE TK_LITERAL BLOCO
 						$$.declaracao = $2.declaracao;
 					}
 					;
-
 
 OP_RELACIONAL		: '<'
 					{
@@ -703,11 +703,7 @@ int yyparse();
 
 int main( int argc, char* argv[] )
 {
-	empilharContexto();
-
 	yyparse();
-
-	printHash();
 
 	return 0;
 }
@@ -852,10 +848,9 @@ void checkLabel(string s)
 	}
 }
 
-string cmd (string s, string c)
+string cmd (string s)
 {
-	c = (c == "")? "" : "\t\t//" + c;
-	return "\t" + s + ";" + c + "\n";
+	return "\t" + s + ";" + "\n";
 }
 
 string dcl (int tipo, string label)
@@ -865,7 +860,7 @@ string dcl (int tipo, string label)
 
 string lbl (string label)
 {
-	return "\t" + label + ":\n";
+	return espacamentoDeIndexacao + label + ":\n";
 }
 
 string cst (string label1, int tipo, string label2)
@@ -923,7 +918,8 @@ void printHash()
 	}
 }
 
-vector<string> split(string s, char c){
+vector<string> split(string s, char c)
+{
 	vector<string> aux;
 	vector<string>::iterator it;
 
@@ -948,7 +944,6 @@ vector<string> split(string s, char c){
 	}
 
 	return aux;
-
 }
 
 Contexto* novoContexto()
@@ -962,6 +957,7 @@ Contexto* novoContexto()
 
 void empilharContexto()
 {
+	espacamentoDeIndexacao.append("\t");
 
 	Contexto* novoCtx = novoContexto();
 
@@ -972,6 +968,9 @@ void empilharContexto()
 
 void desempilharContexto()
 {
+
+	espacamentoDeIndexacao = espacamentoDeIndexacao.substr(0, espacamentoDeIndexacao.size() - 1);
+
 	Contexto* aux = contextoAtual->anterior;
 
 	free(contextoAtual);

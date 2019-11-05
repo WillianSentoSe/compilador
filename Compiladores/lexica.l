@@ -52,7 +52,9 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}
 [!]								{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
-[(){}[\];,<>:]					{ return *yytext; 																}
+[()[\];,<>:]					{ return *yytext; 																}
+[{]								{ empilharContexto();		return *yytext; 									}
+[}]								{ desempilharContexto();	return *yytext; 									}
 
 
 [=]								{ yylval.traducao = yytext; return *yytext; 									}
