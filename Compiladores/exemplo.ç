@@ -1,7 +1,9 @@
 int main()
 {
+	var a = 0;
 
-	var a = 'a', b, c;
-	a = 1;
-	b = 'x';
+	{
+
+		if (a = 2) break;
+	}
 }
