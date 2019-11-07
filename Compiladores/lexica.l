@@ -53,7 +53,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 [!]								{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
 [()[\];,<>:]					{ return *yytext; 																}
-[{]								{ empilharContexto();		return *yytext; 									}
+[{]								{ empilharContexto(TK_CTX_BLOCO); return *yytext;								}
 [}]								{ desempilharContexto();	return *yytext; 									}
 
 

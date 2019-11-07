@@ -938,7 +938,7 @@ YY_RULE_SETUP
 case 27:
 YY_RULE_SETUP
 #line 56 "lexica.l"
-{ empilharContexto();		return *yytext; 									}
+{ empilharContexto(TK_CTX_BLOCO); return *yytext;								}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP

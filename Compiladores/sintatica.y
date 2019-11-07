@@ -35,6 +35,9 @@ class Contexto
 {
 public:
 	unordered_map<string, simbolo> simbolos;
+	int tipo;
+	string lblInicio;
+	string lblFim;
 	Contexto* anterior;
 };
 
@@ -51,7 +54,7 @@ class Pilha_alternador
 public:
 	string label;
 	string lblFim;
-	bool temDefault;
+	string lblDefault;
 	Pilha_alternador* anterior;
 };
 
@@ -88,21 +91,23 @@ bool isAtivo(string);
 string getLabel(string);
 bool isDeclared(string);
 
-
-void printHash();
 vector<string> split(string, char);
 
 void addSimbolo(string, simbolo);
 void novoSimbolo(string, string, int);
 simbolo* getSimbolo(string, Contexto* contexto = NULL);
 simbolo* getSimboloPilha(string);
+
 Contexto* novoContexto();
-void empilharContexto();
+void empilharContexto(int tipo, string = "", string = "");
 void desempilharContexto();
+void imprimirContexto(bool exibirLBL = false);
+Contexto* procurarContextoLaco();
+void desempilharContextoAte(Contexto*);
+
 void empilharAlternador(string, string);
 void desempilharAlternador();
 
-//pilha_case* novoCase();
 void empilharCase();
 void desempilharContexto();
 
@@ -114,6 +119,7 @@ void desempilharContexto();
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
+%token TK_CTX_BLOCO TK_CTX_IF TK_CTX_WHILE TK_CTX_FOR TK_CTX_CASE
 
 %start S
 
@@ -156,11 +162,12 @@ COMANDO 			: CMD_DECLARACOES ';'
 					| CMD_DOWHILE
 					| CMD_FOR
 					| CMD_SWITCH
+					| CMD_BREAK
 					| '#'
 					{
 						$$.traducao = "";
 						$$.declaracao = "";
-						printHash();
+						imprimirContexto();
 					}
 					;
 
@@ -521,11 +528,17 @@ CMD_DOWHILE			: TK_DO BLOCO TK_WHILE '(' EXPRESSAO ')'
 					}
 					;
 
-CMD_FOR				: TK_FOR { empilharContexto(); } '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+CMD_FOR				: TK_FOR
 					{
+						string lblInicio = nextLBL();
+						string lblFim = nextLBL();
 
-						desempilharContexto();
+						$$.traducao = lbl(lblInicio);
 
+						empilharContexto(TK_CTX_FOR, lblInicio, lblFim);
+					}
+					'(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+					{
 						if ($6.tipo != TK_TIPO_BOOL)
 						{
 							yyerror("Conversão inválida entre (" + typeName($3.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
@@ -533,11 +546,13 @@ CMD_FOR				: TK_FOR { empilharContexto(); } '(' CMD_DECLARACOES ';' EXPRESSAO ';
 
 						// Definindo Label Inicio e Fim
 						string lblInicio = nextLBL();
-						string lblFim = nextLBL();
+						string lblFim = contextoAtual->lblFim;		// Pego o label Fim do bloco for exterior
+
+						desempilharContexto();
 
 						// Imprimindo Expressão 1
 						$$.declaracao = $4.declaracao;
-						$$.traducao = $4.traducao;
+						$$.traducao += $4.traducao;
 
 						// Imprimindo Label Inicio
 						$$.traducao += lbl(lblInicio);
@@ -569,7 +584,7 @@ CMD_FOR				: TK_FOR { empilharContexto(); } '(' CMD_DECLARACOES ';' EXPRESSAO ';
 						$$.traducao += lbl(lblFim);
 
 					}
-					| TK_FOR { empilharContexto(); } TK_ID '(' EXPRESSAO ',' OP_COMPARATIVOS EXPRESSAO ')' BLOCO { desempilharContexto(); }
+					| TK_FOR { empilharContexto(TK_CTX_FOR); } TK_ID '(' EXPRESSAO ',' OP_COMPARATIVOS EXPRESSAO ')' BLOCO { desempilharContexto(); }
 					{
 						// !!! EXPERIMENTAL !!! //
 
@@ -679,14 +694,14 @@ CMD_SWITCH			: TK_SWITCH '(' TK_ID ')'
 					} 
 					'{' BLOCO_SWITCH '}'
 					{
+						string lblAux = alternador_atual->lblDefault == ""? alternador_atual->lblFim : alternador_atual->lblDefault;
+
 						$$.declaracao = $7.declaracao;
 						$$.traducao = $7.traducaoAlternativa;
-						$$.traducao += cmd("goto " + alternador_atual->lblFim);
+						$$.traducao += cmd("goto " + lblAux);
 						$$.traducao += $7.traducao;
-						if (!alternador_atual->temDefault)
-						{
-							$$.traducao += lbl(alternador_atual->lblFim);
-						}
+
+						$$.traducao += lbl(alternador_atual->lblFim);
 						desempilharAlternador();
 					}
 					;
@@ -698,9 +713,8 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 
 						$$.tipo += $2.tipo;
 
-						$$.label = $1.label + $2.label + ",";
+						//$$.label = $1.label + $2.label + ",";
 
-						//To subindo po ~ by vivi
 						$$.labelCase += $2.labelCase + "";
 						$$.traducaoAlternativa += $2.traducaoAlternativa;
 
@@ -743,16 +757,26 @@ EXP_CASE			: TK_CASE TK_LITERAL BLOCO
 						$$.traducao = lbl(lblDefault) + $2.traducao;
 						$$.declaracao = $2.declaracao;
 
-						alternador_atual->lblFim = lblDefault;
-						alternador_atual->temDefault = true;
-
-						// VINICIUS SUBIR ESSES DADOS E USAR
-						//$$.labelCase = lblDefault;
-						//$$.literalCase = "";
-						//$$.isDefault = true;
-						//$$.linhaCase = linha;
+						alternador_atual->lblDefault = lblDefault;
 					}
 					;
+
+CMD_BREAK			: TK_BREAK ';'
+					{
+						Contexto* laco = procurarContextoLaco();
+						$$.traducao = cmd("goto " + laco->lblFim);
+						//desempilharContextoAte(laco);
+					}
+					| TK_BREAK TK_LITERAL ';'
+					{
+
+					}
+					| TK_BREAK TK_ID ';'
+					{
+
+					}
+					;
+
 
 OP_RELACIONAL		: '<'
 					{
@@ -990,7 +1014,7 @@ void novoSimbolo(string id, string lbl, int tipo)
 	addSimbolo(id, novoSimbolo);
 }
 
-void printHash()
+void imprimirContexto(bool exibirLBL)
 {
 	unordered_map<string, simbolo>:: iterator itr;
 	Contexto* aux = contextoAtual;
@@ -998,6 +1022,12 @@ void printHash()
 	cout << "\n== Pilha de Contexto ======== \n"; 
 
 	while (aux != NULL){
+		if (exibirLBL)
+		{
+			cout << " - inicio: " << aux->lblInicio << "\n";
+			cout << " - fim   : " << aux->lblFim << "\n\n";
+		}
+
 	    for (itr = aux->simbolos.begin(); itr != aux->simbolos.end(); itr++) 
 	    { 
 	        cout << "   " << itr->first << " : " << itr->second.label << "\t(" << typeName(itr->second.tipo) << ")\n"; 
@@ -1048,13 +1078,16 @@ Contexto* novoContexto()
 	return novoCtx;
 }
 
-void empilharContexto()
+void empilharContexto(int tipo, string inicio, string fim)
 {
 	espacamentoDeIndexacao.append("\t");
 
 	Contexto* novoCtx = novoContexto();
 
 	novoCtx->anterior = contextoAtual;
+	novoCtx->tipo = tipo;
+	novoCtx->lblInicio = inicio;
+	novoCtx->lblFim = fim;
 
 	contextoAtual = novoCtx;
 }
@@ -1062,13 +1095,43 @@ void empilharContexto()
 void desempilharContexto()
 {
 
-	espacamentoDeIndexacao = espacamentoDeIndexacao.substr(0, espacamentoDeIndexacao.size() - 1);
+	//espacamentoDeIndexacao = espacamentoDeIndexacao.substr(0, espacamentoDeIndexacao.size() - 1);
 
-	Contexto* aux = contextoAtual->anterior;
+	if (contextoAtual->anterior != NULL)
+	{
+		Contexto* aux = contextoAtual->anterior;
+		free(contextoAtual);
+		contextoAtual = aux;
+	}
+}
 
-	free(contextoAtual);
+Contexto* procurarContextoLaco()
+{
+	Contexto* it = contextoAtual;
 
-	contextoAtual = aux;
+	while (it != NULL)
+	{
+		if (it->tipo == TK_CTX_WHILE || it->tipo == TK_CTX_FOR)
+		{
+			return it;
+		}
+		else
+		{
+			it = it->anterior;
+		}
+	}
+
+	yyerror("Não foi possivel encontrar um laço.");
+}
+
+void desempilharContextoAte(Contexto* c)
+{
+	while (contextoAtual != c)
+	{
+		desempilharContexto();
+	}
+
+	desempilharContexto();
 }
 
 void addSimbolo(string id, simbolo s)
@@ -1121,7 +1184,7 @@ void empilharAlternador(string s, string lblFim)
 	Pilha_alternador* alternador = new Pilha_alternador();
 	alternador->label = s;
 	alternador->lblFim = lblFim;
-	alternador->temDefault = false;
+	alternador->lblDefault = "";
 	alternador->anterior = alternador_atual;
 
 	alternador_atual = alternador;

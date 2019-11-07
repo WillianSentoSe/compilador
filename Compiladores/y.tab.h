@@ -1,9 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
-   Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,9 +29,6 @@
 
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
-
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
 
 #ifndef YY_YY_Y_TAB_H_INCLUDED
 # define YY_YY_Y_TAB_H_INCLUDED
@@ -85,7 +81,12 @@ extern int yydebug;
     TK_CLASSE_VARIAVEL = 291,
     TK_CLASSE_FUNCAO = 292,
     TK_FIM = 293,
-    TK_ERROR = 294
+    TK_ERROR = 294,
+    TK_CTX_BLOCO = 295,
+    TK_CTX_IF = 296,
+    TK_CTX_WHILE = 297,
+    TK_CTX_FOR = 298,
+    TK_CTX_CASE = 299
   };
 #endif
 /* Tokens.  */
@@ -126,6 +127,11 @@ extern int yydebug;
 #define TK_CLASSE_FUNCAO 292
 #define TK_FIM 293
 #define TK_ERROR 294
+#define TK_CTX_BLOCO 295
+#define TK_CTX_IF 296
+#define TK_CTX_WHILE 297
+#define TK_CTX_FOR 298
+#define TK_CTX_CASE 299
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
