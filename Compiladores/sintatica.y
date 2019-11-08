@@ -18,12 +18,17 @@ struct atributos {
 	string traducao;
 	int tipo;
 
-	// Switch Case
-	string labelCase;
 	string traducaoAlternativa;
+
+	string lblInicio;
+	string lblFim;
+	/*
+	string labelCase;
+	string labelCase;
 	string literalCase;
 	int linhaCase;
 	bool isDefault;
+	*/
 };
 
 struct simbolo {
@@ -64,6 +69,7 @@ int countLBL = 0;
 int linha = 1;
 //unordered_map<string, simbolo> tabela_simbolos;
 Contexto* contextoAtual;
+int proximoContexto = 0;
 string espacamentoDeIndexacao;
 
 Pilha_alternador* alternador_atual = NULL;
@@ -76,13 +82,15 @@ string nextLBL();
 string typeName(int, bool = false);
 bool checkTypes(int, int);
 void checkLabel(string);
-int convertType(int, int, int*);
-int neoConvertType (atributos*, atributos*, atributos*, int forceType = 0);
+int verificarTipos(int, int, int*, char op = ' ');
+int converterTipos (atributos*, atributos*, atributos*, char, int forceType = 0);
 
 string cmd(string);
 string dcl(int, string);
 string cst (string, int, string);
 string lbl(string);
+
+int tabelaOperadores (int, char, int);
 
 void setTipo(string, int);
 int getTipo(string);
@@ -120,6 +128,7 @@ void desempilharContexto();
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
 %token TK_CTX_BLOCO TK_CTX_IF TK_CTX_WHILE TK_CTX_FOR TK_CTX_CASE
+%token TK_OUT TK_IN
 
 %start S
 
@@ -138,10 +147,18 @@ S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
 					}
 					;
 
-BLOCO				: '{' COMANDOS '}'
+BLOCO				: '{'
 					{
-						$$.traducao = $2.traducao;
-						$$.declaracao = $2.declaracao;
+						$1.lblInicio = contextoAtual->lblInicio;
+						$1.lblFim = contextoAtual->lblFim;
+					}
+					COMANDOS '}'
+					{
+						$$.lblInicio = $1.lblInicio;
+						$$.lblFim = $1.lblFim;
+
+						$$.traducao = $3.traducao;
+						$$.declaracao = $3.declaracao;
 					}
 					;
 
@@ -163,11 +180,14 @@ COMANDO 			: CMD_DECLARACOES ';'
 					| CMD_FOR
 					| CMD_SWITCH
 					| CMD_BREAK
+					| CMD_CONTINUE
+					| CMD_OUT
+					| CMD_IN
 					| '#'
 					{
 						$$.traducao = "";
 						$$.declaracao = "";
-						imprimirContexto();
+						imprimirContexto(true);
 					}
 					;
 
@@ -227,7 +247,7 @@ EXP_SIMPLES			: TK_LITERAL
 					{
 						int out;
 
-						convertType($1.tipo, $3.tipo, &out);
+						verificarTipos($1.tipo, $3.tipo, &out);
 						$$.tipo = $1.tipo;
 
 						string newLabel = nextTMP();
@@ -257,7 +277,7 @@ EXP_ARITMETICA_MUL	: EXP_NOT
 					| EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT
 					{
 						$$.label = nextTMP();
-						neoConvertType(&$$, &$1, &$3);
+						converterTipos(&$$, &$1, &$3, '*');
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
 					;
@@ -266,7 +286,7 @@ EXP_ARITMETICA_ADD	: EXP_ARITMETICA_MUL
 					| EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL
 					{
 						$$.label = nextTMP();
-						neoConvertType(&$$, &$1, &$3);
+						converterTipos(&$$, &$1, &$3, '+');
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
 					;
@@ -275,7 +295,7 @@ EXP_RELACIONAL		: EXP_ARITMETICA_ADD
 					| EXP_RELACIONAL OP_RELACIONAL EXP_ARITMETICA_ADD
 					{
 						$$.label = nextTMP();
-						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
+						converterTipos(&$$, &$1, &$3, '>', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
 					;
@@ -284,7 +304,7 @@ EXP_IGUALDADE		: EXP_RELACIONAL
 					| EXP_IGUALDADE TK_OP_IGUALDADE EXP_RELACIONAL
 					{
 						$$.label = nextTMP();
-						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
+						converterTipos(&$$, &$1, &$3, '=', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
 					;
@@ -293,7 +313,7 @@ EXP_LOGICAL_AND  	: EXP_IGUALDADE
 					| EXP_LOGICAL_AND TK_OP_LOGICAL_AND EXP_IGUALDADE
 					{
 						$$.label = nextTMP();
-						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
+						converterTipos(&$$, &$1, &$3, '&', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
 					;
@@ -302,7 +322,7 @@ EXP_LOGICAL_OR		: EXP_LOGICAL_AND
 					| EXP_LOGICAL_OR TK_OP_LOGICAL_OR EXP_LOGICAL_AND
 					{
 						$$.label = nextTMP();
-						neoConvertType(&$$, &$1, &$3, TK_TIPO_BOOL);
+						converterTipos(&$$, &$1, &$3, '|', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 					}
 					;
@@ -329,7 +349,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						}
 
 						int out;
-						int newType = convertType($1.tipo, $3.tipo, &out);
+						int newType = verificarTipos($1.tipo, $3.tipo, &out);
 						checkTypes($1.tipo, newType);
 
 						if (out == 2){
@@ -463,16 +483,18 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 					}
 					;
 
-CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' BLOCO
+CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' { proximoContexto = TK_CTX_WHILE; } BLOCO
 					{
+
+						//imprimirContexto(true);
 						if ($3.tipo != TK_TIPO_BOOL)
 						{
 							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
 						}
 
 						// Definindo novos Labels
-						string lblInicio = nextLBL();
-						string lblFim = nextLBL();
+						string lblInicio = $6.lblInicio;
+						string lblFim = $6.lblFim;
 
 						// Imprimir Label de Inicio
 						$$.traducao = lbl(lblInicio);
@@ -490,8 +512,8 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' BLOCO
 						$$.traducao += cmd("if (" + tmpExpNegada + ") goto " + lblFim);
 
 						// Imprimir Bloco
-						$$.declaracao += $5.declaracao;
-						$$.traducao += $5.traducao;
+						$$.declaracao += $6.declaracao;
+						$$.traducao += $6.traducao;
 
 						// Imprimir Salto Incondicional para o Inicio
 						$$.traducao += cmd("goto " + lblInicio);
@@ -502,40 +524,39 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' BLOCO
 					}
 					;
 
-CMD_DOWHILE			: TK_DO BLOCO TK_WHILE '(' EXPRESSAO ')'
+CMD_DOWHILE			: TK_DO {proximoContexto = TK_CTX_WHILE;} BLOCO TK_WHILE '(' EXPRESSAO ')'
 					{
-						if ($5.tipo != TK_TIPO_BOOL)
+						if ($6.tipo != TK_TIPO_BOOL)
 						{
-							yyerror("Conversão inválida entre (" + typeName($2.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
+							yyerror("Conversão inválida entre (" + typeName($6.tipo, true) + ") e (" + typeName(TK_TIPO_BOOL, true) + ")");
 						}
 
 						// Definindo Label Inicio
-						string lblInicio = nextLBL();
+						string lblInicio = $3.lblInicio;
+						string lblFim = $3.lblFim;
 
 						// Imprimindo Label Inicio
 						$$.traducao = lbl(lblInicio);
 
 						// Imprimir Bloco
-						$$.declaracao = $2.declaracao;
-						$$.traducao += $2.traducao;
+						$$.declaracao = $3.declaracao;
+						$$.traducao += $3.traducao;
 
 						// Imprimir Expressão
-						$$.declaracao += $5.declaracao;
-						$$.traducao += $5.traducao;
+						$$.declaracao += $6.declaracao;
+						$$.traducao += $6.traducao;
 
 						// Imprimir Salto Condicional para Label Inicio
-						$$.traducao += cmd("if (" + $5.label + ") goto " + lblInicio);
+						$$.traducao += cmd("if (" + $6.label + ") goto " + lblInicio);
+
+						// Imprimindo Label Fim
+						$$.traducao += lbl(lblFim);
 					}
 					;
 
 CMD_FOR				: TK_FOR
 					{
-						string lblInicio = nextLBL();
-						string lblFim = nextLBL();
-
-						$$.traducao = lbl(lblInicio);
-
-						empilharContexto(TK_CTX_FOR, lblInicio, lblFim);
+						empilharContexto(TK_CTX_FOR);
 					}
 					'(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 					{
@@ -545,17 +566,18 @@ CMD_FOR				: TK_FOR
 						}
 
 						// Definindo Label Inicio e Fim
-						string lblInicio = nextLBL();
-						string lblFim = contextoAtual->lblFim;		// Pego o label Fim do bloco for exterior
+						string lblInicioIt = nextLBL();					// Cria um label para o inicio da iteração
+						string lblFimIt = contextoAtual->lblInicio;		// Uso o label do inicio do bloco no fim da iteracao -- CONTINUE
+						string lblFim = contextoAtual->lblFim;			// Pego o label Fim do bloco FOR exterior (fim do laço) -- BREAK
 
 						desempilharContexto();
 
 						// Imprimindo Expressão 1
 						$$.declaracao = $4.declaracao;
-						$$.traducao += $4.traducao;
+						$$.traducao = $4.traducao;
 
-						// Imprimindo Label Inicio
-						$$.traducao += lbl(lblInicio);
+						// Imprimindo Label Inicio Iteracao
+						$$.traducao += lbl(lblInicioIt);
 
 						// Imprimindo Expressao 2
 						$$.declaracao += $6.declaracao;
@@ -573,12 +595,15 @@ CMD_FOR				: TK_FOR
 						$$.declaracao += $10.declaracao;
 						$$.traducao += $10.traducao;
 
+						// Imprimir label Fim Iteracao
+						$$.traducao += lbl(lblFimIt);
+
 						// Imprimir Expressao 3
 						$$.declaracao += $8.declaracao;
 						$$.traducao += $8.traducao;
 
 						// Imprimir Salto Incondicional para Inicio
-						$$.traducao += cmd("goto " + lblInicio);
+						$$.traducao += cmd("goto " + lblInicioIt);
 
 						// Imprimir Label Fim
 						$$.traducao += lbl(lblFim);
@@ -619,7 +644,7 @@ CMD_FOR				: TK_FOR
 						}
 
 						int out;
-						int newType = convertType($3.tipo, $5.tipo, &out);
+						int newType = verificarTipos($3.tipo, $5.tipo, &out);
 						checkTypes($3.tipo, newType);
 
 						if (out == 3){
@@ -715,7 +740,7 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 
 						//$$.label = $1.label + $2.label + ",";
 
-						$$.labelCase += $2.labelCase + "";
+						//$$.labelCase += $2.labelCase + "";
 						$$.traducaoAlternativa += $2.traducaoAlternativa;
 
 					}
@@ -731,21 +756,22 @@ EXP_CASE			: TK_CASE TK_LITERAL BLOCO
 						$$.declaracao = $3.declaracao;
 
 						string lblCase = nextLBL();
+						string tmp = nextTMP();
 						$$.traducao = lbl(lblCase);
 						$$.traducao += $3.traducao;
 
 						// VINICIUS SUBIR ESSES DADOS E USAR
-						$$.labelCase = lblCase;
-						$$.label = nextTMP();
+						//$$.labelCase = lblCase;
+						//$$.label = nextTMP();
 						$$.tipo = $2.tipo;
 
 						string tmpIgualdade = nextTMP();
 
 						$$.declaracao += dcl(TK_TIPO_BOOL, tmpIgualdade);
-						$$.declaracao += dcl($2.tipo, $$.label);
+						$$.declaracao += dcl($2.tipo, lblCase);
 
-						$$.traducaoAlternativa = cmd($$.label + " = " + $2.traducao);
-						$$.traducaoAlternativa += cmd(tmpIgualdade + " = " + $$.label + " == " + alternador_atual->label);
+						$$.traducaoAlternativa = cmd(tmp + " = " + $2.traducao);
+						$$.traducaoAlternativa += cmd(tmpIgualdade + " = " + tmp + " == " + alternador_atual->label);
 						$$.traducaoAlternativa += cmd("if (" + tmpIgualdade + ") goto " + lblCase);
 
 						$$.traducao += cmd("goto " + alternador_atual->lblFim);
@@ -767,16 +793,38 @@ CMD_BREAK			: TK_BREAK ';'
 						$$.traducao = cmd("goto " + laco->lblFim);
 						//desempilharContextoAte(laco);
 					}
-					| TK_BREAK TK_LITERAL ';'
-					{
+					;
 
+CMD_CONTINUE		: TK_CONTINUE ';'
+					{
+						Contexto* laco = procurarContextoLaco();
+						$$.traducao = cmd("goto " + laco->lblInicio);
 					}
-					| TK_BREAK TK_ID ';'
+					;
+
+CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
+					{
+						if ($3.tipo != TK_TIPO_STRING && $3.tipo != TK_TIPO_CHAR)
+						{
+							yyerror("Expressão esperada do tipo (" + typeName(TK_TIPO_STRING, true) + ").");
+						}
+
+						char aux = ($3.tipo == TK_TIPO_STRING)? 's' : 'c';
+
+						// Imprimir declaracao e tradução da Expressão
+						$$.traducao = $3.traducao;
+						$$.declaracao = $3.declaracao;
+
+						// Imprimir comando de saida
+						$$.traducao += cmd((string)"printf(\"\%" + aux + "\", " + $3.label + ")");
+					}
+					;
+
+CMD_IN 				: TK_IN '(' TK_TIPO ')' ';'
 					{
 
 					}
 					;
-
 
 OP_RELACIONAL		: '<'
 					{
@@ -804,13 +852,54 @@ OP_COMPARATIVOS		: OP_RELACIONAL
 
 #include "lex.yy.c"
 
-						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		*/
-int tab_conversao[5][5] = 	{	
-							{TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		}, /* TK_TIPO_INDEFINIDO 	*/
-							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_INT 			*/
-							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
-							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
-							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		}, /* TK_TIPO_BOOL 			*/
+						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		, TK_TIPO_STRING	*/
+int tab_conversao[6][6] = 	{	
+							{TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		, TK_ERROR			}, /* TK_TIPO_INDEFINIDO 	*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
+							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_TIPO_BOOL		, TK_ERROR			}, /* TK_TIPO_BOOL 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_TIPO_STRING	}, /* TK_TIPO_STRING		*/
+							};
+
+						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		, TK_TIPO_STRING	*/
+int tab_op_soma[6][6] = 	{	
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INDEFINIDO 	*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
+							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_BOOL 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_TIPO_STRING	}, /* TK_TIPO_STRING		*/
+							};
+
+						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		, TK_TIPO_STRING	*/
+int tab_op_sub[6][6] = 		{	
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INDEFINIDO 	*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
+							{TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_TIPO_CHAR		, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_BOOL 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_STRING		*/
+							};
+
+						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		, TK_TIPO_STRING	*/
+int tab_op_mult[6][6] = 	{	
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INDEFINIDO 	*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_BOOL 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_STRING		*/
+							};
+
+						/*	TK_TIPO_INDEFINIDO	, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_TIPO_CHAR		, TK_TIPO_BOOL		, TK_TIPO_STRING	*/
+int tab_op_div[6][6] = 		{	
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INDEFINIDO 	*/
+							{TK_ERROR			, TK_TIPO_INT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_INT 			*/
+							{TK_ERROR			, TK_TIPO_FLOAT		, TK_TIPO_FLOAT		, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_FLOAT 		*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_CHAR 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_BOOL 			*/
+							{TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			, TK_ERROR			}, /* TK_TIPO_STRING		*/
 							};
 
 int yyparse();
@@ -869,6 +958,7 @@ string typeName (int token, bool debug)
 		case TK_TIPO_FLOAT: 	str = "float"; 						break;
 		case TK_TIPO_CHAR: 		str = "char"; 						break;
 		case TK_TIPO_BOOL:		str = (debug)? "boolean" : "int";	break;
+		case TK_TIPO_STRING:	str = (debug)? "string" : "char*";	break;
 		default:				str = "undefined";					break;
 	}
 
@@ -885,14 +975,45 @@ bool checkTypes (int type1, int type2)
 	return true;
 }
 
-int convertType (int type1, int type2, int *x)
+int tabelaOperadores (int tipo1, char op, int tipo2)
 {
-	int typeIndex1 = type1 - TK_TIPO_INDEFINIDO;
-	int typeIndex2 = type2 - TK_TIPO_INDEFINIDO;
+	int x = tipo1 - TK_TIPO_INDEFINIDO;
+	int y = tipo2 - TK_TIPO_INDEFINIDO;
 
+	int tipo = TK_ERROR;
+
+	switch (op)
+	{
+		case '+':
+			tipo = tab_op_soma[x][y];
+			break;
+		case '*':
+			tipo = tab_op_mult[x][y];
+			break;
+		case '-':
+			tipo = tab_op_sub[x][y];
+			break;
+		case '/':
+			tipo = tab_op_div[x][y];
+			break;
+		default:
+			tipo = tab_conversao[x][y];
+			break;
+	}
+
+	if (tipo == TK_ERROR)
+	{
+		yyerror((string)"Operação inválida [" + op + "] entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) + ").");
+	}
+
+	return tipo;
+}
+
+int verificarTipos (int type1, int type2, int *x, char op)
+{
 	*x = 0;
 
-	int newType = tab_conversao[typeIndex1][typeIndex2];
+	int newType = tabelaOperadores(type1, op, type2);
 
 	if (newType == TK_ERROR)
 	{
@@ -912,10 +1033,10 @@ int convertType (int type1, int type2, int *x)
 	return newType;
 }
 
-int neoConvertType (atributos* $$,atributos* $1, atributos* $2, int forceType)
+int converterTipos (atributos* $$, atributos* $1, atributos* $2, char op, int forceType)
 {
 	int out;
-	int numTipo = convertType($1->tipo, $2->tipo, &out);
+	int numTipo = verificarTipos($1->tipo, $2->tipo, &out, op);
 	string declaracaoConvertida = "";
 
 	// Se algum valor precisar ser convertido
@@ -1084,10 +1205,19 @@ void empilharContexto(int tipo, string inicio, string fim)
 
 	Contexto* novoCtx = novoContexto();
 
+	if (proximoContexto != 0)
+	{
+		novoCtx->tipo = proximoContexto;
+		proximoContexto = 0;
+	}
+	else
+	{
+		novoCtx->tipo = tipo;
+	}
+
 	novoCtx->anterior = contextoAtual;
-	novoCtx->tipo = tipo;
-	novoCtx->lblInicio = inicio;
-	novoCtx->lblFim = fim;
+	novoCtx->lblInicio = inicio != ""? inicio : nextLBL();
+	novoCtx->lblFim = fim != ""? fim : nextLBL();
 
 	contextoAtual = novoCtx;
 }
@@ -1122,6 +1252,7 @@ Contexto* procurarContextoLaco()
 	}
 
 	yyerror("Não foi possivel encontrar um laço.");
+	return NULL;
 }
 
 void desempilharContextoAte(Contexto* c)

@@ -18,6 +18,8 @@ CHAR 		'(\\)?.'
 BOOL		(true|false)
 ID 			{LETRA}({LETRA}|{DGT})*
 
+STRING      \".*\"
+
 %%
 
 "\n"							{ linha++;																		}
@@ -38,6 +40,9 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "break"							{ return TK_BREAK;																}
 "continue"						{ return TK_CONTINUE;															}
 
+"out"							{ return TK_OUT;																}
+"in"							{ return TK_IN;																	}
+
 "int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
 "float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}
 "char"							{ yylval.tipo = TK_TIPO_CHAR; 	return TK_TIPO;									}
@@ -52,7 +57,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 "or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}
 [!]								{ yylval.traducao = "!";	return TK_OP_NOT;									}
 
-[()[\];,<>:]					{ return *yytext; 																}
+[()[\];,<>:@#]					{ return *yytext; 																}
 [{]								{ empilharContexto(TK_CTX_BLOCO); return *yytext;								}
 [}]								{ desempilharContexto();	return *yytext; 									}
 
@@ -65,6 +70,7 @@ ID 			{LETRA}({LETRA}|{DGT})*
 {FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT;return TK_LITERAL; 		}
 {CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_LITERAL; 		}
 {BOOL}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_BOOL; return TK_LITERAL; 		}
+{STRING}						{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_STRING; return TK_LITERAL;	}
 
 {ID}							{ yylval.label = yytext; yylval.tipo = TK_TIPO_INDEFINIDO; return TK_ID; 		}
 

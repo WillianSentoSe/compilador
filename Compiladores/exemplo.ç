@@ -1,11 +1,7 @@
 int main()
 {
-	var a = 0;
+	var a = 'C';
 
-	for (var i = 0; i < 10; i = i + 1)
-	{
-		a = 1;
-		break;
-		a = 2;
-	}
+	out(a);
+
 }
