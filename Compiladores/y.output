@@ -121,7 +121,7 @@ Gramática
    59 BLOCO_SWITCH: BLOCO_SWITCH EXP_CASE
    60             | %empty
 
-   61 EXP_CASE: TK_CASE TK_LITERAL BLOCO
+   61 EXP_CASE: TK_CASE EXPRESSAO BLOCO
    62         | TK_DEFAULT BLOCO
 
    63 CMD_BREAK: TK_BREAK ';'
@@ -160,7 +160,7 @@ $end (0) 0
 '{' (123) 3 58
 '}' (125) 3 58
 error (256)
-TK_LITERAL (258) 20 61
+TK_LITERAL (258) 20
 TK_ID (259) 21 39 44 45 56 58
 TK_MAIN (260) 1
 TK_VAR (261) 40
@@ -241,7 +241,7 @@ EXP_LOGICAL_AND (75)
 EXP_LOGICAL_OR (76)
     à esquerda: 36 37, à direita: 37 38
 EXPRESSAO (77)
-    à esquerda: 38, à direita: 22 23 39 45 46 47 49 51 53 56 65
+    à esquerda: 38, à direita: 22 23 39 45 46 47 49 51 53 56 61 65
 ATRIBUICAO (78)
     à esquerda: 39, à direita: 19 41
 CMD_DECLARACOES (79)
@@ -1615,9 +1615,23 @@ Estado 133
 
 Estado 134
 
-   61 EXP_CASE: TK_CASE . TK_LITERAL BLOCO
+   61 EXP_CASE: TK_CASE . EXPRESSAO BLOCO
 
-    TK_LITERAL  deslocar, e ir ao estado 141
+    TK_LITERAL  deslocar, e ir ao estado 52
+    TK_ID       deslocar, e ir ao estado 53
+    TK_TIPO     deslocar, e ir ao estado 54
+    TK_OP_NOT   deslocar, e ir ao estado 55
+    '('         deslocar, e ir ao estado 56
+
+    EXP_SIMPLES         ir ao estado 57
+    EXP_NOT             ir ao estado 58
+    EXP_ARITMETICA_MUL  ir ao estado 59
+    EXP_ARITMETICA_ADD  ir ao estado 60
+    EXP_RELACIONAL      ir ao estado 61
+    EXP_IGUALDADE       ir ao estado 62
+    EXP_LOGICAL_AND     ir ao estado 63
+    EXP_LOGICAL_OR      ir ao estado 64
+    EXPRESSAO           ir ao estado 141
 
 
 Estado 135
@@ -1674,7 +1688,7 @@ Estado 140
 
 Estado 141
 
-   61 EXP_CASE: TK_CASE TK_LITERAL . BLOCO
+   61 EXP_CASE: TK_CASE EXPRESSAO . BLOCO
 
     '{'  deslocar, e ir ao estado 7
 
@@ -1713,7 +1727,7 @@ Estado 145
 
 Estado 146
 
-   61 EXP_CASE: TK_CASE TK_LITERAL BLOCO .
+   61 EXP_CASE: TK_CASE EXPRESSAO BLOCO .
 
     $padrão  reduzir usando a regra 61 (EXP_CASE)
 

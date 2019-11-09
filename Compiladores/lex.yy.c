@@ -996,7 +996,7 @@ YY_RULE_SETUP
 case 38:
 YY_RULE_SETUP
 #line 73 "lexica.l"
-{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_STRING; return TK_LITERAL;	}
+{ declararString(&yylval, yytext); return TK_LITERAL;	}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP

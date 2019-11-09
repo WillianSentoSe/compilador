@@ -17,6 +17,7 @@ struct atributos {
 	string declaracao;
 	string traducao;
 	int tipo;
+	int tamanho;
 
 	string traducaoAlternativa;
 
@@ -60,6 +61,7 @@ public:
 	string label;
 	string lblFim;
 	string lblDefault;
+	int tipo;
 	Pilha_alternador* anterior;
 };
 
@@ -84,6 +86,7 @@ bool checkTypes(int, int);
 void checkLabel(string);
 int verificarTipos(int, int, int*, char op = ' ');
 int converterTipos (atributos*, atributos*, atributos*, char, int forceType = 0);
+void converterTipo(atributos*, int, atributos*, bool antecipado = false);
 
 string cmd(string);
 string dcl(int, string);
@@ -113,11 +116,14 @@ void imprimirContexto(bool exibirLBL = false);
 Contexto* procurarContextoLaco();
 void desempilharContextoAte(Contexto*);
 
-void empilharAlternador(string, string);
+void empilharAlternador(string, string, int);
 void desempilharAlternador();
 
 void empilharCase();
 void desempilharContexto();
+
+void declararString(atributos*, string, bool antecipado = false);
+int tamanhoString(string);
 
 %}
 
@@ -141,7 +147,8 @@ void desempilharContexto();
 S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
 					{
 						cout << "\n/*Compilador Ç*/\n\n";
-						cout << "\n#include <stdio.h>\n\n";
+						cout << "\n#include <stdio.h>";
+						cout << "\n#include <stdlib.h>\n\n";
 						cout << "#define true 1\n#define false 0\n\n";
 						cout << "int main(void)\n{\n" << $5.declaracao + "\n" + $5.traducao << "\n\treturn 0;\n}\n"; 
 					}
@@ -219,7 +226,40 @@ EXP_SIMPLES			: TK_LITERAL
 
 						$$.label = nextTMP();
 						$$.declaracao = dcl($1.tipo, $$.label);
-						$$.traducao = cmd($$.label + " = " + $1.traducao);
+
+						if ($1.tipo != TK_TIPO_STRING)
+						{
+							$$.traducao = cmd($$.label + " = " + $1.traducao);
+						}
+						else
+						{
+							int tamanho = $1.tamanho + 1;						// Necessário incluir \0
+							string s = $1.traducao;
+							int i = 0;
+
+							$$.traducao = cmd($$.label + " = (char*)malloc(sizeof(char) * " + to_string(tamanho) + ")");
+
+							// Sempre acessar posicao [i + 1], pois S começa com "
+							while (s[i + 1] != '"')
+							{
+								string c = " ";
+								c[0] = s[i + 1];
+
+								if (s[i + 1] == '\\')
+								{
+									i++;
+									c += " ";
+									c[1] = s[i + 1];
+								}
+
+								$$.traducao += cmd($$.label + "[" + to_string(i) + "] = '" + c + "'");
+
+								i++;
+							}
+
+							$$.traducao += cmd($$.label + "[" + to_string(i) + "] = '\\0'");
+						}
+
 						$$.tipo = $1.tipo;
 					}
 					| TK_ID
@@ -348,6 +388,8 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							$$.declaracao += dcl($1.tipo, getLabel($1.label));
 						}
 
+						converterTipo(&$$, $1.tipo, &$3);
+						/*
 						int out;
 						int newType = verificarTipos($1.tipo, $3.tipo, &out);
 						checkTypes($1.tipo, newType);
@@ -358,6 +400,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							$$.traducao += cst(newLabel, $1.tipo, $3.label);
 							$3.label = newLabel;
 						}
+						*/
 
 						$1.label = getLabel($1.label);
 						$$.traducao += cmd($1.label + " = " + $3.label);
@@ -710,12 +753,17 @@ CMD_SWITCH			: TK_SWITCH '(' TK_ID ')'
 
 						if (s == NULL)
 						{
-							yyerror("Variável " + $3.label + " não declarada");
+							yyerror("Variável '" + $3.label + "' não declarada");
+						}
+
+						if (s->tipo == TK_TIPO_INDEFINIDO)
+						{
+							yyerror("Variável '" + $3.label + "' possui valor indefinido");
 						}
 
 						string lblFim = nextLBL();
 
-						empilharAlternador(s->label, lblFim);
+						empilharAlternador(s->label, lblFim, s->tipo);
 					} 
 					'{' BLOCO_SWITCH '}'
 					{
@@ -737,12 +785,7 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 						$$.traducao = $1.traducao + $2.traducao;
 
 						$$.tipo += $2.tipo;
-
-						//$$.label = $1.label + $2.label + ",";
-
-						//$$.labelCase += $2.labelCase + "";
 						$$.traducaoAlternativa += $2.traducaoAlternativa;
-
 					}
 					| 
 					{
@@ -751,31 +794,42 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 					}
 					;
 				
-EXP_CASE			: TK_CASE TK_LITERAL BLOCO
+EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 					{
+						$$.traducaoAlternativa = "";
+						$$.traducao = "";
 						$$.declaracao = $3.declaracao;
 
+						// Definir Label do Case
 						string lblCase = nextLBL();
-						string tmp = nextTMP();
-						$$.traducao = lbl(lblCase);
-						$$.traducao += $3.traducao;
 
-						// VINICIUS SUBIR ESSES DADOS E USAR
-						//$$.labelCase = lblCase;
-						//$$.label = nextTMP();
-						$$.tipo = $2.tipo;
-
+						// Definir Temporária para igualdade
 						string tmpIgualdade = nextTMP();
 
-						$$.declaracao += dcl(TK_TIPO_BOOL, tmpIgualdade);
-						$$.declaracao += dcl($2.tipo, lblCase);
+						// Imprimir Expressao (Será impresso no início do Switch, antes dos blocos Case e Default)
+						$$.traducaoAlternativa += $2.traducao;
+						$$.declaracao += $2.declaracao;
 
-						$$.traducaoAlternativa = cmd(tmp + " = " + $2.traducao);
-						$$.traducaoAlternativa += cmd(tmpIgualdade + " = " + tmp + " == " + alternador_atual->label);
+						// Verificar e Converter tipos
+						converterTipo(&$$, alternador_atual->tipo, &$2, true);
+						$$.tipo = $2.tipo;
+
+						// Declarar Temporária para igualdade
+						$$.declaracao += dcl(TK_TIPO_BOOL, tmpIgualdade);
+
+						// Imprimir Tradução Antecipada (Será impresso no início do Switch, antes dos blocos Case e Default)
+						$$.traducaoAlternativa += cmd(tmpIgualdade + " = " + $2.label + " == " + alternador_atual->label);
 						$$.traducaoAlternativa += cmd("if (" + tmpIgualdade + ") goto " + lblCase);
 
+						// Imprimir Label do Case
+						$$.traducao += lbl(lblCase);
+
+						// Imprimir Bloco
+						$$.traducao += $3.traducao;
+
+						// Imprimir Goto Fim do Switch
 						$$.traducao += cmd("goto " + alternador_atual->lblFim);
-						
+
 					}
 					| TK_DEFAULT BLOCO
 					{
@@ -822,7 +876,7 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 
 CMD_IN 				: TK_IN '(' TK_TIPO ')' ';'
 					{
-
+						
 					}
 					;
 
@@ -845,8 +899,6 @@ OP_COMPARATIVOS		: OP_RELACIONAL
 					| TK_OP_IGUALDADE
 					| TK_OP_DESIGUALDADE
 					;
-
-
 
 %%
 
@@ -1003,7 +1055,8 @@ int tabelaOperadores (int tipo1, char op, int tipo2)
 
 	if (tipo == TK_ERROR)
 	{
-		yyerror((string)"Operação inválida [" + op + "] entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) + ").");
+		string auxOp = (op != ' ')? (string)"[" + op + "]" : "";
+		yyerror((string)"Operação inválida " + auxOp + (string)"entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) + ").");
 	}
 
 	return tipo;
@@ -1067,6 +1120,29 @@ int converterTipos (atributos* $$, atributos* $1, atributos* $2, char op, int fo
 
 	// Retorna o tipo
 	return numTipo;
+}
+
+void converterTipo(atributos* $$, int tipo, atributos* $1, bool antecipado)
+{
+	int out;
+	int novoTipo = verificarTipos(tipo, $1->tipo, &out);
+	checkTypes(tipo, novoTipo);
+
+	if (out == 2){
+		string tmp = nextTMP();
+		$$->declaracao += dcl(tipo, tmp);
+
+		if (!antecipado)
+		{
+			$$->traducao += cst(tmp, tipo, $1->label);
+		}
+		else
+		{
+			$$->traducaoAlternativa += cst(tmp, tipo, $1->label);
+		}
+		
+		$1->label = tmp;
+	}
 }
 
 void checkLabel(string s)
@@ -1310,9 +1386,10 @@ simbolo* getSimboloPilha(string id)
 	return NULL;
 }
 
-void empilharAlternador(string s, string lblFim)
+void empilharAlternador(string s, string lblFim, int tipo)
 {
 	Pilha_alternador* alternador = new Pilha_alternador();
+	alternador->tipo = tipo;
 	alternador->label = s;
 	alternador->lblFim = lblFim;
 	alternador->lblDefault = "";
@@ -1337,4 +1414,37 @@ void desempilharAlternador()
 	{
 		cout << "=== AVISO\nTentativa de desempilhar alternador vazio.\n";
 	}
+}
+
+void declararString(atributos* $$, string s, bool antecipado)
+{
+	//$$->label = nextTMP();
+	$$->tipo = TK_TIPO_STRING;
+	//$$->declaracao = dcl($$->tipo, $$->label);
+	$$->tamanho = tamanhoString(s) - 2;			// Necessário remover "" da contagem
+	$$->traducao = s;
+	//$$->traducao = cmd($$->label + " = (char*)malloc(sizeof(char) * " + to_string($$->tamanho) + ")");
+}
+
+int tamanhoString(string s)
+{
+	int i = 0;
+	int count = 0;
+
+	while (s[i] != '\0')
+	{
+		if (s[i] != '\\')
+		{
+			count++;
+		}
+		else
+		{
+			i += 2;
+			count += 2;
+		}
+
+		i++;
+	}
+
+	return count;
 }

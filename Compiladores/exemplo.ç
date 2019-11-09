@@ -1,7 +1,6 @@
 int main()
 {
-	var a = 'C';
-
-	out(a);
+	var a = "abc\n";
+	out (a);
 
 }

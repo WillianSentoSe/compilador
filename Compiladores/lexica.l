@@ -70,7 +70,7 @@ STRING      \".*\"
 {FLOAT}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_FLOAT;return TK_LITERAL; 		}
 {CHAR}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_CHAR; return TK_LITERAL; 		}
 {BOOL}							{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_BOOL; return TK_LITERAL; 		}
-{STRING}						{ yylval.traducao = yytext; yylval.tipo = TK_TIPO_STRING; return TK_LITERAL;	}
+{STRING}						{ declararString(&yylval, yytext); return TK_LITERAL;	}
 
 {ID}							{ yylval.label = yytext; yylval.tipo = TK_TIPO_INDEFINIDO; return TK_ID; 		}
 
