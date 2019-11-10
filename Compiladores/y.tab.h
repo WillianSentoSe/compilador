@@ -76,23 +76,24 @@ extern int yydebug;
     TK_OP_IOR = 282,
     TK_OP_ADD = 283,
     TK_OP_MUL = 284,
-    TK_TIPO_INDEFINIDO = 285,
-    TK_TIPO_INT = 286,
-    TK_TIPO_FLOAT = 287,
-    TK_TIPO_CHAR = 288,
-    TK_TIPO_BOOL = 289,
-    TK_TIPO_STRING = 290,
-    TK_CLASSE_VARIAVEL = 291,
-    TK_CLASSE_FUNCAO = 292,
-    TK_FIM = 293,
-    TK_ERROR = 294,
-    TK_CTX_BLOCO = 295,
-    TK_CTX_IF = 296,
-    TK_CTX_WHILE = 297,
-    TK_CTX_FOR = 298,
-    TK_CTX_CASE = 299,
-    TK_OUT = 300,
-    TK_IN = 301
+    TK_OP_SUB = 285,
+    TK_TIPO_INDEFINIDO = 286,
+    TK_TIPO_INT = 287,
+    TK_TIPO_FLOAT = 288,
+    TK_TIPO_CHAR = 289,
+    TK_TIPO_BOOL = 290,
+    TK_TIPO_STRING = 291,
+    TK_CLASSE_VARIAVEL = 292,
+    TK_CLASSE_FUNCAO = 293,
+    TK_FIM = 294,
+    TK_ERROR = 295,
+    TK_CTX_BLOCO = 296,
+    TK_CTX_IF = 297,
+    TK_CTX_WHILE = 298,
+    TK_CTX_FOR = 299,
+    TK_CTX_CASE = 300,
+    TK_OUT = 301,
+    TK_IN = 302
   };
 #endif
 /* Tokens.  */
@@ -123,23 +124,24 @@ extern int yydebug;
 #define TK_OP_IOR 282
 #define TK_OP_ADD 283
 #define TK_OP_MUL 284
-#define TK_TIPO_INDEFINIDO 285
-#define TK_TIPO_INT 286
-#define TK_TIPO_FLOAT 287
-#define TK_TIPO_CHAR 288
-#define TK_TIPO_BOOL 289
-#define TK_TIPO_STRING 290
-#define TK_CLASSE_VARIAVEL 291
-#define TK_CLASSE_FUNCAO 292
-#define TK_FIM 293
-#define TK_ERROR 294
-#define TK_CTX_BLOCO 295
-#define TK_CTX_IF 296
-#define TK_CTX_WHILE 297
-#define TK_CTX_FOR 298
-#define TK_CTX_CASE 299
-#define TK_OUT 300
-#define TK_IN 301
+#define TK_OP_SUB 285
+#define TK_TIPO_INDEFINIDO 286
+#define TK_TIPO_INT 287
+#define TK_TIPO_FLOAT 288
+#define TK_TIPO_CHAR 289
+#define TK_TIPO_BOOL 290
+#define TK_TIPO_STRING 291
+#define TK_CLASSE_VARIAVEL 292
+#define TK_CLASSE_FUNCAO 293
+#define TK_FIM 294
+#define TK_ERROR 295
+#define TK_CTX_BLOCO 296
+#define TK_CTX_IF 297
+#define TK_CTX_WHILE 298
+#define TK_CTX_FOR 299
+#define TK_CTX_CASE 300
+#define TK_OUT 301
+#define TK_IN 302
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

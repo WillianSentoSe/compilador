@@ -16,6 +16,7 @@ struct atributos {
 	string label;
 	string declaracao;
 	string traducao;
+	string desalocacao;
 	int tipo;
 	int tamanho;
 
@@ -129,7 +130,7 @@ int tamanhoString(string);
 
 %token TK_LITERAL TK_ID
 %token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE TK_DO TK_FOR TK_SWITCH TK_CASE TK_BREAK TK_CONTINUE TK_DEFAULT
-%token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL
+%token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL TK_OP_SUB
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
@@ -148,9 +149,10 @@ S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
 					{
 						cout << "\n/*Compilador Ç*/\n\n";
 						cout << "\n#include <stdio.h>";
-						cout << "\n#include <stdlib.h>\n\n";
+						cout << "\n#include <stdlib.h>";
+						cout << "\n#include <string.h>\n\n";
 						cout << "#define true 1\n#define false 0\n\n";
-						cout << "int main(void)\n{\n" << $5.declaracao + "\n" + $5.traducao << "\n\treturn 0;\n}\n"; 
+						cout << "int main(void)\n{\n" << $5.declaracao + "\n" + $5.traducao + $5.desalocacao << "\n\treturn 0;\n}\n"; 
 					}
 					;
 
@@ -166,6 +168,7 @@ BLOCO				: '{'
 
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
+						//$$.desalocacao = "\n" + $3.desalocacao;
 					}
 					;
 
@@ -173,6 +176,7 @@ COMANDOS			: COMANDO COMANDOS
 					{
 						$$.declaracao = $1.declaracao + $2.declaracao;
 						$$.traducao = $1.traducao + $2.traducao;
+						//$$.desalocacao = $1.desalocacao + $2.desalocacao;
 					}
 					|
 					{
@@ -189,7 +193,6 @@ COMANDO 			: CMD_DECLARACOES ';'
 					| CMD_BREAK
 					| CMD_CONTINUE
 					| CMD_OUT
-					| CMD_IN
 					| '#'
 					{
 						$$.traducao = "";
@@ -202,11 +205,13 @@ COMANDOS_FOR		: COMANDO_FOR ',' COMANDOS_FOR
 					{
 						$$.declaracao = $1.declaracao + $3.declaracao;
 						$$.traducao = $1.traducao + $3.traducao;
+						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					| COMANDO_FOR
 					{
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
+						//$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -237,27 +242,9 @@ EXP_SIMPLES			: TK_LITERAL
 							string s = $1.traducao;
 							int i = 0;
 
-							$$.traducao = cmd($$.label + " = (char*)malloc(sizeof(char) * " + to_string(tamanho) + ")");
-
-							// Sempre acessar posicao [i + 1], pois S começa com "
-							while (s[i + 1] != '"')
-							{
-								string c = " ";
-								c[0] = s[i + 1];
-
-								if (s[i + 1] == '\\')
-								{
-									i++;
-									c += " ";
-									c[1] = s[i + 1];
-								}
-
-								$$.traducao += cmd($$.label + "[" + to_string(i) + "] = '" + c + "'");
-
-								i++;
-							}
-
-							$$.traducao += cmd($$.label + "[" + to_string(i) + "] = '\\0'");
+							$$.traducao = cmd($$.label + " = (char*) malloc(sizeof(char) * " + to_string(tamanho) + ")");
+							$$.traducao += cmd($$.label + " = " + $1.traducao);
+							//$$.desalocacao = cmd("free(" + $$.label + ")");
 						}
 
 						$$.tipo = $1.tipo;
@@ -275,6 +262,7 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.label = getLabel($1.label);
 						$$.declaracao = "";
 						$$.traducao = "";
+						//$$.desalocacao = "";
 					}
 					| '(' EXPRESSAO ')'
 					{
@@ -282,6 +270,7 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.declaracao = $2.declaracao;
 						$$.traducao = $2.traducao;
 						$$.tipo = $2.tipo;
+						//$$.desalocacao = $2.desalocacao;
 					}
 					| TK_TIPO '(' EXPRESSAO ')'
 					{
@@ -294,10 +283,79 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.declaracao = $3.declaracao + dcl($1.tipo, newLabel);
 						$$.traducao = $3.traducao + cst(newLabel, $1.tipo, $3.label);
 						$$.label = newLabel;
+						//$$.desalocacao = $3.desalocacao;
+					}
+					| TK_IN '(' TK_TIPO ')'
+					{
+						string aux = "";
+						int tipo = $3.tipo;
+
+						switch (tipo)
+						{
+							case TK_TIPO_INT:
+								aux = "%d";
+								break;
+							case TK_TIPO_FLOAT:
+								aux = "%f";
+								break;
+							case TK_TIPO_CHAR:
+								aux = "%c";
+								break;
+							case TK_TIPO_BOOL:
+								aux = "%d";
+								break;
+							case TK_TIPO_STRING:
+								aux = "%s";
+								break;
+							default:
+								yyerror("Tipo inválido para a operação IN.");
+								break;
+						}
+
+						string tmp = nextTMP();
+						$$.declaracao += dcl(tipo, tmp);
+
+						if (tipo != TK_TIPO_STRING)
+						{
+							$$.traducao = cmd("scanf(\"" + aux + "\", &" + tmp + ");");
+						}
+						else
+						{
+							int tamanho = 100;
+							$$.traducao = cmd(tmp + " = (char*) malloc(sizeof(char) * " + to_string(tamanho) + ")");
+							$$.traducao += cmd("fgets(" + tmp + ", " + to_string(tamanho) + ", stdin)");
+						}
+
+						$$.tipo = tipo;
+						$$.label = tmp;
 					}
 					;
 					
-EXP_NOT				: EXP_SIMPLES
+EXP_UNARIA			: EXP_SIMPLES
+					| TK_OP_ADD EXP_SIMPLES
+					{
+						int tipo = $2.tipo;
+
+						if (tipo != TK_TIPO_INT && tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador [-] inválido para o tipo (" + typeName(tipo) + ")");
+						}
+
+						string tmp = nextTMP();
+						$$.declaracao = $2.declaracao;
+						$$.declaracao += dcl(tipo, tmp);
+
+						$$.traducao = $2.traducao;
+						$$.traducao += cmd(tmp + " = -" + $2.label);
+
+						$$.tipo = tipo;
+						$$.label = tmp;
+
+						//$$.desalocacao = $2.desalocacao;
+					}
+					;
+
+EXP_NOT				: EXP_UNARIA
 					| TK_OP_NOT EXP_NOT
 					{
 
@@ -310,6 +368,7 @@ EXP_NOT				: EXP_SIMPLES
 						$$.tipo = TK_TIPO_BOOL;
 						$$.declaracao = $2.declaracao + dcl($$.tipo, $$.label);
 						$$.traducao = $2.traducao + cmd($$.label + " = !" + $2.label);
+						//$$.desalocacao = $2.desalocacao;
 						//$$.traducao = $2.traducao + "\t" + declaracao + $$.label + " = !" + $2.label + ";\n";
 					}
 
@@ -317,8 +376,9 @@ EXP_ARITMETICA_MUL	: EXP_NOT
 					| EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT
 					{
 						$$.label = nextTMP();
-						converterTipos(&$$, &$1, &$3, '*');
+						converterTipos(&$$, &$1, &$3, $2.traducao[0]);
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -326,8 +386,31 @@ EXP_ARITMETICA_ADD	: EXP_ARITMETICA_MUL
 					| EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL
 					{
 						$$.label = nextTMP();
-						converterTipos(&$$, &$1, &$3, '+');
-						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						converterTipos(&$$, &$1, &$3, $2.traducao[0]);
+
+						$$.traducao = $1.traducao;
+						$$.traducao += $3.traducao;
+
+						if ($$.tipo != TK_TIPO_STRING)
+						{
+							$$.traducao += cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						}
+						else
+						{
+							string tmp = nextTMP();
+							int tamanhoFinal = $1.tamanho + $2.tamanho + 1;
+
+							$$.declaracao += dcl(TK_TIPO_STRING, tmp);
+
+							$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + to_string(tamanhoFinal) + ")");
+							$$.traducao += cmd("strcpy(" + tmp + ", " + $1.label + ")");
+							$$.traducao += cmd("strcat(" + tmp + ", " + $3.label + ")");
+							$$.traducao += cmd($$.label + " = " + tmp);
+
+							//$$.desalocacao += cmd("free(" + tmp + ")");
+						}
+
+						//$$.desalocacao += $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -337,6 +420,7 @@ EXP_RELACIONAL		: EXP_ARITMETICA_ADD
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '>', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -346,6 +430,7 @@ EXP_IGUALDADE		: EXP_RELACIONAL
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '=', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -355,6 +440,7 @@ EXP_LOGICAL_AND  	: EXP_IGUALDADE
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '&', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -364,6 +450,7 @@ EXP_LOGICAL_OR		: EXP_LOGICAL_AND
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '|', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
+						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -404,6 +491,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 
 						$1.label = getLabel($1.label);
 						$$.traducao += cmd($1.label + " = " + $3.label);
+						//$$.desalocacao = $3.desalocacao;
 					}
 					;
 
@@ -411,11 +499,13 @@ CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
 					{
 						$$.declaracao = $2.declaracao;
 						$$.traducao = $2.traducao;
+						//$$.desalocacao = $2.desalocacao;
 					}
 					| ATRIBUICAO
 					{
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
+						//$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -424,11 +514,13 @@ LIST_DECLARACOES	: DECLARACAO ',' LIST_DECLARACOES
 						//Tinha + $3 declaracao e traducao
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
+						//$$.desalocacao = $1.desalocacao;
 					}
 					| DECLARACAO
 					{
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
+						//$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -459,6 +551,7 @@ DECLARACAO 			: TK_ID
 
 						$$.declaracao = $3.declaracao + dcl($1.tipo, $1.label);
 						$$.traducao = $3.traducao + cmd($1.label + " = " + $3.label);
+						//$$.desalocacao = $3.desalocacao;
 					}
 					;
 
@@ -475,6 +568,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Traducão e Declaracão da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
+						//$$.desalocacao = $3.desalocacao;
 
 						// Negar valor da Expressão
 						string newLabel = nextTMP();
@@ -487,6 +581,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Bloco
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
+						//$$.desalocacao += $5.desalocacao;
 
 						// Imprimir Label de Fim
 						$$.traducao += lbl(lblFim);
@@ -504,6 +599,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Traducão e Declaracão da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
+						//$$.desalocacao = $3.desalocacao;
 
 						// Negar valor da Expressão
 						string newLabel = nextTMP();
@@ -516,6 +612,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Bloco If
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
+						//$$.desalocacao += $5.desalocacao;
 
 						// Imprimir Label de Fim
 						$$.traducao += lbl(lblFim);
@@ -523,6 +620,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimindo Bloco Else
 						$$.declaracao += $7.declaracao;
 						$$.traducao += $7.traducao;
+						//$$.desalocacao += $7.desalocacao;
 					}
 					;
 
@@ -545,6 +643,7 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' { proximoContexto = TK_CTX_WHILE; } BLO
 						// Obter Tradução e Declaração da Expressão
 						$$.declaracao += $3.declaracao;
 						$$.traducao += $3.traducao;
+						//$$.desalocacao = $3.desalocacao;
 
 						// Negar Expressão
 						string tmpExpNegada = nextTMP();
@@ -557,6 +656,7 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' { proximoContexto = TK_CTX_WHILE; } BLO
 						// Imprimir Bloco
 						$$.declaracao += $6.declaracao;
 						$$.traducao += $6.traducao;
+						//$$.desalocacao += $6.desalocacao;
 
 						// Imprimir Salto Incondicional para o Inicio
 						$$.traducao += cmd("goto " + lblInicio);
@@ -584,10 +684,12 @@ CMD_DOWHILE			: TK_DO {proximoContexto = TK_CTX_WHILE;} BLOCO TK_WHILE '(' EXPRE
 						// Imprimir Bloco
 						$$.declaracao = $3.declaracao;
 						$$.traducao += $3.traducao;
+						//$$.desalocacao = $3.desalocacao;
 
 						// Imprimir Expressão
 						$$.declaracao += $6.declaracao;
 						$$.traducao += $6.traducao;
+						//$$.desalocacao += $6.desalocacao;
 
 						// Imprimir Salto Condicional para Label Inicio
 						$$.traducao += cmd("if (" + $6.label + ") goto " + lblInicio);
@@ -618,6 +720,7 @@ CMD_FOR				: TK_FOR
 						// Imprimindo Expressão 1
 						$$.declaracao = $4.declaracao;
 						$$.traducao = $4.traducao;
+						//$$.desalocacao = $4.desalocacao;
 
 						// Imprimindo Label Inicio Iteracao
 						$$.traducao += lbl(lblInicioIt);
@@ -625,6 +728,7 @@ CMD_FOR				: TK_FOR
 						// Imprimindo Expressao 2
 						$$.declaracao += $6.declaracao;
 						$$.traducao += $6.traducao;
+						//$$.desalocacao = $6.desalocacao;
 
 						// Negando Expressao 2
 						string tmpExpNegada = nextTMP();
@@ -637,6 +741,7 @@ CMD_FOR				: TK_FOR
 						// Imprimir Bloco
 						$$.declaracao += $10.declaracao;
 						$$.traducao += $10.traducao;
+						//$$.desalocacao += $10.desalocacao;
 
 						// Imprimir label Fim Iteracao
 						$$.traducao += lbl(lblFimIt);
@@ -644,107 +749,14 @@ CMD_FOR				: TK_FOR
 						// Imprimir Expressao 3
 						$$.declaracao += $8.declaracao;
 						$$.traducao += $8.traducao;
+						//$$.desalocacao += $2.desalocacao;
 
 						// Imprimir Salto Incondicional para Inicio
 						$$.traducao += cmd("goto " + lblInicioIt);
 
 						// Imprimir Label Fim
 						$$.traducao += lbl(lblFim);
-
 					}
-					| TK_FOR { empilharContexto(TK_CTX_FOR); } TK_ID '(' EXPRESSAO ',' OP_COMPARATIVOS EXPRESSAO ')' BLOCO { desempilharContexto(); }
-					{
-						// !!! EXPERIMENTAL !!! //
-
-						string var = "";
-
-						// Declarar Váriavel caso necessário
-						if (!isDeclared($3.label))
-						{
-							var = nextVAR();
-							novoSimbolo($3.label, var, TK_TIPO_INDEFINIDO);
-							//tabela_simbolos[$2.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, var};
-						} else
-						{
-							$3.tipo = getTipo($3.label);
-							var = getLabel($3.label);
-						}
-
-						// Definindo Labels
-						string lblInicio = nextLBL();
-						string lblFim = nextLBL();
-
-						// Imprimir Expressao 1
-						$$.declaracao = $5.declaracao;
-						$$.traducao = $5.traducao;
-
-						// Declarar Variável caso necessário
-						if ($3.tipo == TK_TIPO_INDEFINIDO)
-						{
-							$3.tipo = $5.tipo;
-							setTipo($3.label, $3.tipo);
-							$$.declaracao += dcl($3.tipo, var);
-						}
-
-						int out;
-						int newType = verificarTipos($3.tipo, $5.tipo, &out);
-						checkTypes($3.tipo, newType);
-
-						if (out == 3){
-							string newLabel = nextTMP();
-							$$.declaracao += dcl($3.tipo, newLabel);
-							$$.traducao += cst(newLabel, $3.tipo, $5.label);
-							$5.label = newLabel;
-						}
-
-						// Atribuir a Variável o valor da Expressão 1
-						//$1.label = getLabel($1.label);
-						$$.traducao += cmd(var + " = " + $5.label);
-
-						// Imprimir Label Inicio
-						$$.traducao += lbl(lblInicio);
-
-						// Imprimir Expressao 2
-						$$.declaracao += $8.declaracao;
-						$$.traducao += $8.traducao;
-
-						// Imprimir Comparacao
-						string tmpExp = nextTMP();
-						$$.declaracao += dcl(TK_TIPO_BOOL, tmpExp);
-						$$.traducao += cmd(tmpExp + " = " + var + " " + $7.traducao + " " + $8.label);
-
-						// Negando Expressão
-						string tmpExpNegada = nextTMP();
-						$$.declaracao += dcl(TK_TIPO_BOOL, tmpExpNegada);
-						$$.traducao += cmd(tmpExpNegada + " = !" + tmpExp);
-
-						// Imprimir Salto Condicional para Label Fim
-						$$.traducao += cmd("if (" + tmpExpNegada + ") goto " + lblFim);
-
-						// Imprimir Bloco
-						$$.declaracao += $10.declaracao;
-						$$.traducao += $10.traducao;
-
-						// Criar Temporária de Incremento
-						string tmpIncremento = nextTMP();
-						$$.declaracao += dcl($3.tipo, tmpIncremento);
-						$$.traducao += cmd (tmpIncremento + " = 1");
-
-						// Realizar soma
-						string tmpSoma = nextTMP();
-						$$.declaracao += dcl($3.tipo, tmpSoma);
-						$$.traducao += cmd (tmpSoma + " = " + var + " + " + tmpIncremento);
-
-						// Incrementar Variável
-						$$.traducao += cmd (var + " = " + tmpSoma);
-
-						// Salto Incondicional para Label Inicio
-						$$.traducao += cmd ("goto " + lblInicio);
-
-						// Imprimir Label Fim
-						$$.traducao += lbl(lblFim);
-
-					} 
 					;
 
 CMD_SWITCH			: TK_SWITCH '(' TK_ID ')'
@@ -773,6 +785,7 @@ CMD_SWITCH			: TK_SWITCH '(' TK_ID ')'
 						$$.traducao = $7.traducaoAlternativa;
 						$$.traducao += cmd("goto " + lblAux);
 						$$.traducao += $7.traducao;
+						//$$.desalocacao = $7.desalocacao;
 
 						$$.traducao += lbl(alternador_atual->lblFim);
 						desempilharAlternador();
@@ -786,11 +799,13 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 
 						$$.tipo += $2.tipo;
 						$$.traducaoAlternativa += $2.traducaoAlternativa;
+						//$$.desalocacao = $2.desalocacao;
 					}
 					| 
 					{
 						$$.declaracao = "";
 						$$.traducao = "";
+						//$$.desalocacao = "";
 					}
 					;
 				
@@ -809,6 +824,7 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 						// Imprimir Expressao (Será impresso no início do Switch, antes dos blocos Case e Default)
 						$$.traducaoAlternativa += $2.traducao;
 						$$.declaracao += $2.declaracao;
+						//$$.desalocacao = $2.desalocacao;
 
 						// Verificar e Converter tipos
 						converterTipo(&$$, alternador_atual->tipo, &$2, true);
@@ -826,6 +842,8 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 
 						// Imprimir Bloco
 						$$.traducao += $3.traducao;
+						$$.declaracao += $3.declaracao;
+						//$$.desalocacao += $3.desalocacao;
 
 						// Imprimir Goto Fim do Switch
 						$$.traducao += cmd("goto " + alternador_atual->lblFim);
@@ -836,6 +854,7 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 						string lblDefault = nextLBL();
 						$$.traducao = lbl(lblDefault) + $2.traducao;
 						$$.declaracao = $2.declaracao;
+						//$$.desalocacao += $2.desalocacao;
 
 						alternador_atual->lblDefault = lblDefault;
 					}
@@ -868,15 +887,10 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 						// Imprimir declaracao e tradução da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
+						//$$.desalocacao = $3.desalocacao;
 
 						// Imprimir comando de saida
 						$$.traducao += cmd((string)"printf(\"\%" + aux + "\", " + $3.label + ")");
-					}
-					;
-
-CMD_IN 				: TK_IN '(' TK_TIPO ')' ';'
-					{
-						
 					}
 					;
 
@@ -890,14 +904,6 @@ OP_RELACIONAL		: '<'
 					}
 					| TK_OP_MAIORIGUAL
 					| TK_OP_MENORIGUAL
-					;
-
-OP_COMPARATIVOS		: OP_RELACIONAL
-					{
-						$$.traducao = $1.traducao;
-					}
-					| TK_OP_IGUALDADE
-					| TK_OP_DESIGUALDADE
 					;
 
 %%
@@ -1055,7 +1061,7 @@ int tabelaOperadores (int tipo1, char op, int tipo2)
 
 	if (tipo == TK_ERROR)
 	{
-		string auxOp = (op != ' ')? (string)"[" + op + "]" : "";
+		string auxOp = (op != ' ')? (string)"[" + op + "] " : "";
 		yyerror((string)"Operação inválida " + auxOp + (string)"entre (" + typeName(tipo1, true) + ") e (" + typeName(tipo2, true) + ").");
 	}
 
@@ -1433,16 +1439,7 @@ int tamanhoString(string s)
 
 	while (s[i] != '\0')
 	{
-		if (s[i] != '\\')
-		{
-			count++;
-		}
-		else
-		{
-			i += 2;
-			count += 2;
-		}
-
+		count++;
 		i++;
 	}
 

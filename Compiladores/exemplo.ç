@@ -1,6 +1,5 @@
 int main()
 {
-	var a = "abc\n";
-	out (a);
-
+	out("Digite um valor:\n");
+	var a = in(int);
 }
