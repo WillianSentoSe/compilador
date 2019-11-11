@@ -1,5 +1,6 @@
 int main()
 {
-	out("Digite um valor:\n");
-	var a = in(int);
+	out("digite algo:\n");
+	var a = in(string);
+	out("str = " + a);
 }

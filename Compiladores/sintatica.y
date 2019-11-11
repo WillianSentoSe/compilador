@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 struct atributos {
 	string label;
 	string declaracao;
@@ -24,13 +23,6 @@ struct atributos {
 
 	string lblInicio;
 	string lblFim;
-	/*
-	string labelCase;
-	string labelCase;
-	string literalCase;
-	int linhaCase;
-	bool isDefault;
-	*/
 };
 
 struct simbolo {
@@ -70,7 +62,6 @@ int countTMP = 0;
 int countVAR = 0;
 int countLBL = 0;
 int linha = 1;
-//unordered_map<string, simbolo> tabela_simbolos;
 Contexto* contextoAtual;
 int proximoContexto = 0;
 string espacamentoDeIndexacao;
@@ -322,8 +313,44 @@ EXP_SIMPLES			: TK_LITERAL
 						else
 						{
 							int tamanho = 100;
-							$$.traducao = cmd(tmp + " = (char*) malloc(sizeof(char) * " + to_string(tamanho) + ")");
-							$$.traducao += cmd("fgets(" + tmp + ", " + to_string(tamanho) + ", stdin)");
+							string buffer = "";
+
+							string tmpCount = nextTMP();
+							string tmpChar = nextTMP();
+							string tmpUm = nextTMP();
+							string tmpComp = nextTMP();
+							//string tmpBuffer = nextTMP();
+							string tmpN = nextTMP();
+							string lblLoop = nextLBL();
+							string lblFim = nextLBL();
+
+							$$.declaracao += dcl(TK_TIPO_INT, tmpCount);
+							$$.declaracao += dcl(TK_TIPO_CHAR, tmpChar);
+							$$.declaracao += dcl(TK_TIPO_INT, tmpUm);
+							$$.declaracao += dcl(TK_TIPO_CHAR, tmpN);
+							$$.declaracao += dcl(TK_TIPO_BOOL, tmpComp);
+							//$$.declaracao += dcl(TK_TIPO_STRING, tmpBuffer);
+
+							$$.traducao = "";
+							$$.traducao += cmd(tmpCount + " = 0");
+							$$.traducao += cmd(tmpUm + " = 1");
+							$$.traducao += cmd(tmpN + " = '\\n'");
+							//$$.traducao += cmd("strcpy(" + tmpBuffer + ", \"\")");
+							$$.traducao += lbl(lblLoop);
+							$$.traducao += cmd("scanf(\"%c\", &" + tmpChar + " )");
+							$$.traducao += cmd(tmpComp + " = " + tmpChar + " == " + tmpN);
+							$$.traducao += cmd("if (" + tmpComp + ") goto " + lblFim);
+							$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
+							//$$.traducao += cmd("strcat(" + tmpBuffer + ", &" + tmpChar + ")");
+							$$.traducao += cmd("goto " + lblLoop);
+							$$.traducao += lbl(lblFim);
+
+							$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
+							$$.traducao += cmd("fseek(stdin, -" + tmpCount + ", SEEK_CUR)");
+
+							$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + tmpCount + ")");
+							//$$.traducao += cmd("strcpy(" + tmp + ", " + tmpBuffer + ")");
+							$$.traducao += cmd("fgets(" + tmp + ", " + tmpCount + ", stdin)");
 						}
 
 						$$.tipo = tipo;
