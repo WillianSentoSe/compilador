@@ -18,7 +18,7 @@ CHAR 		'(\\)?.'
 BOOL		(true|false)
 ID 			{LETRA}({LETRA}|{DGT})*
 
-STRING      \".*\"
+STRING      \"(\\.|[^"\\])*\"
 
 %%
 

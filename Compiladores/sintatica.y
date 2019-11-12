@@ -172,6 +172,7 @@ COMANDOS			: COMANDO COMANDOS
 					|
 					{
 						$$.traducao = "";
+						$$.declaracao = "";
 					}
 					;
 
@@ -319,8 +320,9 @@ EXP_SIMPLES			: TK_LITERAL
 							string tmpChar = nextTMP();
 							string tmpUm = nextTMP();
 							string tmpComp = nextTMP();
-							//string tmpBuffer = nextTMP();
+							string tmpBuffer = nextTMP();
 							string tmpN = nextTMP();
+							string tmp0 = nextTMP();
 							string lblLoop = nextLBL();
 							string lblFim = nextLBL();
 
@@ -329,28 +331,32 @@ EXP_SIMPLES			: TK_LITERAL
 							$$.declaracao += dcl(TK_TIPO_INT, tmpUm);
 							$$.declaracao += dcl(TK_TIPO_CHAR, tmpN);
 							$$.declaracao += dcl(TK_TIPO_BOOL, tmpComp);
-							//$$.declaracao += dcl(TK_TIPO_STRING, tmpBuffer);
+							$$.declaracao += dcl(TK_TIPO_STRING, tmpBuffer);
+							$$.declaracao += dcl(TK_TIPO_CHAR, tmp0);
 
 							$$.traducao = "";
 							$$.traducao += cmd(tmpCount + " = 0");
 							$$.traducao += cmd(tmpUm + " = 1");
 							$$.traducao += cmd(tmpN + " = '\\n'");
-							//$$.traducao += cmd("strcpy(" + tmpBuffer + ", \"\")");
+							$$.traducao += cmd(tmp0 + " = '\\0'");
+							$$.traducao += cmd(tmpBuffer + " = (char*)malloc(sizeof(char) * " + tmpUm + ")");
 							$$.traducao += lbl(lblLoop);
 							$$.traducao += cmd("scanf(\"%c\", &" + tmpChar + " )");
 							$$.traducao += cmd(tmpComp + " = " + tmpChar + " == " + tmpN);
 							$$.traducao += cmd("if (" + tmpComp + ") goto " + lblFim);
 							$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
-							//$$.traducao += cmd("strcat(" + tmpBuffer + ", &" + tmpChar + ")");
+							$$.traducao += cmd(tmpBuffer + " = (char*)realloc(" + tmpBuffer + ", sizeof(char) * " + tmpCount + ")");
+							$$.traducao += cmd("strncat(" + tmpBuffer + ", &" + tmpChar + ", " + tmpUm + ")");
 							$$.traducao += cmd("goto " + lblLoop);
 							$$.traducao += lbl(lblFim);
 
 							$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
-							$$.traducao += cmd("fseek(stdin, -" + tmpCount + ", SEEK_CUR)");
+							$$.traducao += cmd("strncat(" + tmpBuffer + ", &" + tmp0 + ", " + tmpUm + ")");
+							//$$.traducao += cmd("fseek(stdin, -" + tmpCount + ", SEEK_CUR)");
 
 							$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + tmpCount + ")");
-							//$$.traducao += cmd("strcpy(" + tmp + ", " + tmpBuffer + ")");
-							$$.traducao += cmd("fgets(" + tmp + ", " + tmpCount + ", stdin)");
+							$$.traducao += cmd("strcpy(" + tmp + ", " + tmpBuffer + ")");
+							//$$.traducao += cmd("fgets(" + tmp + ", " + tmpCount + ", stdin)");
 						}
 
 						$$.tipo = tipo;
@@ -625,7 +631,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 
 						// Imprimir Traducão e Declaracão da Expressão
 						$$.traducao = $3.traducao;
-						$$.declaracao = $3.declaracao;
+						$$.declaracao = $3.declaracao ;
 						//$$.desalocacao = $3.desalocacao;
 
 						// Negar valor da Expressão
@@ -904,12 +910,26 @@ CMD_CONTINUE		: TK_CONTINUE ';'
 
 CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 					{
+						/*
 						if ($3.tipo != TK_TIPO_STRING && $3.tipo != TK_TIPO_CHAR)
 						{
 							yyerror("Expressão esperada do tipo (" + typeName(TK_TIPO_STRING, true) + ").");
 						}
+						*/
+						int tipo = $3.tipo;
+						char aux;
 
-						char aux = ($3.tipo == TK_TIPO_STRING)? 's' : 'c';
+						switch (tipo)
+						{
+							case TK_TIPO_INT: aux = 'd'; break;
+							case TK_TIPO_FLOAT: aux = 'f'; break;
+							case TK_TIPO_CHAR: aux = 'c'; break;
+							case TK_TIPO_BOOL: aux = 'd'; break;
+							case TK_TIPO_STRING: aux = 's'; break;
+							default: aux = 's'; break;
+						}
+
+						//char aux = ($3.tipo == TK_TIPO_STRING)? 's' : 'c';
 
 						// Imprimir declaracao e tradução da Expressão
 						$$.traducao = $3.traducao;

@@ -1,6 +1,6 @@
 int main()
 {
-	out("digite algo:\n");
-	var a = in(string);
-	out("str = " + a);
+	var a;
+	a = in(string);
+	a = a + "oi";
 }
