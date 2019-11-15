@@ -28,6 +28,7 @@ struct atributos {
 struct simbolo {
 	int tipo;
 	string label;
+	string tmpTamanho;
 };
 
 class Contexto
@@ -97,7 +98,7 @@ bool isDeclared(string);
 vector<string> split(string, char);
 
 void addSimbolo(string, simbolo);
-void novoSimbolo(string, string, int);
+void novoSimbolo(string, string, int, string tmpTamanho = "");
 simbolo* getSimbolo(string, Contexto* contexto = NULL);
 simbolo* getSimboloPilha(string);
 
@@ -138,7 +139,7 @@ int tamanhoString(string);
 
 S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
 					{
-						cout << "\n/*Compilador Ç*/\n\n";
+						cout << "\n/*Compilador Ç*/\n";
 						cout << "\n#include <stdio.h>";
 						cout << "\n#include <stdlib.h>";
 						cout << "\n#include <string.h>\n\n";
@@ -159,7 +160,7 @@ BLOCO				: '{'
 
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
-						//$$.desalocacao = "\n" + $3.desalocacao;
+						$$.desalocacao = "\n" + $3.desalocacao;
 					}
 					;
 
@@ -167,7 +168,7 @@ COMANDOS			: COMANDO COMANDOS
 					{
 						$$.declaracao = $1.declaracao + $2.declaracao;
 						$$.traducao = $1.traducao + $2.traducao;
-						//$$.desalocacao = $1.desalocacao + $2.desalocacao;
+						$$.desalocacao = $1.desalocacao + $2.desalocacao;
 					}
 					|
 					{
@@ -197,13 +198,13 @@ COMANDOS_FOR		: COMANDO_FOR ',' COMANDOS_FOR
 					{
 						$$.declaracao = $1.declaracao + $3.declaracao;
 						$$.traducao = $1.traducao + $3.traducao;
-						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					| COMANDO_FOR
 					{
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
-						//$$.desalocacao = $1.desalocacao;
+						$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -235,8 +236,9 @@ EXP_SIMPLES			: TK_LITERAL
 							int i = 0;
 
 							$$.traducao = cmd($$.label + " = (char*) malloc(sizeof(char) * " + to_string(tamanho) + ")");
-							$$.traducao += cmd($$.label + " = " + $1.traducao);
-							//$$.desalocacao = cmd("free(" + $$.label + ")");
+							//$$.traducao += cmd($$.label + " = " + $1.traducao);
+							$$.traducao += cmd("strcpy(" + $$.label + ", " + $1.traducao + ")");
+							$$.desalocacao = cmd("free(" + $$.label + ")");
 						}
 
 						$$.tipo = $1.tipo;
@@ -251,10 +253,11 @@ EXP_SIMPLES			: TK_LITERAL
 							yyerror("A variável '" + $1.label + "' possui valor indefinido.");
 						}
 
+						//$$.tamanho = getSimbolo($1.label)->tamanho;
 						$$.label = getLabel($1.label);
 						$$.declaracao = "";
 						$$.traducao = "";
-						//$$.desalocacao = "";
+						$$.desalocacao = "";
 					}
 					| '(' EXPRESSAO ')'
 					{
@@ -262,7 +265,7 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.declaracao = $2.declaracao;
 						$$.traducao = $2.traducao;
 						$$.tipo = $2.tipo;
-						//$$.desalocacao = $2.desalocacao;
+						$$.desalocacao = $2.desalocacao;
 					}
 					| TK_TIPO '(' EXPRESSAO ')'
 					{
@@ -275,7 +278,7 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.declaracao = $3.declaracao + dcl($1.tipo, newLabel);
 						$$.traducao = $3.traducao + cst(newLabel, $1.tipo, $3.label);
 						$$.label = newLabel;
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 					}
 					| TK_IN '(' TK_TIPO ')'
 					{
@@ -384,7 +387,7 @@ EXP_UNARIA			: EXP_SIMPLES
 						$$.tipo = tipo;
 						$$.label = tmp;
 
-						//$$.desalocacao = $2.desalocacao;
+						$$.desalocacao = $2.desalocacao;
 					}
 					;
 
@@ -401,7 +404,7 @@ EXP_NOT				: EXP_UNARIA
 						$$.tipo = TK_TIPO_BOOL;
 						$$.declaracao = $2.declaracao + dcl($$.tipo, $$.label);
 						$$.traducao = $2.traducao + cmd($$.label + " = !" + $2.label);
-						//$$.desalocacao = $2.desalocacao;
+						$$.desalocacao = $2.desalocacao;
 						//$$.traducao = $2.traducao + "\t" + declaracao + $$.label + " = !" + $2.label + ";\n";
 					}
 
@@ -411,7 +414,7 @@ EXP_ARITMETICA_MUL	: EXP_NOT
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, $2.traducao[0]);
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
-						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -440,10 +443,11 @@ EXP_ARITMETICA_ADD	: EXP_ARITMETICA_MUL
 							$$.traducao += cmd("strcat(" + tmp + ", " + $3.label + ")");
 							$$.traducao += cmd($$.label + " = " + tmp);
 
-							//$$.desalocacao += cmd("free(" + tmp + ")");
+							$$.desalocacao += cmd("free(" + tmp + ")");
+							$$.desalocacao += cmd("free(" + $$.label + ")");
 						}
 
-						//$$.desalocacao += $1.desalocacao + $3.desalocacao;
+						$$.desalocacao += $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -453,7 +457,7 @@ EXP_RELACIONAL		: EXP_ARITMETICA_ADD
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '>', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
-						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -463,7 +467,7 @@ EXP_IGUALDADE		: EXP_RELACIONAL
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '=', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
-						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -473,7 +477,7 @@ EXP_LOGICAL_AND  	: EXP_IGUALDADE
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '&', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
-						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -483,7 +487,7 @@ EXP_LOGICAL_OR		: EXP_LOGICAL_AND
 						$$.label = nextTMP();
 						converterTipos(&$$, &$1, &$3, '|', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
-						//$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao;
 					}
 					;
 
@@ -522,9 +526,10 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						}
 						*/
 
+						$$.traducao += cmd(getSimbolo($1.label)->tmpTamanho + " = " + to_string($3.tamanho));
 						$1.label = getLabel($1.label);
 						$$.traducao += cmd($1.label + " = " + $3.label);
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 					}
 					;
 
@@ -532,13 +537,13 @@ CMD_DECLARACOES		: TK_VAR LIST_DECLARACOES
 					{
 						$$.declaracao = $2.declaracao;
 						$$.traducao = $2.traducao;
-						//$$.desalocacao = $2.desalocacao;
+						$$.desalocacao = $2.desalocacao;
 					}
 					| ATRIBUICAO
 					{
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
-						//$$.desalocacao = $1.desalocacao;
+						$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -547,13 +552,13 @@ LIST_DECLARACOES	: DECLARACAO ',' LIST_DECLARACOES
 						//Tinha + $3 declaracao e traducao
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
-						//$$.desalocacao = $1.desalocacao;
+						$$.desalocacao = $1.desalocacao;
 					}
 					| DECLARACAO
 					{
 						$$.declaracao = $1.declaracao;
 						$$.traducao = $1.traducao;
-						//$$.desalocacao = $1.desalocacao;
+						$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -578,13 +583,27 @@ DECLARACAO 			: TK_ID
 						string declaracao = typeName($1.tipo) + " " + $1.label + ";\n";
 
 						string newLabel = nextVAR();
-						novoSimbolo($1.label, newLabel, $1.tipo);
-						//tabela_simbolos[$1.label] = {$1.tipo, -1, -1, true, newLabel};
+						string tmpTamanho = "";
+
+						if ($3.tipo == TK_TIPO_STRING)
+						{
+							tmpTamanho = nextLBL();
+						}
+
+						novoSimbolo($1.label, newLabel, $1.tipo, tmpTamanho);
 						$1.label = newLabel;
 
-						$$.declaracao = $3.declaracao + dcl($1.tipo, $1.label);
-						$$.traducao = $3.traducao + cmd($1.label + " = " + $3.label);
-						//$$.desalocacao = $3.desalocacao;
+						$$.declaracao = $3.declaracao;
+						$$.declaracao += dcl($1.tipo, $1.label);
+						$$.traducao = $3.traducao;
+						$$.traducao += cmd($1.label + " = " + $3.label);
+						$$.desalocacao = $3.desalocacao;
+
+						if ($3.tipo == TK_TIPO_STRING)
+						{
+							$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
+							$$.traducao += cmd(tmpTamanho + " = " + to_string($3.tamanho));
+						}
 					}
 					;
 
@@ -601,7 +620,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Traducão e Declaracão da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 
 						// Negar valor da Expressão
 						string newLabel = nextTMP();
@@ -614,7 +633,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Bloco
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
-						//$$.desalocacao += $5.desalocacao;
+						$$.desalocacao += $5.desalocacao;
 
 						// Imprimir Label de Fim
 						$$.traducao += lbl(lblFim);
@@ -632,7 +651,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Traducão e Declaracão da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao ;
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 
 						// Negar valor da Expressão
 						string newLabel = nextTMP();
@@ -645,7 +664,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimir Bloco If
 						$$.declaracao += $5.declaracao;
 						$$.traducao += $5.traducao;
-						//$$.desalocacao += $5.desalocacao;
+						$$.desalocacao += $5.desalocacao;
 
 						// Imprimir Label de Fim
 						$$.traducao += lbl(lblFim);
@@ -653,7 +672,7 @@ CMD_IF				: TK_IF '(' EXPRESSAO ')' BLOCO
 						// Imprimindo Bloco Else
 						$$.declaracao += $7.declaracao;
 						$$.traducao += $7.traducao;
-						//$$.desalocacao += $7.desalocacao;
+						$$.desalocacao += $7.desalocacao;
 					}
 					;
 
@@ -676,7 +695,7 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' { proximoContexto = TK_CTX_WHILE; } BLO
 						// Obter Tradução e Declaração da Expressão
 						$$.declaracao += $3.declaracao;
 						$$.traducao += $3.traducao;
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 
 						// Negar Expressão
 						string tmpExpNegada = nextTMP();
@@ -689,7 +708,7 @@ CMD_WHILE			: TK_WHILE '(' EXPRESSAO ')' { proximoContexto = TK_CTX_WHILE; } BLO
 						// Imprimir Bloco
 						$$.declaracao += $6.declaracao;
 						$$.traducao += $6.traducao;
-						//$$.desalocacao += $6.desalocacao;
+						$$.desalocacao += $6.desalocacao;
 
 						// Imprimir Salto Incondicional para o Inicio
 						$$.traducao += cmd("goto " + lblInicio);
@@ -717,12 +736,12 @@ CMD_DOWHILE			: TK_DO {proximoContexto = TK_CTX_WHILE;} BLOCO TK_WHILE '(' EXPRE
 						// Imprimir Bloco
 						$$.declaracao = $3.declaracao;
 						$$.traducao += $3.traducao;
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 
 						// Imprimir Expressão
 						$$.declaracao += $6.declaracao;
 						$$.traducao += $6.traducao;
-						//$$.desalocacao += $6.desalocacao;
+						$$.desalocacao += $6.desalocacao;
 
 						// Imprimir Salto Condicional para Label Inicio
 						$$.traducao += cmd("if (" + $6.label + ") goto " + lblInicio);
@@ -753,7 +772,7 @@ CMD_FOR				: TK_FOR
 						// Imprimindo Expressão 1
 						$$.declaracao = $4.declaracao;
 						$$.traducao = $4.traducao;
-						//$$.desalocacao = $4.desalocacao;
+						$$.desalocacao = $4.desalocacao;
 
 						// Imprimindo Label Inicio Iteracao
 						$$.traducao += lbl(lblInicioIt);
@@ -761,7 +780,7 @@ CMD_FOR				: TK_FOR
 						// Imprimindo Expressao 2
 						$$.declaracao += $6.declaracao;
 						$$.traducao += $6.traducao;
-						//$$.desalocacao = $6.desalocacao;
+						$$.desalocacao = $6.desalocacao;
 
 						// Negando Expressao 2
 						string tmpExpNegada = nextTMP();
@@ -774,7 +793,7 @@ CMD_FOR				: TK_FOR
 						// Imprimir Bloco
 						$$.declaracao += $10.declaracao;
 						$$.traducao += $10.traducao;
-						//$$.desalocacao += $10.desalocacao;
+						$$.desalocacao += $10.desalocacao;
 
 						// Imprimir label Fim Iteracao
 						$$.traducao += lbl(lblFimIt);
@@ -782,7 +801,7 @@ CMD_FOR				: TK_FOR
 						// Imprimir Expressao 3
 						$$.declaracao += $8.declaracao;
 						$$.traducao += $8.traducao;
-						//$$.desalocacao += $2.desalocacao;
+						$$.desalocacao += $2.desalocacao;
 
 						// Imprimir Salto Incondicional para Inicio
 						$$.traducao += cmd("goto " + lblInicioIt);
@@ -818,7 +837,7 @@ CMD_SWITCH			: TK_SWITCH '(' TK_ID ')'
 						$$.traducao = $7.traducaoAlternativa;
 						$$.traducao += cmd("goto " + lblAux);
 						$$.traducao += $7.traducao;
-						//$$.desalocacao = $7.desalocacao;
+						$$.desalocacao = $7.desalocacao;
 
 						$$.traducao += lbl(alternador_atual->lblFim);
 						desempilharAlternador();
@@ -832,13 +851,13 @@ BLOCO_SWITCH		: BLOCO_SWITCH EXP_CASE
 
 						$$.tipo += $2.tipo;
 						$$.traducaoAlternativa += $2.traducaoAlternativa;
-						//$$.desalocacao = $2.desalocacao;
+						$$.desalocacao = $2.desalocacao;
 					}
 					| 
 					{
 						$$.declaracao = "";
 						$$.traducao = "";
-						//$$.desalocacao = "";
+						$$.desalocacao = "";
 					}
 					;
 				
@@ -857,7 +876,7 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 						// Imprimir Expressao (Será impresso no início do Switch, antes dos blocos Case e Default)
 						$$.traducaoAlternativa += $2.traducao;
 						$$.declaracao += $2.declaracao;
-						//$$.desalocacao = $2.desalocacao;
+						$$.desalocacao = $2.desalocacao;
 
 						// Verificar e Converter tipos
 						converterTipo(&$$, alternador_atual->tipo, &$2, true);
@@ -876,7 +895,7 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 						// Imprimir Bloco
 						$$.traducao += $3.traducao;
 						$$.declaracao += $3.declaracao;
-						//$$.desalocacao += $3.desalocacao;
+						$$.desalocacao += $3.desalocacao;
 
 						// Imprimir Goto Fim do Switch
 						$$.traducao += cmd("goto " + alternador_atual->lblFim);
@@ -887,7 +906,7 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 						string lblDefault = nextLBL();
 						$$.traducao = lbl(lblDefault) + $2.traducao;
 						$$.declaracao = $2.declaracao;
-						//$$.desalocacao += $2.desalocacao;
+						$$.desalocacao += $2.desalocacao;
 
 						alternador_atual->lblDefault = lblDefault;
 					}
@@ -934,7 +953,7 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 						// Imprimir declaracao e tradução da Expressão
 						$$.traducao = $3.traducao;
 						$$.declaracao = $3.declaracao;
-						//$$.desalocacao = $3.desalocacao;
+						$$.desalocacao = $3.desalocacao;
 
 						// Imprimir comando de saida
 						$$.traducao += cmd((string)"printf(\"\%" + aux + "\", " + $3.label + ")");
@@ -1254,12 +1273,13 @@ bool isDeclared(string id)
 }
 
 
-void novoSimbolo(string id, string lbl, int tipo)
+void novoSimbolo(string id, string lbl, int tipo, string tmpTamanho)
 {
 	simbolo novoSimbolo;
 
 	novoSimbolo.label = lbl;
 	novoSimbolo.tipo = tipo;
+	novoSimbolo.tmpTamanho = tmpTamanho;
 
 	addSimbolo(id, novoSimbolo);
 }

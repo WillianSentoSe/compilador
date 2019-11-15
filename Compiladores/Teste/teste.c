@@ -10,31 +10,28 @@
 
 int main(void)
 {
-	int	TMP0;
-	int	VAR0;
-	int	TMP1;
-	int	TMP2;
-	int	TMP6;
-	int	TMP5;
-	int	VAR1;
-	int	TMP3;
-	int	TMP4;
+	char*	TMP0;
+	char*	VAR0;
+	char*	TMP1;
+	char*	VAR1;
+	char*	TMP2;
+	char*	TMP3;
 
-	TMP0 = 1;
+	TMP0 = (char*) malloc(sizeof(char) * 7);
+	strcpy(TMP0, "hello ");
 	VAR0 = TMP0;
-	LBL6:
-	TMP1 = 10;
-	TMP2 = VAR0 < TMP1;
-	TMP6 = !TMP2;
-	if (TMP6) goto LBL3;
-	TMP5 = 1;
-	VAR1 = TMP5;
-	LBL2:
-	TMP3 = 1;
-	TMP4 = VAR0 + TMP3;
-	VAR0 = TMP4;
-	goto LBL6;
-	LBL3:
+	TMP1 = (char*) malloc(sizeof(char) * 7);
+	strcpy(TMP1, "world!");
+	VAR1 = TMP1;
+	TMP3 = (char*) malloc(sizeof(char) * 13);
+	strcpy(TMP3, VAR0);
+	strcat(TMP3, VAR1);
+	TMP2 = TMP3;
+	printf("%s", TMP2);
+
+	free(TMP0);
+	free(TMP1);
+	free(TMP3);
 
 	return 0;
 }

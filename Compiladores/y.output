@@ -109,9 +109,9 @@ Gramática
 
    53 CMD_DOWHILE: TK_DO $@3 BLOCO TK_WHILE '(' EXPRESSAO ')'
 
-   54 $@4: %empty
+   54 @4: %empty
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
    56 $@5: %empty
 
@@ -258,7 +258,7 @@ $@3 (88)
     à esquerda: 52, à direita: 53
 CMD_FOR (89)
     à esquerda: 55, à direita: 10
-$@4 (90)
+@4 (90)
     à esquerda: 54, à direita: 55
 CMD_SWITCH (91)
     à esquerda: 57, à direita: 11
@@ -422,11 +422,11 @@ Estado 14
 
 Estado 15
 
-   55 CMD_FOR: TK_FOR . $@4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR . @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
-    $padrão  reduzir usando a regra 54 ($@4)
+    $padrão  reduzir usando a regra 54 (@4)
 
-    $@4  ir ao estado 40
+    @4  ir ao estado 40
 
 
 Estado 16
@@ -684,7 +684,7 @@ Estado 39
 
 Estado 40
 
-   55 CMD_FOR: TK_FOR $@4 . '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 . '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
     '('  deslocar, e ir ao estado 70
 
@@ -988,7 +988,7 @@ Estado 69
 
 Estado 70
 
-   55 CMD_FOR: TK_FOR $@4 '(' . CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' . CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
     TK_ID   deslocar, e ir ao estado 10
     TK_VAR  deslocar, e ir ao estado 11
@@ -1250,7 +1250,7 @@ Estado 92
 
 Estado 93
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES . ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES . ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
     ';'  deslocar, e ir ao estado 108
 
@@ -1399,7 +1399,7 @@ Estado 107
 
 Estado 108
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' . EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' . EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
     TK_LITERAL  deslocar, e ir ao estado 48
     TK_ID       deslocar, e ir ao estado 49
@@ -1474,7 +1474,7 @@ Estado 115
 
 Estado 116
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' EXPRESSAO . ';' COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO . ';' COMANDOS_FOR ')' BLOCO
 
     ';'  deslocar, e ir ao estado 120
 
@@ -1504,7 +1504,7 @@ Estado 119
 
 Estado 120
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' . COMANDOS_FOR ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' . COMANDOS_FOR ')' BLOCO
 
     TK_ID  deslocar, e ir ao estado 10
 
@@ -1527,7 +1527,7 @@ Estado 121
 
 Estado 122
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR . ')' BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR . ')' BLOCO
 
     ')'  deslocar, e ir ao estado 129
 
@@ -1598,7 +1598,7 @@ Estado 128
 
 Estado 129
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' . BLOCO
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' . BLOCO
 
     '{'  deslocar, e ir ao estado 7
 
@@ -1634,7 +1634,7 @@ Estado 132
 
 Estado 133
 
-   55 CMD_FOR: TK_FOR $@4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO .
+   55 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO .
 
     $padrão  reduzir usando a regra 55 (CMD_FOR)
 
