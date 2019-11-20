@@ -1,9 +1,4 @@
 int main()
 {
-	var a, b;
-
-	a = in(string);
-	b = "abc";
-
-	out (a + b);
+	out((in(string)) + "\n");
 }

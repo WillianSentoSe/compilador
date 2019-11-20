@@ -18,17 +18,21 @@ struct atributos {
 	string desalocacao;
 	int tipo;
 	int tamanho;
+	bool dinamico;
 
 	string traducaoAlternativa;
 
 	string lblInicio;
 	string lblFim;
+
+	string tmpTamanho;
 };
 
 struct simbolo {
 	int tipo;
 	string label;
 	string tmpTamanho;
+	int tamanho;
 };
 
 class Contexto
@@ -98,7 +102,7 @@ bool isDeclared(string);
 vector<string> split(string, char);
 
 void addSimbolo(string, simbolo);
-void novoSimbolo(string, string, int, string tmpTamanho = "");
+void novoSimbolo(string, string, int, int tamanho = 0, string tmpTamanho = "");
 simbolo* getSimbolo(string, Contexto* contexto = NULL);
 simbolo* getSimboloPilha(string);
 
@@ -215,7 +219,6 @@ COMANDO_FOR 		: ATRIBUICAO
 					}
 					;
 
-
 EXP_SIMPLES			: TK_LITERAL
 					{	
 						// EXPERIMENTAL (ATRIBUICAO DIRETA)
@@ -242,6 +245,7 @@ EXP_SIMPLES			: TK_LITERAL
 						}
 
 						$$.tipo = $1.tipo;
+						$$.dinamico = false;
 					}
 					| TK_ID
 					{
@@ -258,6 +262,9 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.declaracao = "";
 						$$.traducao = "";
 						$$.desalocacao = "";
+						$$.dinamico = false;
+						$$.tamanho = getSimbolo($1.label)->tamanho;
+						$$.tmpTamanho = getSimbolo($1.label)->tmpTamanho;
 					}
 					| '(' EXPRESSAO ')'
 					{
@@ -266,6 +273,9 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.traducao = $2.traducao;
 						$$.tipo = $2.tipo;
 						$$.desalocacao = $2.desalocacao;
+						$$.dinamico = $2.dinamico;
+						$$.tmpTamanho = $2.tmpTamanho;
+						$$.tamanho = $2.tamanho;
 					}
 					| TK_TIPO '(' EXPRESSAO ')'
 					{
@@ -279,6 +289,9 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.traducao = $3.traducao + cst(newLabel, $1.tipo, $3.label);
 						$$.label = newLabel;
 						$$.desalocacao = $3.desalocacao;
+						$$.dinamico = $3.dinamico;
+						$$.tmpTamanho = $3.tmpTamanho;
+						$$.tamanho = $3.tamanho;
 					}
 					| TK_IN '(' TK_TIPO ')'
 					{
@@ -355,15 +368,19 @@ EXP_SIMPLES			: TK_LITERAL
 
 							$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
 							$$.traducao += cmd("strncat(" + tmpBuffer + ", &" + tmp0 + ", " + tmpUm + ")");
-							//$$.traducao += cmd("fseek(stdin, -" + tmpCount + ", SEEK_CUR)");
 
 							$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + tmpCount + ")");
 							$$.traducao += cmd("strcpy(" + tmp + ", " + tmpBuffer + ")");
-							//$$.traducao += cmd("fgets(" + tmp + ", " + tmpCount + ", stdin)");
+
+							$$.tmpTamanho = tmpCount;
+
+							$$.desalocacao += cmd("free(" + tmpBuffer + ")");
+							$$.desalocacao += cmd("free(" + tmp + ")");
 						}
 
 						$$.tipo = tipo;
 						$$.label = tmp;
+						$$.dinamico = true;
 					}
 					;
 					
@@ -388,6 +405,8 @@ EXP_UNARIA			: EXP_SIMPLES
 						$$.label = tmp;
 
 						$$.desalocacao = $2.desalocacao;
+						$$.dinamico = $2.dinamico;
+						$$.tmpTamanho = $2.tmpTamanho;
 					}
 					;
 
@@ -405,6 +424,8 @@ EXP_NOT				: EXP_UNARIA
 						$$.declaracao = $2.declaracao + dcl($$.tipo, $$.label);
 						$$.traducao = $2.traducao + cmd($$.label + " = !" + $2.label);
 						$$.desalocacao = $2.desalocacao;
+						$$.dinamico = $2.dinamico;
+						$$.tmpTamanho = $2.tmpTamanho;
 						//$$.traducao = $2.traducao + "\t" + declaracao + $$.label + " = !" + $2.label + ";\n";
 					}
 
@@ -415,6 +436,8 @@ EXP_ARITMETICA_MUL	: EXP_NOT
 						converterTipos(&$$, &$1, &$3, $2.traducao[0]);
 						$$.traducao = $1.traducao + $3.traducao + cmd ($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 						$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.dinamico = $1.dinamico || $2.dinamico;
+						$$.tmpTamanho = $1.tmpTamanho;
 					}
 					;
 
@@ -434,20 +457,54 @@ EXP_ARITMETICA_ADD	: EXP_ARITMETICA_MUL
 						else
 						{
 							string tmp = nextTMP();
-							int tamanhoFinal = $1.tamanho + $2.tamanho + 1;
+							string tmpTamanho1 = $1.tmpTamanho;
+							string tmpTamanho2 = $3.tmpTamanho;
+							string tmpUm = nextTMP();
 
+							if (tmpTamanho1 == "")
+							{
+								// Expressão esquerda é estática. Devo declarar temporária
+								tmpTamanho1 = nextTMP();
+								$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho1);
+								$$.traducao += cmd(tmpTamanho1 + " = " + to_string($1.tamanho));
+							}
+
+							if (tmpTamanho2 == "")
+							{
+								// Expressão direita é estática. Devo declarar temporária
+								tmpTamanho2 = nextTMP();
+								$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho2);
+								$$.traducao += cmd(tmpTamanho2 + " = " + to_string($3.tamanho));
+							}
+
+							// Declarar String temporária
 							$$.declaracao += dcl(TK_TIPO_STRING, tmp);
 
-							$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + to_string(tamanhoFinal) + ")");
+							// Declarar Temporiaria para 1
+							$$.declaracao += dcl(TK_TIPO_INT, tmpUm);
+							$$.traducao += cmd(tmpUm + " = 1");
+
+							// Declarar Temporária para novo tamanho
+							string tmpSomaTamanhos = nextTMP();
+							$$.declaracao += dcl(TK_TIPO_INT, tmpSomaTamanhos);
+
+							// Realizar soma de tamanhos
+							$$.traducao += cmd(tmpSomaTamanhos + " = " + tmpTamanho1 + " + " + tmpTamanho2);
+							$$.traducao += cmd(tmpSomaTamanhos + " = " + tmpSomaTamanhos + " + " + tmpUm);
+
+							// Alocar memória e realizar concatenação
+							$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + tmpSomaTamanhos + ")");
 							$$.traducao += cmd("strcpy(" + tmp + ", " + $1.label + ")");
 							$$.traducao += cmd("strcat(" + tmp + ", " + $3.label + ")");
 							$$.traducao += cmd($$.label + " = " + tmp);
 
+							// Desalocar temporária e string no final do bloco
 							$$.desalocacao += cmd("free(" + tmp + ")");
-							$$.desalocacao += cmd("free(" + $$.label + ")");
+							//$$.desalocacao += cmd("free(" + $$.label + ")");
 						}
 
-						$$.desalocacao += $1.desalocacao + $3.desalocacao;
+						$$.desalocacao += $3.desalocacao;
+						$$.dinamico = $1.dinamico || $2.dinamico;
 					}
 					;
 
@@ -458,6 +515,7 @@ EXP_RELACIONAL		: EXP_ARITMETICA_ADD
 						converterTipos(&$$, &$1, &$3, '>', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 						$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.dinamico = $1.dinamico || $2.dinamico;
 					}
 					;
 
@@ -468,6 +526,7 @@ EXP_IGUALDADE		: EXP_RELACIONAL
 						converterTipos(&$$, &$1, &$3, '=', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 						$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.dinamico = $1.dinamico || $2.dinamico;
 					}
 					;
 
@@ -478,6 +537,7 @@ EXP_LOGICAL_AND  	: EXP_IGUALDADE
 						converterTipos(&$$, &$1, &$3, '&', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 						$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.dinamico = $1.dinamico || $2.dinamico;
 					}
 					;
 
@@ -488,6 +548,7 @@ EXP_LOGICAL_OR		: EXP_LOGICAL_AND
 						converterTipos(&$$, &$1, &$3, '|', TK_TIPO_BOOL);
 						$$.traducao = $1.traducao + $3.traducao + cmd($$.label + " = " + $1.label + " " + $2.traducao + " " + $3.label);
 						$$.desalocacao = $1.desalocacao + $3.desalocacao;
+						$$.dinamico = $1.dinamico || $2.dinamico;
 					}
 					;
 
@@ -510,23 +571,23 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							$1.tipo = $3.tipo;
 							setTipo($1.label, $1.tipo);
 							$$.declaracao += dcl($1.tipo, getLabel($1.label));
+
+							if ($3.dinamico && $1.tipo == TK_TIPO_STRING)
+							{
+								// Declarar Temporaria de Tamanho
+								string tmpTamanho = $3.tmpTamanho;
+								//$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
+								getSimbolo($1.label)->tmpTamanho = tmpTamanho;
+							}
 						}
 
 						converterTipo(&$$, $1.tipo, &$3);
-						/*
-						int out;
-						int newType = verificarTipos($1.tipo, $3.tipo, &out);
-						checkTypes($1.tipo, newType);
 
-						if (out == 2){
-							string newLabel = nextTMP();
-							$$.declaracao += dcl($1.tipo, newLabel);
-							$$.traducao += cst(newLabel, $1.tipo, $3.label);
-							$3.label = newLabel;
+						if ($3.dinamico)
+						{
+							$$.traducao += cmd(getSimbolo($1.label)->tmpTamanho + " = " + to_string($3.tamanho));
 						}
-						*/
 
-						$$.traducao += cmd(getSimbolo($1.label)->tmpTamanho + " = " + to_string($3.tamanho));
 						$1.label = getLabel($1.label);
 						$$.traducao += cmd($1.label + " = " + $3.label);
 						$$.desalocacao = $3.desalocacao;
@@ -580,17 +641,18 @@ DECLARACAO 			: TK_ID
 							yyerror("Variável '" + $1.label + "' já foi declarada nesse contexto.");
 
 						$1.tipo = $3.tipo;
-						string declaracao = typeName($1.tipo) + " " + $1.label + ";\n";
+						//string declaracao = dcl($1.tipo, $1.label);
 
 						string newLabel = nextVAR();
 						string tmpTamanho = "";
 
-						if ($3.tipo == TK_TIPO_STRING)
+						if ($3.dinamico && $3.tipo == TK_TIPO_STRING)
 						{
-							tmpTamanho = nextLBL();
+							tmpTamanho = $3.tmpTamanho;
+							//$$.traducao += cmd(tmpTamanho + " = " + to_string($3.tamanho));
 						}
 
-						novoSimbolo($1.label, newLabel, $1.tipo, tmpTamanho);
+						novoSimbolo($1.label, newLabel, $1.tipo, $3.tamanho, tmpTamanho);
 						$1.label = newLabel;
 
 						$$.declaracao = $3.declaracao;
@@ -601,8 +663,8 @@ DECLARACAO 			: TK_ID
 
 						if ($3.tipo == TK_TIPO_STRING)
 						{
-							$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
-							$$.traducao += cmd(tmpTamanho + " = " + to_string($3.tamanho));
+							//$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
+							//$$.traducao += cmd(tmpTamanho + " = " + to_string($3.tamanho));
 						}
 					}
 					;
@@ -1272,14 +1334,14 @@ bool isDeclared(string id)
 	return getSimboloPilha(id) != NULL;
 }
 
-
-void novoSimbolo(string id, string lbl, int tipo, string tmpTamanho)
+void novoSimbolo(string id, string lbl, int tipo, int tamanho, string tmpTamanho)
 {
 	simbolo novoSimbolo;
 
 	novoSimbolo.label = lbl;
 	novoSimbolo.tipo = tipo;
 	novoSimbolo.tmpTamanho = tmpTamanho;
+	novoSimbolo.tamanho = tamanho;
 
 	addSimbolo(id, novoSimbolo);
 }
@@ -1300,7 +1362,8 @@ void imprimirContexto(bool exibirLBL)
 
 	    for (itr = aux->simbolos.begin(); itr != aux->simbolos.end(); itr++) 
 	    { 
-	        cout << "   " << itr->first << " : " << itr->second.label << "\t(" << typeName(itr->second.tipo) << ")\n"; 
+	        cout << "   " << itr->first << " : " << itr->second.label << "\t(" << typeName(itr->second.tipo) << ")";
+	        cout << "  [" + itr->second.tmpTamanho + "]\n";
 	    }
 
 	    cout << "-----------------------------\n"; 
