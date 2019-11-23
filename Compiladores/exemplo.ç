@@ -1,4 +1,7 @@
 int main()
 {
-	out((in(string)) + "\n");
+	var m[3];
+
+	#
+	var a = m[3 + 1];
 }

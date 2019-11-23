@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.4.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -83,17 +83,18 @@ extern int yydebug;
     TK_TIPO_CHAR = 289,
     TK_TIPO_BOOL = 290,
     TK_TIPO_STRING = 291,
-    TK_CLASSE_VARIAVEL = 292,
-    TK_CLASSE_FUNCAO = 293,
-    TK_FIM = 294,
-    TK_ERROR = 295,
-    TK_CTX_BLOCO = 296,
-    TK_CTX_IF = 297,
-    TK_CTX_WHILE = 298,
-    TK_CTX_FOR = 299,
-    TK_CTX_CASE = 300,
-    TK_OUT = 301,
-    TK_IN = 302
+    TK_TIPO_VETOR = 292,
+    TK_CLASSE_VARIAVEL = 293,
+    TK_CLASSE_FUNCAO = 294,
+    TK_FIM = 295,
+    TK_ERROR = 296,
+    TK_CTX_BLOCO = 297,
+    TK_CTX_IF = 298,
+    TK_CTX_WHILE = 299,
+    TK_CTX_FOR = 300,
+    TK_CTX_CASE = 301,
+    TK_OUT = 302,
+    TK_IN = 303
   };
 #endif
 /* Tokens.  */
@@ -131,17 +132,18 @@ extern int yydebug;
 #define TK_TIPO_CHAR 289
 #define TK_TIPO_BOOL 290
 #define TK_TIPO_STRING 291
-#define TK_CLASSE_VARIAVEL 292
-#define TK_CLASSE_FUNCAO 293
-#define TK_FIM 294
-#define TK_ERROR 295
-#define TK_CTX_BLOCO 296
-#define TK_CTX_IF 297
-#define TK_CTX_WHILE 298
-#define TK_CTX_FOR 299
-#define TK_CTX_CASE 300
-#define TK_OUT 301
-#define TK_IN 302
+#define TK_TIPO_VETOR 292
+#define TK_CLASSE_VARIAVEL 293
+#define TK_CLASSE_FUNCAO 294
+#define TK_FIM 295
+#define TK_ERROR 296
+#define TK_CTX_BLOCO 297
+#define TK_CTX_IF 298
+#define TK_CTX_WHILE 299
+#define TK_CTX_FOR 300
+#define TK_CTX_CASE 301
+#define TK_OUT 302
+#define TK_IN 303
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
