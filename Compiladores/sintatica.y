@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #define YYSTYPE atributos
-#define DISPLAY_COLOR true
+#define DISPLAY_COLOR false
 
 using namespace std;
 
@@ -19,6 +19,7 @@ struct atributos {
 	int tipo;
 	int tamanho;
 	bool dinamico;
+	string identificador;
 
 	string traducaoAlternativa;
 
@@ -33,6 +34,7 @@ struct simbolo {
 	string label;
 	string tmpTamanho;
 	int tamanho;
+	int tipoElemento;
 };
 
 class Contexto
@@ -86,7 +88,7 @@ int converterTipos (atributos*, atributos*, atributos*, char, int forceType = 0)
 void converterTipo(atributos*, int, atributos*, bool antecipado = false);
 
 string cmd(string);
-string dcl(int, string);
+string dcl(int, string, string = "");
 string cst (string, int, string);
 string lbl(string);
 string dclVetor(int, string, string);
@@ -103,7 +105,7 @@ bool isDeclared(string);
 vector<string> split(string, char);
 
 void addSimbolo(string, simbolo);
-void novoSimbolo(string, string, int, int tamanho = 0, string tmpTamanho = "");
+void novoSimbolo(string, string, int, int tamanho = 0, string tmpTamanho = "", int tipoElemento = -1);
 simbolo* getSimbolo(string, Contexto* contexto = NULL);
 simbolo* getSimboloPilha(string);
 
@@ -123,12 +125,14 @@ void desempilharContexto();
 void declararString(atributos*, string, bool antecipado = false);
 int tamanhoString(string);
 
+string valorPadrao(int);
+
 %}
 
 %token TK_LITERAL TK_ID
 %token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE TK_DO TK_FOR TK_SWITCH TK_CASE TK_BREAK TK_CONTINUE TK_DEFAULT
 %token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL TK_OP_SUB
-%token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING TK_TIPO_VETOR
+%token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING TK_TIPO_VETOR TK_TIPO_VOID
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
 %token TK_CTX_BLOCO TK_CTX_IF TK_CTX_WHILE TK_CTX_FOR TK_CTX_CASE
@@ -266,6 +270,7 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.dinamico = false;
 						$$.tamanho = getSimbolo($1.label)->tamanho;
 						$$.tmpTamanho = getSimbolo($1.label)->tmpTamanho;
+						$$.identificador = $1.label;
 					}
 					| '(' EXPRESSAO ')'
 					{
@@ -388,18 +393,49 @@ EXP_SIMPLES			: TK_LITERAL
 EXP_POSFIXA			: EXP_SIMPLES
 					| EXP_POSFIXA '[' EXPRESSAO ']'
 					{
+						if ($1.identificador == "")
+						{
+							yyerror("Identificador esperado antes de '[ ]'.");
+						}
 						$$.declaracao = $3.declaracao;
 						$$.traducao = $3.traducao;
 
-						cout << "((" + $1.label + "))\n";
-						//simbolo *smb = getSimbolo($1.label);
-						$$.tipo = getSimbolo($1.label)->tipo;
-						$$.tamanho = getSimbolo($1.label)->tamanho;
-						$$.label = getSimbolo($1.label)->label;
+						simbolo *smb = getSimbolo($1.identificador);
+						//$$.tipo = smb->tipo;
+						$$.tamanho = smb->tamanho;
+
+						int tipoPosicao = smb->tipoElemento; // Pegar tipo da posição aqui
+
+						if (tipoPosicao == TK_TIPO_INDEFINIDO)
+						{
+							yyerror("O vetor '" + $1.identificador +"' possui tipo indefinido.");
+						}
 
 						string tmp = nextTMP();
-						$$.declaracao += dcl($$.tipo, tmp);
-						$$.traducao += cmd(tmp + " = " + $$.label);
+						string tmpPonteiroVoid = nextTMP();
+						string tmpPonteiro = nextTMP();
+						string tmpValor = nextTMP();
+
+						$$.declaracao += dcl(tipoPosicao, tmp);
+						$$.declaracao += dcl(TK_TIPO_VOID, tmpPonteiroVoid, "*");
+						$$.declaracao += dcl(tipoPosicao, tmpPonteiro, "*");
+						$$.declaracao += dcl(tipoPosicao, tmpValor);
+
+						$$.traducao += cmd(tmpPonteiroVoid + " = " + $1.label + "[" + $3.label + "]");
+						$$.traducao += cmd(tmpPonteiro + " = (" + typeName(tipoPosicao) + "*)" + tmpPonteiroVoid);
+						
+						if (tipoPosicao != TK_TIPO_STRING)
+						{
+							$$.traducao += cmd(tmpValor + " = *" + tmpPonteiro);
+							$$.traducao += cmd(tmp + " = " + tmpValor);
+						}
+						else
+						{
+							$$.traducao += cmd(tmp + " = " + tmpPonteiro);
+						}
+
+						$$.tipo = tipoPosicao;
+						$$.label = tmp;
 					}
 					;
 					
@@ -620,18 +656,21 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 					{
 						if (!isDeclared($1.label))
 						{
-							yyerror("Variável '" + $1.label + "' não declarada.");
+							yyerror("Vetor '" + $1.label + "' não declarado.");
 						}
 
-						string varVetor = getSimbolo($1.label)->label;
+						simbolo *smb = getSimbolo($1.label);
 
-						$1.tipo = getTipo($1.label);
+						string varVetor = smb->label;
+
 						$$.declaracao = $6.declaracao;
 						$$.declaracao += $3.declaracao;
+
 						$$.traducao = $6.traducao;
 						$$.traducao += $3.traducao;
-						$$.tamanho = getSimbolo($1.label)->tamanho;
 
+						$$.tamanho = smb->tamanho;
+						$1.tipo = smb->tipo;
 						$1.label = varVetor;
 
 						if ($1.tipo != TK_TIPO_VETOR)
@@ -644,9 +683,67 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							yyerror("Esperado expressão (int)");
 						}
 
-						string tmpExpressao = $3.label;
+						if (smb->tipoElemento == TK_TIPO_INDEFINIDO)
+						{
+							smb->tipoElemento = $6.tipo;
 
-						$$.traducao += cmd($1.label + "[" + tmpExpressao + "] = &" + $6.label);
+							string tmpI = nextTMP();
+							string tmpPonteiro = nextTMP();
+
+							$$.declaracao += dcl(TK_TIPO_INT, tmpI);
+							$$.declaracao += dcl(smb->tipoElemento, tmpPonteiro, "*");
+
+							for (int i = 0; i < smb->tamanho; i++)
+							{
+								string tmpValor = nextTMP();
+								$$.declaracao += dcl(smb->tipoElemento, tmpValor);
+
+								$$.traducao += cmd(tmpI + " = " + to_string(i));
+
+								if (smb->tipoElemento != TK_TIPO_STRING)
+								{
+									$$.traducao += cmd(tmpValor + " = " + valorPadrao(smb->tipoElemento));
+									$$.traducao += cmd(tmpPonteiro + " = &" + tmpValor);
+									$$.traducao += cmd(smb->label + "[" + tmpI + "] = " + tmpPonteiro);
+								}
+								else
+								{
+									$$.traducao += cmd(tmpValor + " = (char*)malloc(sizeof(char)*2)");
+									$$.traducao += cmd("strcpy(" + tmpValor + ", \"a\")");
+									$$.traducao += cmd(smb->label + "[" + tmpI + "] = " + tmpValor);
+
+									$$.desalocacao += cmd("free(" + tmpValor + ")");
+								}
+							}
+						}
+
+						if (smb->tipoElemento != $6.tipo)
+						{
+							yyerror("Atribuição incompatível com o tipo do vetor (" + typeName(smb->tipoElemento) + ").");
+						}
+
+						string tmpExpressao = nextTMP();
+						string tmpPonteiro = nextTMP();
+
+						$$.declaracao += dcl($6.tipo, tmpExpressao);
+						$$.declaracao += dcl(TK_TIPO_INT, tmpPonteiro, "*");
+
+						if (smb->tipoElemento != TK_TIPO_STRING)
+						{
+							$$.traducao += cmd(tmpExpressao + " = " + $6.label);
+							$$.traducao += cmd(tmpPonteiro + " = &" + tmpExpressao);
+							$$.traducao += cmd($1.label + "[" + $3.label + "] = " + tmpPonteiro);
+						}
+						else
+						{
+							string tmpTamanho = nextTMP();
+
+							$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
+							$$.traducao += cmd(tmpTamanho + " = " + to_string($6.tamanho));
+							$$.traducao += cmd(tmpPonteiro + " = " + $1.label + "[" + $3.label + "]");
+							$$.traducao += cmd(tmpPonteiro + " = (char*)realloc(" + tmpPonteiro + ", " + tmpTamanho + ")");
+							$$.traducao += cmd("strcpy(" + tmpPonteiro + ", " + $6.label + ")");
+						}
 
 					}
 					;
@@ -1229,6 +1326,7 @@ string typeName (int token, bool debug)
 		case TK_TIPO_BOOL:		str = (debug)? "boolean" : "int";	break;
 		case TK_TIPO_STRING:	str = (debug)? "string" : "char*";	break;
 		case TK_TIPO_VETOR:		str = (debug)? "vetor" : "void**";	break;
+		case TK_TIPO_VOID:		str = "void";						break;
 		default:				str = "undefined";					break;
 	}
 
@@ -1382,9 +1480,9 @@ string cmd (string s)
 	return "\t" + s + ";" + "\n";
 }
 
-string dcl (int tipo, string label)
+string dcl (int tipo, string label, string prefixo)
 {
-	return cmd(typeName(tipo) + "\t" + label);
+	return cmd(typeName(tipo) + prefixo + "\t" + label);
 }
 
 string lbl (string label)
@@ -1424,14 +1522,17 @@ bool isDeclared(string id)
 	return getSimboloPilha(id) != NULL;
 }
 
-void novoSimbolo(string id, string lbl, int tipo, int tamanho, string tmpTamanho)
+void novoSimbolo(string id, string lbl, int tipo, int tamanho, string tmpTamanho, int tipoElemento)
 {
 	simbolo novoSimbolo;
+
+	if (tipoElemento == -1) tipoElemento = TK_TIPO_INDEFINIDO;
 
 	novoSimbolo.label = lbl;
 	novoSimbolo.tipo = tipo;
 	novoSimbolo.tmpTamanho = tmpTamanho;
 	novoSimbolo.tamanho = tamanho;
+	novoSimbolo.tipoElemento = tipoElemento;
 
 	addSimbolo(id, novoSimbolo);
 }
@@ -1664,4 +1765,19 @@ int tamanhoString(string s)
 	}
 
 	return count;
+}
+
+string valorPadrao(int tipo)
+{
+	string aux = "";
+
+	switch (tipo){
+		case TK_TIPO_INT:			aux = "0"; 		break;
+		case TK_TIPO_FLOAT:			aux = "0.0";	break;
+		case TK_TIPO_CHAR:			aux = "' '"; 	break;
+		case TK_TIPO_STRING:		aux = "\"\""; 	break;
+		default:					aux = "";  		break;
+	}
+
+	return aux;
 }

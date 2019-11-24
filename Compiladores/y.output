@@ -1,30 +1,31 @@
 Terminais sem uso na gramática
 
-    TK_OP_DESIGUALDADE
-    TK_OP_AND
-    TK_OP_XOR
-    TK_OP_IOR
-    TK_OP_SUB
-    TK_TIPO_INDEFINIDO
-    TK_TIPO_INT
-    TK_TIPO_FLOAT
-    TK_TIPO_CHAR
-    TK_TIPO_BOOL
-    TK_TIPO_STRING
-    TK_TIPO_VETOR
-    TK_CLASSE_VARIAVEL
-    TK_CLASSE_FUNCAO
-    TK_FIM
-    TK_ERROR
-    TK_CTX_BLOCO
-    TK_CTX_IF
-    TK_CTX_WHILE
-    TK_CTX_FOR
-    TK_CTX_CASE
-    '+'
-    '-'
-    '*'
-    '/'
+   TK_OP_DESIGUALDADE
+   TK_OP_AND
+   TK_OP_XOR
+   TK_OP_IOR
+   TK_OP_SUB
+   TK_TIPO_INDEFINIDO
+   TK_TIPO_INT
+   TK_TIPO_FLOAT
+   TK_TIPO_CHAR
+   TK_TIPO_BOOL
+   TK_TIPO_STRING
+   TK_TIPO_VETOR
+   TK_TIPO_VOID
+   TK_CLASSE_VARIAVEL
+   TK_CLASSE_FUNCAO
+   TK_FIM
+   TK_ERROR
+   TK_CTX_BLOCO
+   TK_CTX_IF
+   TK_CTX_WHILE
+   TK_CTX_FOR
+   TK_CTX_CASE
+   '+'
+   '-'
+   '*'
+   '/'
 
 
 Gramática
@@ -143,187 +144,152 @@ Gramática
 
 Terminais, com as regras onde eles aparecem
 
-    $end (0) 0
-    '#' (35) 15
-    '(' (40) 1 21 22 23 52 53 55 57 59 61 68
-    ')' (41) 1 21 22 23 52 53 55 57 59 61 68
-    '*' (42)
-    '+' (43)
-    ',' (44) 16 47
-    '-' (45)
-    '/' (47)
-    ';' (59) 6 59 66 67 68
-    '<' (60) 69
-    '=' (61) 43 44 50
-    '>' (62) 70
-    '[' (91) 25 44 51
-    ']' (93) 25 44 51
-    '{' (123) 3 61
-    '}' (125) 3 61
-    error (256)
-    TK_LITERAL (258) 19 51
-    TK_ID (259) 20 43 44 49 50 51 61
-    TK_MAIN (260) 1
-    TK_VAR (261) 45
-    TK_TIPO (262) 1 22 23
-    TK_IF (263) 52 53
-    TK_ELSE (264) 53
-    TK_WHILE (265) 55 57
-    TK_DO (266) 57
-    TK_FOR (267) 59
-    TK_SWITCH (268) 61
-    TK_CASE (269) 64
-    TK_BREAK (270) 66
-    TK_CONTINUE (271) 67
-    TK_DEFAULT (272) 65
-    TK_OP_IGUALDADE (273) 37
-    TK_OP_DESIGUALDADE (274)
-    TK_OP_MAIORIGUAL (275) 71
-    TK_OP_MENORIGUAL (276) 72
-    TK_OP_NOT (277) 29
-    TK_OP_LOGICAL_AND (278) 39
-    TK_OP_AND (279)
-    TK_OP_LOGICAL_OR (280) 41
-    TK_OP_XOR (281)
-    TK_OP_IOR (282)
-    TK_OP_ADD (283) 27 33
-    TK_OP_MUL (284) 31
-    TK_OP_SUB (285)
-    TK_TIPO_INDEFINIDO (286)
-    TK_TIPO_INT (287)
-    TK_TIPO_FLOAT (288)
-    TK_TIPO_CHAR (289)
-    TK_TIPO_BOOL (290)
-    TK_TIPO_STRING (291)
-    TK_TIPO_VETOR (292)
-    TK_CLASSE_VARIAVEL (293)
-    TK_CLASSE_FUNCAO (294)
-    TK_FIM (295)
-    TK_ERROR (296)
-    TK_CTX_BLOCO (297)
-    TK_CTX_IF (298)
-    TK_CTX_WHILE (299)
-    TK_CTX_FOR (300)
-    TK_CTX_CASE (301)
-    TK_OUT (302) 68
-    TK_IN (303) 23
+$end (0) 0
+'#' (35) 15
+'(' (40) 1 21 22 23 52 53 55 57 59 61 68
+')' (41) 1 21 22 23 52 53 55 57 59 61 68
+'*' (42)
+'+' (43)
+',' (44) 16 47
+'-' (45)
+'/' (47)
+';' (59) 6 59 66 67 68
+'<' (60) 69
+'=' (61) 43 44 50
+'>' (62) 70
+'[' (91) 25 44 51
+']' (93) 25 44 51
+'{' (123) 3 61
+'}' (125) 3 61
+error (256)
+TK_LITERAL (258) 19 51
+TK_ID (259) 20 43 44 49 50 51 61
+TK_MAIN (260) 1
+TK_VAR (261) 45
+TK_TIPO (262) 1 22 23
+TK_IF (263) 52 53
+TK_ELSE (264) 53
+TK_WHILE (265) 55 57
+TK_DO (266) 57
+TK_FOR (267) 59
+TK_SWITCH (268) 61
+TK_CASE (269) 64
+TK_BREAK (270) 66
+TK_CONTINUE (271) 67
+TK_DEFAULT (272) 65
+TK_OP_IGUALDADE (273) 37
+TK_OP_DESIGUALDADE (274)
+TK_OP_MAIORIGUAL (275) 71
+TK_OP_MENORIGUAL (276) 72
+TK_OP_NOT (277) 29
+TK_OP_LOGICAL_AND (278) 39
+TK_OP_AND (279)
+TK_OP_LOGICAL_OR (280) 41
+TK_OP_XOR (281)
+TK_OP_IOR (282)
+TK_OP_ADD (283) 27 33
+TK_OP_MUL (284) 31
+TK_OP_SUB (285)
+TK_TIPO_INDEFINIDO (286)
+TK_TIPO_INT (287)
+TK_TIPO_FLOAT (288)
+TK_TIPO_CHAR (289)
+TK_TIPO_BOOL (290)
+TK_TIPO_STRING (291)
+TK_TIPO_VETOR (292)
+TK_TIPO_VOID (293)
+TK_CLASSE_VARIAVEL (294)
+TK_CLASSE_FUNCAO (295)
+TK_FIM (296)
+TK_ERROR (297)
+TK_CTX_BLOCO (298)
+TK_CTX_IF (299)
+TK_CTX_WHILE (300)
+TK_CTX_FOR (301)
+TK_CTX_CASE (302)
+TK_OUT (303) 68
+TK_IN (304) 23
 
 
 Não terminais com as regras onde eles aparecem
 
-    $accept (65)
-        à esquerda: 0
-    S (66)
-        à esquerda: 1
-        à direita: 0
-    BLOCO (67)
-        à esquerda: 3
-        à direita: 1 52 53 55 57 59 64 65
-    $@1 (68)
-        à esquerda: 2
-        à direita: 3
-    COMANDOS (69)
-        à esquerda: 4 5
-        à direita: 3 4
-    COMANDO (70)
-        à esquerda: 6 7 8 9 10 11 12 13 14 15
-        à direita: 4
-    COMANDOS_FOR (71)
-        à esquerda: 16 17
-        à direita: 16 59
-    COMANDO_FOR (72)
-        à esquerda: 18
-        à direita: 16 17
-    EXP_SIMPLES (73)
-        à esquerda: 19 20 21 22 23
-        à direita: 24
-    EXP_POSFIXA (74)
-        à esquerda: 24 25
-        à direita: 25 26 27
-    EXP_UNARIA (75)
-        à esquerda: 26 27
-        à direita: 28
-    EXP_NOT (76)
-        à esquerda: 28 29
-        à direita: 29 30 31
-    EXP_ARITMETICA_MUL (77)
-        à esquerda: 30 31
-        à direita: 31 32 33
-    EXP_ARITMETICA_ADD (78)
-        à esquerda: 32 33
-        à direita: 33 34 35
-    EXP_RELACIONAL (79)
-        à esquerda: 34 35
-        à direita: 35 36 37
-    EXP_IGUALDADE (80)
-        à esquerda: 36 37
-        à direita: 37 38 39
-    EXP_LOGICAL_AND (81)
-        à esquerda: 38 39
-        à direita: 39 40 41
-    EXP_LOGICAL_OR (82)
-        à esquerda: 40 41
-        à direita: 41 42
-    EXPRESSAO (83)
-        à esquerda: 42
-        à direita: 21 22 25 43 44 50 52 53 55 57 59 64 68
-    ATRIBUICAO (84)
-        à esquerda: 43 44
-        à direita: 18 46
-    CMD_DECLARACOES (85)
-        à esquerda: 45 46
-        à direita: 6 59
-    LIST_DECLARACOES (86)
-        à esquerda: 47 48
-        à direita: 45 47
-    DECLARACAO (87)
-        à esquerda: 49 50 51
-        à direita: 47 48
-    CMD_IF (88)
-        à esquerda: 52 53
-        à direita: 7
-    CMD_WHILE (89)
-        à esquerda: 55
-        à direita: 8
-    $@2 (90)
-        à esquerda: 54
-        à direita: 55
-    CMD_DOWHILE (91)
-        à esquerda: 57
-        à direita: 9
-    $@3 (92)
-        à esquerda: 56
-        à direita: 57
-    CMD_FOR (93)
-        à esquerda: 59
-        à direita: 10
-    @4 (94)
-        à esquerda: 58
-        à direita: 59
-    CMD_SWITCH (95)
-        à esquerda: 61
-        à direita: 11
-    $@5 (96)
-        à esquerda: 60
-        à direita: 61
-    BLOCO_SWITCH (97)
-        à esquerda: 62 63
-        à direita: 61 62
-    EXP_CASE (98)
-        à esquerda: 64 65
-        à direita: 62
-    CMD_BREAK (99)
-        à esquerda: 66
-        à direita: 12
-    CMD_CONTINUE (100)
-        à esquerda: 67
-        à direita: 13
-    CMD_OUT (101)
-        à esquerda: 68
-        à direita: 14
-    OP_RELACIONAL (102)
-        à esquerda: 69 70 71 72
-        à direita: 35
+$accept (66)
+    à esquerda: 0
+S (67)
+    à esquerda: 1, à direita: 0
+BLOCO (68)
+    à esquerda: 3, à direita: 1 52 53 55 57 59 64 65
+$@1 (69)
+    à esquerda: 2, à direita: 3
+COMANDOS (70)
+    à esquerda: 4 5, à direita: 3 4
+COMANDO (71)
+    à esquerda: 6 7 8 9 10 11 12 13 14 15, à direita: 4
+COMANDOS_FOR (72)
+    à esquerda: 16 17, à direita: 16 59
+COMANDO_FOR (73)
+    à esquerda: 18, à direita: 16 17
+EXP_SIMPLES (74)
+    à esquerda: 19 20 21 22 23, à direita: 24
+EXP_POSFIXA (75)
+    à esquerda: 24 25, à direita: 25 26 27
+EXP_UNARIA (76)
+    à esquerda: 26 27, à direita: 28
+EXP_NOT (77)
+    à esquerda: 28 29, à direita: 29 30 31
+EXP_ARITMETICA_MUL (78)
+    à esquerda: 30 31, à direita: 31 32 33
+EXP_ARITMETICA_ADD (79)
+    à esquerda: 32 33, à direita: 33 34 35
+EXP_RELACIONAL (80)
+    à esquerda: 34 35, à direita: 35 36 37
+EXP_IGUALDADE (81)
+    à esquerda: 36 37, à direita: 37 38 39
+EXP_LOGICAL_AND (82)
+    à esquerda: 38 39, à direita: 39 40 41
+EXP_LOGICAL_OR (83)
+    à esquerda: 40 41, à direita: 41 42
+EXPRESSAO (84)
+    à esquerda: 42, à direita: 21 22 25 43 44 50 52 53 55 57 59 64
+    68
+ATRIBUICAO (85)
+    à esquerda: 43 44, à direita: 18 46
+CMD_DECLARACOES (86)
+    à esquerda: 45 46, à direita: 6 59
+LIST_DECLARACOES (87)
+    à esquerda: 47 48, à direita: 45 47
+DECLARACAO (88)
+    à esquerda: 49 50 51, à direita: 47 48
+CMD_IF (89)
+    à esquerda: 52 53, à direita: 7
+CMD_WHILE (90)
+    à esquerda: 55, à direita: 8
+$@2 (91)
+    à esquerda: 54, à direita: 55
+CMD_DOWHILE (92)
+    à esquerda: 57, à direita: 9
+$@3 (93)
+    à esquerda: 56, à direita: 57
+CMD_FOR (94)
+    à esquerda: 59, à direita: 10
+@4 (95)
+    à esquerda: 58, à direita: 59
+CMD_SWITCH (96)
+    à esquerda: 61, à direita: 11
+$@5 (97)
+    à esquerda: 60, à direita: 61
+BLOCO_SWITCH (98)
+    à esquerda: 62 63, à direita: 61 62
+EXP_CASE (99)
+    à esquerda: 64 65, à direita: 62
+CMD_BREAK (100)
+    à esquerda: 66, à direita: 12
+CMD_CONTINUE (101)
+    à esquerda: 67, à direita: 13
+CMD_OUT (102)
+    à esquerda: 68, à direita: 14
+OP_RELACIONAL (103)
+    à esquerda: 69 70 71 72, à direita: 35
 
 
 Estado 0
