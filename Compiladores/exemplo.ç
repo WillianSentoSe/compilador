@@ -1,7 +1,8 @@
 int main()
 {
-	var a[5];
-	a[1] = "asd";
+	var a[2];
 
-	out(a[5]);
+	a[1] = "pericles";
+
+	out(a);
 }

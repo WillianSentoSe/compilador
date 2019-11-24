@@ -647,7 +647,7 @@ static const yytype_uint16 yyrline[] =
      589,   599,   600,   610,   613,   655,   751,   757,   765,   772,
      780,   792,   824,   852,   883,   921,   921,   964,   964,   997,
      996,  1057,  1056,  1089,  1099,  1106,  1146,  1157,  1165,  1172,
-    1205,  1209,  1213,  1214
+    1243,  1247,  1251,  1252
 };
 #endif
 
@@ -2140,8 +2140,8 @@ yyreduce:
 								}
 								else
 								{
-									yyval.traducao += cmd(tmpValor + " = (char*)malloc(sizeof(char)*2)");
-									yyval.traducao += cmd("strcpy(" + tmpValor + ", \"a\")");
+									yyval.traducao += cmd(tmpValor + " = (char*)malloc(sizeof(char))");
+									yyval.traducao += cmd("strcpy(" + tmpValor + ", \"\")");
 									yyval.traducao += cmd(smb->label + "[" + tmpI + "] = " + tmpValor);
 
 									yyval.desalocacao += cmd("free(" + tmpValor + ")");
@@ -2683,7 +2683,8 @@ yyreduce:
 							yyerror("Expressão esperada do tipo (" + typeName(TK_TIPO_STRING, true) + ").");
 						}
 						*/
-						int tipo = yyvsp[-2].tipo;
+						int tipo = (yyvsp[-2].tipo != TK_TIPO_VETOR)? yyvsp[-2].tipo : getSimbolo(yyvsp[-2].identificador)->tipoElemento;
+
 						char aux;
 
 						switch (tipo)
@@ -2696,37 +2697,74 @@ yyreduce:
 							default: aux = 's'; break;
 						}
 
-						//char aux = ($3.tipo == TK_TIPO_STRING)? 's' : 'c';
+						if (yyvsp[-2].tipo != TK_TIPO_VETOR)
+						{
+							// Imprimir declaracao e tradução da Expressão
+							yyval.traducao = yyvsp[-2].traducao;
+							yyval.declaracao = yyvsp[-2].declaracao;
+							yyval.desalocacao = yyvsp[-2].desalocacao;
 
-						// Imprimir declaracao e tradução da Expressão
-						yyval.traducao = yyvsp[-2].traducao;
-						yyval.declaracao = yyvsp[-2].declaracao;
-						yyval.desalocacao = yyvsp[-2].desalocacao;
+							// Imprimir comando de saida
+							yyval.traducao += cmd((string)"printf(\"\%" + aux + "\", " + yyvsp[-2].label + ")");
+						}
+						else
+						{
+							yyval.traducao = yyvsp[-2].traducao;
+							yyval.declaracao = yyvsp[-2].declaracao;
+							yyval.desalocacao = yyvsp[-2].desalocacao;
 
-						// Imprimir comando de saida
-						yyval.traducao += cmd((string)"printf(\"\%" + aux + "\", " + yyvsp[-2].label + ")");
+							string tmpPointeiro = nextTMP();
+							string tmpI = nextTMP();
+
+							yyval.declaracao += dcl(TK_TIPO_INT, tmpI);
+							yyval.declaracao += dcl(tipo, tmpPointeiro, "*");
+
+							yyval.traducao += cmd("printf(\"(\")");
+
+							for (int i = 0; i < yyvsp[-2].tamanho; i++)
+							{
+								yyval.traducao += cmd(tmpI + " = " + to_string(i));
+								yyval.traducao += cmd(tmpPointeiro + " = " + yyvsp[-2].label + "[" + tmpI + "]");
+
+								if (tipo != TK_TIPO_STRING)
+								{
+									yyval.traducao += cmd((string)"printf(\"%" + aux + "\", *" + tmpPointeiro + ")");
+								}
+								else
+								{
+									yyval.traducao += cmd((string)"printf(\"%" + aux + "\", " + tmpPointeiro + ")");
+								}
+
+								if (i < yyvsp[-2].tamanho - 1)
+								{
+									yyval.traducao += cmd("printf(\", \")");
+								}
+							}
+
+							yyval.traducao += cmd("printf(\")\")");
+						}
 					}
-#line 2710 "y.tab.c" /* yacc.c:1652  */
+#line 2748 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 70:
-#line 1206 "sintatica.y" /* yacc.c:1652  */
+#line 1244 "sintatica.y" /* yacc.c:1652  */
     {
 						yyval.traducao = "<";
 					}
-#line 2718 "y.tab.c" /* yacc.c:1652  */
+#line 2756 "y.tab.c" /* yacc.c:1652  */
     break;
 
   case 71:
-#line 1210 "sintatica.y" /* yacc.c:1652  */
+#line 1248 "sintatica.y" /* yacc.c:1652  */
     {
 						yyval.traducao = ">";
 					}
-#line 2726 "y.tab.c" /* yacc.c:1652  */
+#line 2764 "y.tab.c" /* yacc.c:1652  */
     break;
 
 
-#line 2730 "y.tab.c" /* yacc.c:1652  */
+#line 2768 "y.tab.c" /* yacc.c:1652  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2957,7 +2995,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1217 "sintatica.y" /* yacc.c:1918  */
+#line 1255 "sintatica.y" /* yacc.c:1918  */
 
 
 #include "lex.yy.c"

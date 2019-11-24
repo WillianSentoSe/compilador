@@ -708,8 +708,8 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 								}
 								else
 								{
-									$$.traducao += cmd(tmpValor + " = (char*)malloc(sizeof(char)*2)");
-									$$.traducao += cmd("strcpy(" + tmpValor + ", \"a\")");
+									$$.traducao += cmd(tmpValor + " = (char*)malloc(sizeof(char))");
+									$$.traducao += cmd("strcpy(" + tmpValor + ", \"\")");
 									$$.traducao += cmd(smb->label + "[" + tmpI + "] = " + tmpValor);
 
 									$$.desalocacao += cmd("free(" + tmpValor + ")");
@@ -1177,7 +1177,8 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 							yyerror("Expressão esperada do tipo (" + typeName(TK_TIPO_STRING, true) + ").");
 						}
 						*/
-						int tipo = $3.tipo;
+						int tipo = ($3.tipo != TK_TIPO_VETOR)? $3.tipo : getSimbolo($3.identificador)->tipoElemento;
+
 						char aux;
 
 						switch (tipo)
@@ -1190,15 +1191,52 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 							default: aux = 's'; break;
 						}
 
-						//char aux = ($3.tipo == TK_TIPO_STRING)? 's' : 'c';
+						if ($3.tipo != TK_TIPO_VETOR)
+						{
+							// Imprimir declaracao e tradução da Expressão
+							$$.traducao = $3.traducao;
+							$$.declaracao = $3.declaracao;
+							$$.desalocacao = $3.desalocacao;
 
-						// Imprimir declaracao e tradução da Expressão
-						$$.traducao = $3.traducao;
-						$$.declaracao = $3.declaracao;
-						$$.desalocacao = $3.desalocacao;
+							// Imprimir comando de saida
+							$$.traducao += cmd((string)"printf(\"\%" + aux + "\", " + $3.label + ")");
+						}
+						else
+						{
+							$$.traducao = $3.traducao;
+							$$.declaracao = $3.declaracao;
+							$$.desalocacao = $3.desalocacao;
 
-						// Imprimir comando de saida
-						$$.traducao += cmd((string)"printf(\"\%" + aux + "\", " + $3.label + ")");
+							string tmpPointeiro = nextTMP();
+							string tmpI = nextTMP();
+
+							$$.declaracao += dcl(TK_TIPO_INT, tmpI);
+							$$.declaracao += dcl(tipo, tmpPointeiro, "*");
+
+							$$.traducao += cmd("printf(\"(\")");
+
+							for (int i = 0; i < $3.tamanho; i++)
+							{
+								$$.traducao += cmd(tmpI + " = " + to_string(i));
+								$$.traducao += cmd(tmpPointeiro + " = " + $3.label + "[" + tmpI + "]");
+
+								if (tipo != TK_TIPO_STRING)
+								{
+									$$.traducao += cmd((string)"printf(\"%" + aux + "\", *" + tmpPointeiro + ")");
+								}
+								else
+								{
+									$$.traducao += cmd((string)"printf(\"%" + aux + "\", " + tmpPointeiro + ")");
+								}
+
+								if (i < $3.tamanho - 1)
+								{
+									$$.traducao += cmd("printf(\", \")");
+								}
+							}
+
+							$$.traducao += cmd("printf(\")\")");
+						}
 					}
 					;
 
