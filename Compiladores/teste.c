@@ -1,4 +1,4 @@
 
- [LINHA 9] (!)
- | Variável 'a' já foi declarada nesse contexto.
+ [LINHA 4] (!)
+ | Operador inválido [=] para o tipo (int).
 

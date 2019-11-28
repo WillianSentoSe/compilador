@@ -52,6 +52,8 @@ STRING      \"(\\.|[^"\\])*\"
 ">="							{ yylval.traducao = yytext; return TK_OP_MAIORIGUAL;							}
 "<="							{ yylval.traducao = yytext; return TK_OP_MENORIGUAL;							}
 "=="|"!="						{ yylval.traducao = yytext; return TK_OP_IGUALDADE;								}
+"++"							{ yylval.traducao = yytext; return TK_OP_UN_ADD; 								}
+"--"							{ yylval.traducao = yytext; return TK_OP_UN_SUB; 								}
 
 "and"							{ yylval.traducao = "&&"; 	return TK_OP_LOGICAL_AND;							}
 "or"							{ yylval.traducao = "||"; 	return TK_OP_LOGICAL_OR;							}

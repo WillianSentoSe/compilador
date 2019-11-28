@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #define YYSTYPE atributos
-#define DISPLAY_COLOR false
+#define DISPLAY_COLOR true
 
 using namespace std;
 
@@ -131,7 +131,8 @@ string valorPadrao(int);
 
 %token TK_LITERAL TK_ID
 %token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE TK_DO TK_FOR TK_SWITCH TK_CASE TK_BREAK TK_CONTINUE TK_DEFAULT
-%token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL TK_OP_SUB
+%token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL TK_OP_SUB 
+%token TK_OP_UN_ADD TK_OP_UN_SUB
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING TK_TIPO_VETOR TK_TIPO_VOID
 %token TK_CLASSE_VARIAVEL TK_CLASSE_FUNCAO
 %token TK_FIM TK_ERROR
@@ -462,6 +463,48 @@ EXP_UNARIA			: EXP_POSFIXA
 						$$.desalocacao = $2.desalocacao;
 						$$.dinamico = $2.dinamico;
 						$$.tmpTamanho = $2.tmpTamanho;
+					}
+					| TK_OP_UN_ADD EXP_POSFIXA
+					{
+
+						if ($2.tipo != TK_TIPO_INT && $2.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $1.traducao + "] para o tipo (" + typeName($2.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+
+						$$.declaracao = dcl($2.tipo, tmpUm);
+						$$.declaracao += $2.declaracao;
+
+						$$.traducao = cmd(tmpUm + " = 1");
+						$$.traducao += cmd($2.label + " = " + $2.label + " + " + tmpUm);
+						$$.traducao += $2.traducao;
+
+						$$.tipo = $2.tipo;
+						$$.label = $2.label;
+						$$.desalocacao = $2.desalocacao;
+					}
+					| TK_OP_UN_SUB EXP_POSFIXA
+					{
+
+						if ($2.tipo != TK_TIPO_INT && $2.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $1.traducao + "] para o tipo (" + typeName($2.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+
+						$$.declaracao = dcl($2.tipo, tmpUm);
+						$$.declaracao += $2.declaracao;
+
+						$$.traducao = cmd(tmpUm + " = 1");
+						$$.traducao += cmd($2.label + " = " + $2.label + " - " + tmpUm);
+						$$.traducao += $2.traducao;
+
+						$$.tipo = $2.tipo;
+						$$.label = $2.label;
+						$$.desalocacao = $2.desalocacao;
 					}
 					;
 

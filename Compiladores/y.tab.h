@@ -1,9 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
-   Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,9 +29,6 @@
 
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
-
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
 
 #ifndef YY_YY_Y_TAB_H_INCLUDED
 # define YY_YY_Y_TAB_H_INCLUDED
@@ -77,25 +73,27 @@ extern int yydebug;
     TK_OP_ADD = 283,
     TK_OP_MUL = 284,
     TK_OP_SUB = 285,
-    TK_TIPO_INDEFINIDO = 286,
-    TK_TIPO_INT = 287,
-    TK_TIPO_FLOAT = 288,
-    TK_TIPO_CHAR = 289,
-    TK_TIPO_BOOL = 290,
-    TK_TIPO_STRING = 291,
-    TK_TIPO_VETOR = 292,
-    TK_TIPO_VOID = 293,
-    TK_CLASSE_VARIAVEL = 294,
-    TK_CLASSE_FUNCAO = 295,
-    TK_FIM = 296,
-    TK_ERROR = 297,
-    TK_CTX_BLOCO = 298,
-    TK_CTX_IF = 299,
-    TK_CTX_WHILE = 300,
-    TK_CTX_FOR = 301,
-    TK_CTX_CASE = 302,
-    TK_OUT = 303,
-    TK_IN = 304
+    TK_OP_UN_ADD = 286,
+    TK_OP_UN_SUB = 287,
+    TK_TIPO_INDEFINIDO = 288,
+    TK_TIPO_INT = 289,
+    TK_TIPO_FLOAT = 290,
+    TK_TIPO_CHAR = 291,
+    TK_TIPO_BOOL = 292,
+    TK_TIPO_STRING = 293,
+    TK_TIPO_VETOR = 294,
+    TK_TIPO_VOID = 295,
+    TK_CLASSE_VARIAVEL = 296,
+    TK_CLASSE_FUNCAO = 297,
+    TK_FIM = 298,
+    TK_ERROR = 299,
+    TK_CTX_BLOCO = 300,
+    TK_CTX_IF = 301,
+    TK_CTX_WHILE = 302,
+    TK_CTX_FOR = 303,
+    TK_CTX_CASE = 304,
+    TK_OUT = 305,
+    TK_IN = 306
   };
 #endif
 /* Tokens.  */
@@ -127,25 +125,27 @@ extern int yydebug;
 #define TK_OP_ADD 283
 #define TK_OP_MUL 284
 #define TK_OP_SUB 285
-#define TK_TIPO_INDEFINIDO 286
-#define TK_TIPO_INT 287
-#define TK_TIPO_FLOAT 288
-#define TK_TIPO_CHAR 289
-#define TK_TIPO_BOOL 290
-#define TK_TIPO_STRING 291
-#define TK_TIPO_VETOR 292
-#define TK_TIPO_VOID 293
-#define TK_CLASSE_VARIAVEL 294
-#define TK_CLASSE_FUNCAO 295
-#define TK_FIM 296
-#define TK_ERROR 297
-#define TK_CTX_BLOCO 298
-#define TK_CTX_IF 299
-#define TK_CTX_WHILE 300
-#define TK_CTX_FOR 301
-#define TK_CTX_CASE 302
-#define TK_OUT 303
-#define TK_IN 304
+#define TK_OP_UN_ADD 286
+#define TK_OP_UN_SUB 287
+#define TK_TIPO_INDEFINIDO 288
+#define TK_TIPO_INT 289
+#define TK_TIPO_FLOAT 290
+#define TK_TIPO_CHAR 291
+#define TK_TIPO_BOOL 292
+#define TK_TIPO_STRING 293
+#define TK_TIPO_VETOR 294
+#define TK_TIPO_VOID 295
+#define TK_CLASSE_VARIAVEL 296
+#define TK_CLASSE_FUNCAO 297
+#define TK_FIM 298
+#define TK_ERROR 299
+#define TK_CTX_BLOCO 300
+#define TK_CTX_IF 301
+#define TK_CTX_WHILE 302
+#define TK_CTX_FOR 303
+#define TK_CTX_CASE 304
+#define TK_OUT 305
+#define TK_IN 306
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

@@ -1,8 +1,5 @@
 int main()
 {
-	var a[2];
-
-	a[1] = "pericles";
-
-	out(a);
+	var a = 1.0;
+	var b = a++;
 }
