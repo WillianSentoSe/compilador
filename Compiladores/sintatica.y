@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #define YYSTYPE atributos
-#define DISPLAY_COLOR true
+#define DISPLAY_COLOR false
 
 using namespace std;
 
@@ -196,6 +196,7 @@ COMANDO 			: CMD_DECLARACOES ';'
 					| CMD_BREAK
 					| CMD_CONTINUE
 					| CMD_OUT
+					| CMD_UNARIO ';'
 					| '#'
 					{
 						$$.traducao = "";
@@ -219,6 +220,11 @@ COMANDOS_FOR		: COMANDO_FOR ',' COMANDOS_FOR
 					;
 
 COMANDO_FOR 		: ATRIBUICAO
+					{
+						$$.traducao = $1.traducao;
+						$$.declaracao = $1.declaracao;
+					}
+					| CMD_UNARIO
 					{
 						$$.traducao = $1.traducao;
 						$$.declaracao = $1.declaracao;
@@ -264,13 +270,14 @@ EXP_SIMPLES			: TK_LITERAL
 						}
 
 						//$$.tamanho = getSimbolo($1.label)->tamanho;
-						$$.label = getLabel($1.label);
+						simbolo *s = getSimboloPilha($1.label);
+						$$.label = s->label;
 						$$.declaracao = "";
 						$$.traducao = "";
 						$$.desalocacao = "";
 						$$.dinamico = false;
-						$$.tamanho = getSimbolo($1.label)->tamanho;
-						$$.tmpTamanho = getSimbolo($1.label)->tmpTamanho;
+						$$.tamanho = s->tamanho;
+						$$.tmpTamanho = s->tmpTamanho;
 						$$.identificador = $1.label;
 					}
 					| '(' EXPRESSAO ')'
@@ -389,6 +396,66 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.label = tmp;
 						$$.dinamico = true;
 					}
+					| TK_IN '(' ')'
+					{
+						string aux = "";
+						int tipo = TK_TIPO_STRING;
+
+						string tmp = nextTMP();
+						$$.declaracao += dcl(tipo, tmp);
+
+						int tamanho = 100;
+						string buffer = "";
+
+						string tmpCount = nextTMP();
+						string tmpChar = nextTMP();
+						string tmpUm = nextTMP();
+						string tmpComp = nextTMP();
+						string tmpBuffer = nextTMP();
+						string tmpN = nextTMP();
+						string tmp0 = nextTMP();
+						string lblLoop = nextLBL();
+						string lblFim = nextLBL();
+
+						$$.declaracao += dcl(TK_TIPO_INT, tmpCount);
+						$$.declaracao += dcl(TK_TIPO_CHAR, tmpChar);
+						$$.declaracao += dcl(TK_TIPO_INT, tmpUm);
+						$$.declaracao += dcl(TK_TIPO_CHAR, tmpN);
+						$$.declaracao += dcl(TK_TIPO_BOOL, tmpComp);
+						$$.declaracao += dcl(TK_TIPO_STRING, tmpBuffer);
+						$$.declaracao += dcl(TK_TIPO_CHAR, tmp0);
+
+						$$.traducao = "";
+						$$.traducao += cmd(tmpCount + " = 0");
+						$$.traducao += cmd(tmpUm + " = 1");
+						$$.traducao += cmd(tmpN + " = '\\n'");
+						$$.traducao += cmd(tmp0 + " = '\\0'");
+						$$.traducao += cmd(tmpBuffer + " = (char*)malloc(sizeof(char) * " + tmpUm + ")");
+						$$.traducao += lbl(lblLoop);
+						$$.traducao += cmd("scanf(\"%c\", &" + tmpChar + " )");
+						$$.traducao += cmd(tmpComp + " = " + tmpChar + " == " + tmpN);
+						$$.traducao += cmd("if (" + tmpComp + ") goto " + lblFim);
+						$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
+						$$.traducao += cmd(tmpBuffer + " = (char*)realloc(" + tmpBuffer + ", sizeof(char) * " + tmpCount + ")");
+						$$.traducao += cmd("strncat(" + tmpBuffer + ", &" + tmpChar + ", " + tmpUm + ")");
+						$$.traducao += cmd("goto " + lblLoop);
+						$$.traducao += lbl(lblFim);
+
+						$$.traducao += cmd(tmpCount + " = " + tmpCount + " + " + tmpUm);
+						$$.traducao += cmd("strncat(" + tmpBuffer + ", &" + tmp0 + ", " + tmpUm + ")");
+
+						$$.traducao += cmd(tmp + " = (char*) malloc(sizeof(char) * " + tmpCount + ")");
+						$$.traducao += cmd("strcpy(" + tmp + ", " + tmpBuffer + ")");
+
+						$$.tmpTamanho = tmpCount;
+
+						$$.desalocacao += cmd("free(" + tmpBuffer + ")");
+						$$.desalocacao += cmd("free(" + tmp + ")");
+
+						$$.tipo = tipo;
+						$$.label = tmp;
+						$$.dinamico = true;
+					}
 					;
 
 EXP_POSFIXA			: EXP_SIMPLES
@@ -401,7 +468,7 @@ EXP_POSFIXA			: EXP_SIMPLES
 						$$.declaracao = $3.declaracao;
 						$$.traducao = $3.traducao;
 
-						simbolo *smb = getSimbolo($1.identificador);
+						simbolo *smb = getSimboloPilha($1.identificador);
 						//$$.tipo = smb->tipo;
 						$$.tamanho = smb->tamanho;
 
@@ -477,9 +544,9 @@ EXP_UNARIA			: EXP_POSFIXA
 						$$.declaracao = dcl($2.tipo, tmpUm);
 						$$.declaracao += $2.declaracao;
 
-						$$.traducao = cmd(tmpUm + " = 1");
+						$$.traducao = $2.traducao;
+						$$.traducao += cmd(tmpUm + " = 1");
 						$$.traducao += cmd($2.label + " = " + $2.label + " + " + tmpUm);
-						$$.traducao += $2.traducao;
 
 						$$.tipo = $2.tipo;
 						$$.label = $2.label;
@@ -498,13 +565,36 @@ EXP_UNARIA			: EXP_POSFIXA
 						$$.declaracao = dcl($2.tipo, tmpUm);
 						$$.declaracao += $2.declaracao;
 
-						$$.traducao = cmd(tmpUm + " = 1");
+						$$.traducao = $2.traducao;
+						$$.traducao += cmd(tmpUm + " = 1");
 						$$.traducao += cmd($2.label + " = " + $2.label + " - " + tmpUm);
-						$$.traducao += $2.traducao;
 
 						$$.tipo = $2.tipo;
 						$$.label = $2.label;
 						$$.desalocacao = $2.desalocacao;
+					}
+					| EXP_POSFIXA TK_OP_UN_ADD
+					{
+						if ($1.tipo != TK_TIPO_INT && $1.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $2.traducao + "] para o tipo (" + typeName($1.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+						string tmp = nextTMP();
+
+						$$.declaracao = dcl($1.tipo, tmpUm);
+						$$.declaracao += $1.declaracao;
+						$$.declaracao += dcl($1.tipo, tmp);
+
+						$$.traducao = $1.traducao;
+						$$.traducao += cmd(tmp + " = " + $1.label);
+						$$.traducao += cmd(tmpUm + " = 1");
+						$$.traducao += cmd($1.label + " = " + $1.label + " + " + tmpUm);
+
+						$$.tipo = $1.tipo;
+						$$.label = tmp;
+						$$.desalocacao = $1.desalocacao;
 					}
 					;
 
@@ -652,7 +742,6 @@ EXP_LOGICAL_OR		: EXP_LOGICAL_AND
 
 EXPRESSAO			: EXP_LOGICAL_OR
 					;
-
 ATRIBUICAO			: TK_ID '=' EXPRESSAO
 					{
 						if (!isDeclared($1.label))
@@ -675,7 +764,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 								// Declarar Temporaria de Tamanho
 								string tmpTamanho = $3.tmpTamanho;
 								//$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
-								getSimbolo($1.label)->tmpTamanho = tmpTamanho;
+								getSimboloPilha($1.label)->tmpTamanho = tmpTamanho;
 							}
 						}
 
@@ -688,7 +777,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 
 						if ($3.dinamico)
 						{
-							$$.traducao += cmd(getSimbolo($1.label)->tmpTamanho + " = " + to_string($3.tamanho));
+							$$.traducao += cmd(getSimboloPilha($1.label)->tmpTamanho + " = " + to_string($3.tamanho));
 						}
 
 						$1.label = getLabel($1.label);
@@ -702,7 +791,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							yyerror("Vetor '" + $1.label + "' não declarado.");
 						}
 
-						simbolo *smb = getSimbolo($1.label);
+						simbolo *smb = getSimboloPilha($1.label);
 
 						string varVetor = smb->label;
 
@@ -788,6 +877,142 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							$$.traducao += cmd("strcpy(" + tmpPonteiro + ", " + $6.label + ")");
 						}
 
+					}
+					| TK_ID TK_OP_ADD '=' EXPRESSAO
+					{
+						if (!isDeclared($1.label))
+						{
+							yyerror("Variável '" + $1.label + "' nao declarada.");
+						}
+
+						simbolo* smb = getSimboloPilha($1.label);
+						$1.tipo = smb->tipo;
+						$$.declaracao = $4.declaracao;
+						$$.traducao = $4.traducao;
+
+						if ($1.tipo == TK_TIPO_INDEFINIDO)
+						{
+							yyerror("Variável '" + $1.label + "' possui tipo indefinido.");
+						}
+
+						if ($1.tipo == TK_TIPO_VETOR)
+						{
+							yyerror("Atribuição inválida.");
+						}
+
+						converterTipo(&$$, $1.tipo, &$4);
+
+						$1.label = smb->label;
+						$$.traducao += cmd($1.label + " = " + $1.label + " " + $2.traducao + " " + $4.label);
+						$$.desalocacao = $3.desalocacao;
+					}
+					| TK_ID TK_OP_MUL '=' EXPRESSAO
+					{
+						if (!isDeclared($1.label))
+						{
+							yyerror("Variável '" + $1.label + "' nao declarada.");
+						}
+
+						simbolo* smb = getSimboloPilha($1.label);
+						$1.tipo = smb->tipo;
+						$$.declaracao = $4.declaracao;
+						$$.traducao = $4.traducao;
+
+						if ($1.tipo == TK_TIPO_INDEFINIDO)
+						{
+							yyerror("Variável '" + $1.label + "' possui tipo indefinido.");
+						}
+
+						if ($1.tipo == TK_TIPO_VETOR)
+						{
+							yyerror("Atribuição inválida.");
+						}
+
+						converterTipo(&$$, $1.tipo, &$4);
+
+						$1.label = smb->label;
+						$$.traducao += cmd($1.label + " = " + $1.label + " " + $2.traducao + " " + $4.label);
+						$$.desalocacao = $3.desalocacao;
+					}
+					;
+
+CMD_UNARIO			: TK_OP_UN_ADD TK_ID
+					{
+						simbolo* s = getSimboloPilha($2.label);
+						$2.label = s->label;
+						$2.tipo = s->tipo;
+
+						if ($2.tipo != TK_TIPO_INT && $2.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $1.traducao + "] para o tipo (" + typeName($2.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+
+						$$.declaracao = dcl($2.tipo, tmpUm);
+
+						$$.traducao = cmd(tmpUm + " = 1");
+						$$.traducao += cmd($2.label + " = " + $2.label + " + " + tmpUm);
+					}
+					| TK_OP_UN_SUB TK_ID
+					{
+						simbolo* s = getSimboloPilha($2.label);
+						$2.label = s->label;
+						$2.tipo = s->tipo;
+
+						if ($2.tipo != TK_TIPO_INT && $2.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $1.traducao + "] para o tipo (" + typeName($2.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+
+						$$.declaracao = dcl($2.tipo, tmpUm);
+
+						$$.traducao = cmd(tmpUm + " = 1");
+						$$.traducao += cmd($2.label + " = " + $2.label + " - " + tmpUm);
+					}
+					| TK_ID TK_OP_UN_ADD
+					{
+						simbolo* s = getSimboloPilha($1.label);
+						$1.label = s->label;
+						$1.tipo = s->tipo;
+
+						if ($1.tipo != TK_TIPO_INT && $1.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $2.traducao + "] para o tipo (" + typeName($1.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+						string tmp = nextTMP();
+
+						$$.declaracao = dcl($1.tipo, tmpUm);
+						$$.declaracao += dcl($1.tipo, tmp);
+
+						$$.traducao = cmd(tmp + " = " + $1.label);
+						$$.traducao += cmd(tmpUm + " = 1");
+						$$.traducao += cmd($1.label + " = " + $1.label + " + " + tmpUm);
+					}
+					| TK_ID TK_OP_UN_SUB
+					{
+						simbolo* s = getSimboloPilha($1.label);
+						$1.label = s->label;
+						$1.tipo = s->tipo;
+
+						if ($1.tipo != TK_TIPO_INT && $1.tipo != TK_TIPO_FLOAT)
+						{
+							yyerror("Operador inválido [" + $2.traducao + "] para o tipo (" + typeName($1.tipo) + ").");
+						}
+
+						string tmpUm = nextTMP();
+						string tmp = nextTMP();
+
+						$$.declaracao = dcl($1.tipo, tmpUm);
+						$$.declaracao += dcl($1.tipo, tmp);
+
+						$$.traducao = cmd(tmp + " = " + $1.label);
+						$$.traducao += cmd(tmpUm + " = 1");
+						$$.traducao += cmd($1.label + " = " + $1.label + " - " + tmpUm);
 					}
 					;
 
@@ -1220,7 +1445,7 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 							yyerror("Expressão esperada do tipo (" + typeName(TK_TIPO_STRING, true) + ").");
 						}
 						*/
-						int tipo = ($3.tipo != TK_TIPO_VETOR)? $3.tipo : getSimbolo($3.identificador)->tipoElemento;
+						int tipo = ($3.tipo != TK_TIPO_VETOR)? $3.tipo : getSimboloPilha($3.identificador)->tipoElemento;
 
 						char aux;
 
@@ -1257,6 +1482,7 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 							$$.declaracao += dcl(tipo, tmpPointeiro, "*");
 
 							$$.traducao += cmd("printf(\"(\")");
+
 
 							for (int i = 0; i < $3.tamanho; i++)
 							{
