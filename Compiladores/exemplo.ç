@@ -1,8 +1,12 @@
 int main()
 {
-	for (var a = 0; a < 10; a++)
-	{
-		out(a);
-		out("\n");
-	}
+	var a[5];
+
+	a[-1] = 2;
+
+	out(a);
+
 }
+
+
+

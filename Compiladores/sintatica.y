@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <stdlib.h>
+#include <queue>
 
 #define YYSTYPE atributos
 #define DISPLAY_COLOR false
@@ -27,6 +28,9 @@ struct atributos {
 	string lblFim;
 
 	string tmpTamanho;
+
+	string declaracaoDeFuncao;
+	string traducaoDeFuncao;
 };
 
 struct simbolo {
@@ -459,7 +463,7 @@ EXP_SIMPLES			: TK_LITERAL
 					;
 
 EXP_POSFIXA			: EXP_SIMPLES
-					| EXP_POSFIXA '[' EXPRESSAO ']'
+					| EXP_POSFIXA '[' TK_LITERAL ']'
 					{
 						if ($1.identificador == "")
 						{
@@ -1089,31 +1093,53 @@ DECLARACAO 			: TK_ID
 							//$$.traducao += cmd(tmpTamanho + " = " + to_string($3.tamanho));
 						}
 					}
-					| TK_ID '[' TK_LITERAL ']'
+					| TK_ID DCL_ENDERECO
 					{
 						if (getSimbolo($1.label, contextoAtual) != NULL)
 							yyerror("Variável '" + $1.label + "' já foi declarada nesse contexto.");
 
-						if ($3.tipo != TK_TIPO_INT)
-							yyerror("Tipo int esperado para tamanho do vetor.");
-
 						string varVetor = nextVAR();
-						string tmpLiteral = nextTMP();
-						int tamanhoVetor = stoi($3.traducao);
+						string tmpTamanho = nextTMP();
+						int tamanhoVetor = $2.tamanho;
 
-						$$.declaracao = dcl(TK_TIPO_VETOR, varVetor);
-						$$.declaracao += dcl(TK_TIPO_INT, tmpLiteral);
+						$$.declaracao += dcl(TK_TIPO_VETOR, varVetor);
+						$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
 
-						$$.traducao = cmd(tmpLiteral + " = " + to_string(tamanhoVetor));
-						$$.traducao += dclVetor(TK_TIPO_VETOR, varVetor, tmpLiteral);
+						$$.traducao += cmd(tmpTamanho + " = " + to_string($2.tamanho));
+						$$.traducao += dclVetor(TK_TIPO_INDEFINIDO, varVetor, tmpTamanho);
 
 						novoSimbolo($1.label, varVetor, TK_TIPO_VETOR, tamanhoVetor);
 
 						$$.tipo = TK_TIPO_INDEFINIDO;
 						$$.tamanho = tamanhoVetor;
 
+						//$$.desalocacao += cmd("free(" + varVetor +")"); 
+					}
+					;
 
-						$$.desalocacao += cmd("free(" + varVetor +")"); 
+DCL_ENDERECO		: '[' TK_LITERAL ']' DCL_ENDERECO
+					{
+						if ($2.tipo != TK_TIPO_INT)
+							yyerror("Tipo int esperado para tamanho do vetor.");
+
+						int tamanho = stoi($2.traducao);
+
+						if (tamanho < 1)
+							yyerror("Um vetor deve ter tamanho >= 1.");
+
+						$$.tamanho = $4.tamanho * tamanho;
+					}
+					| '[' TK_LITERAL ']'
+					{
+						if ($2.tipo != TK_TIPO_INT)
+							yyerror("Tipo int esperado para tamanho do vetor.");
+
+						int tamanho = stoi($2.traducao);
+
+						if (tamanho < 1)
+							yyerror("Um vetor deve ter tamanho >= 1.");
+
+						$$.tamanho = tamanho;
 					}
 					;
 
@@ -1479,7 +1505,8 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 							string tmpI = nextTMP();
 
 							$$.declaracao += dcl(TK_TIPO_INT, tmpI);
-							$$.declaracao += dcl(tipo, tmpPointeiro, "*");
+							if (tipo != TK_TIPO_INDEFINIDO)
+								$$.declaracao += dcl(tipo, tmpPointeiro, "*");
 
 							$$.traducao += cmd("printf(\"(\")");
 
@@ -1487,13 +1514,19 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 							for (int i = 0; i < $3.tamanho; i++)
 							{
 								$$.traducao += cmd(tmpI + " = " + to_string(i));
-								$$.traducao += cmd(tmpPointeiro + " = " + $3.label + "[" + tmpI + "]");
 
-								if (tipo != TK_TIPO_STRING)
+								if (tipo != TK_TIPO_INDEFINIDO)
+									$$.traducao += cmd(tmpPointeiro + " = " + $3.label + "[" + tmpI + "]");
+
+								if (tipo != TK_TIPO_STRING && tipo != TK_TIPO_INDEFINIDO)
 								{
 									$$.traducao += cmd((string)"printf(\"%" + aux + "\", *" + tmpPointeiro + ")");
 								}
-								else
+								else if (tipo == TK_TIPO_INDEFINIDO)
+								{
+									$$.traducao += cmd((string)"printf(\"?\")");
+								}
+								else 
 								{
 									$$.traducao += cmd((string)"printf(\"%" + aux + "\", " + tmpPointeiro + ")");
 								}
