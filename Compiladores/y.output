@@ -1,31 +1,35 @@
 Terminais sem uso na gramática
 
-    TK_OP_DESIGUALDADE
-    TK_OP_AND
-    TK_OP_XOR
-    TK_OP_IOR
-    TK_OP_SUB
-    TK_TIPO_INDEFINIDO
-    TK_TIPO_INT
-    TK_TIPO_FLOAT
-    TK_TIPO_CHAR
-    TK_TIPO_BOOL
-    TK_TIPO_STRING
-    TK_TIPO_VETOR
-    TK_TIPO_VOID
-    TK_CLASSE_VARIAVEL
-    TK_CLASSE_FUNCAO
-    TK_FIM
-    TK_ERROR
-    TK_CTX_BLOCO
-    TK_CTX_IF
-    TK_CTX_WHILE
-    TK_CTX_FOR
-    TK_CTX_CASE
-    '+'
-    '-'
-    '*'
-    '/'
+   TK_OP_DESIGUALDADE
+   TK_OP_AND
+   TK_OP_XOR
+   TK_OP_IOR
+   TK_OP_SUB
+   TK_TIPO_INDEFINIDO
+   TK_TIPO_INT
+   TK_TIPO_FLOAT
+   TK_TIPO_CHAR
+   TK_TIPO_BOOL
+   TK_TIPO_STRING
+   TK_TIPO_VETOR
+   TK_TIPO_VOID
+   TK_CLASSE_VARIAVEL
+   TK_CLASSE_FUNCAO
+   TK_FIM
+   TK_ERROR
+   TK_CTX_BLOCO
+   TK_CTX_IF
+   TK_CTX_WHILE
+   TK_CTX_FOR
+   TK_CTX_CASE
+   '+'
+   '-'
+   '*'
+   '/'
+
+
+Estado 65 conflitos: 1 de deslocamento/redução
+Estado 119 conflitos: 1 de deslocamento/redução
 
 
 Gramática
@@ -61,295 +65,270 @@ Gramática
 
    21 EXP_SIMPLES: TK_LITERAL
    22            | TK_ID
-   23            | '(' EXPRESSAO ')'
-   24            | TK_TIPO '(' EXPRESSAO ')'
-   25            | TK_IN '(' TK_TIPO ')'
-   26            | TK_IN '(' ')'
+   23            | TK_ID ENDERECO
+   24            | '(' EXPRESSAO ')'
+   25            | TK_TIPO '(' EXPRESSAO ')'
+   26            | TK_IN '(' TK_TIPO ')'
+   27            | TK_IN '(' ')'
 
-   27 EXP_POSFIXA: EXP_SIMPLES
-   28            | EXP_POSFIXA '[' TK_LITERAL ']'
+   28 EXP_POSFIXA: EXP_SIMPLES
+   29            | '?' EXP_POSFIXA '[' TK_LITERAL ']'
 
-   29 EXP_UNARIA: EXP_POSFIXA
-   30           | TK_OP_ADD EXP_POSFIXA
-   31           | TK_OP_UN_ADD EXP_POSFIXA
-   32           | TK_OP_UN_SUB EXP_POSFIXA
-   33           | EXP_POSFIXA TK_OP_UN_ADD
+   30 EXP_UNARIA: EXP_POSFIXA
+   31           | TK_OP_ADD EXP_POSFIXA
+   32           | TK_OP_UN_ADD EXP_POSFIXA
+   33           | TK_OP_UN_SUB EXP_POSFIXA
+   34           | EXP_POSFIXA TK_OP_UN_ADD
 
-   34 EXP_NOT: EXP_UNARIA
-   35        | TK_OP_NOT EXP_NOT
+   35 EXP_NOT: EXP_UNARIA
+   36        | TK_OP_NOT EXP_NOT
 
-   36 EXP_ARITMETICA_MUL: EXP_NOT
-   37                   | EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT
+   37 EXP_ARITMETICA_MUL: EXP_NOT
+   38                   | EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT
 
-   38 EXP_ARITMETICA_ADD: EXP_ARITMETICA_MUL
-   39                   | EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL
+   39 EXP_ARITMETICA_ADD: EXP_ARITMETICA_MUL
+   40                   | EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL
 
-   40 EXP_RELACIONAL: EXP_ARITMETICA_ADD
-   41               | EXP_RELACIONAL OP_RELACIONAL EXP_ARITMETICA_ADD
+   41 EXP_RELACIONAL: EXP_ARITMETICA_ADD
+   42               | EXP_RELACIONAL OP_RELACIONAL EXP_ARITMETICA_ADD
 
-   42 EXP_IGUALDADE: EXP_RELACIONAL
-   43              | EXP_IGUALDADE TK_OP_IGUALDADE EXP_RELACIONAL
+   43 EXP_IGUALDADE: EXP_RELACIONAL
+   44              | EXP_IGUALDADE TK_OP_IGUALDADE EXP_RELACIONAL
 
-   44 EXP_LOGICAL_AND: EXP_IGUALDADE
-   45                | EXP_LOGICAL_AND TK_OP_LOGICAL_AND EXP_IGUALDADE
+   45 EXP_LOGICAL_AND: EXP_IGUALDADE
+   46                | EXP_LOGICAL_AND TK_OP_LOGICAL_AND EXP_IGUALDADE
 
-   46 EXP_LOGICAL_OR: EXP_LOGICAL_AND
-   47               | EXP_LOGICAL_OR TK_OP_LOGICAL_OR EXP_LOGICAL_AND
+   47 EXP_LOGICAL_OR: EXP_LOGICAL_AND
+   48               | EXP_LOGICAL_OR TK_OP_LOGICAL_OR EXP_LOGICAL_AND
 
-   48 EXPRESSAO: EXP_LOGICAL_OR
+   49 EXPRESSAO: EXP_LOGICAL_OR
 
-   49 ATRIBUICAO: TK_ID '=' EXPRESSAO
-   50           | TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO
-   51           | TK_ID TK_OP_ADD '=' EXPRESSAO
-   52           | TK_ID TK_OP_MUL '=' EXPRESSAO
+   50 ATRIBUICAO: TK_ID '=' EXPRESSAO
+   51           | '?' TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO
+   52           | TK_ID ENDERECO '=' EXPRESSAO
+   53           | TK_ID TK_OP_ADD '=' EXPRESSAO
+   54           | TK_ID TK_OP_MUL '=' EXPRESSAO
 
-   53 CMD_UNARIO: TK_OP_UN_ADD TK_ID
-   54           | TK_OP_UN_SUB TK_ID
-   55           | TK_ID TK_OP_UN_ADD
-   56           | TK_ID TK_OP_UN_SUB
+   55 ENDERECO: '[' EXPRESSAO ']' ENDERECO
+   56         | '[' EXPRESSAO ']'
 
-   57 CMD_DECLARACOES: TK_VAR LIST_DECLARACOES
-   58                | ATRIBUICAO
+   57 CMD_UNARIO: TK_OP_UN_ADD TK_ID
+   58           | TK_OP_UN_SUB TK_ID
+   59           | TK_ID TK_OP_UN_ADD
+   60           | TK_ID TK_OP_UN_SUB
 
-   59 LIST_DECLARACOES: DECLARACAO ',' LIST_DECLARACOES
-   60                 | DECLARACAO
+   61 CMD_DECLARACOES: TK_VAR LIST_DECLARACOES
+   62                | ATRIBUICAO
 
-   61 DECLARACAO: TK_ID
-   62           | TK_ID '=' EXPRESSAO
-   63           | TK_ID DCL_ENDERECO
+   63 LIST_DECLARACOES: DECLARACAO ',' LIST_DECLARACOES
+   64                 | DECLARACAO
 
-   64 DCL_ENDERECO: '[' TK_LITERAL ']' DCL_ENDERECO
-   65             | '[' TK_LITERAL ']'
+   65 DECLARACAO: TK_ID
+   66           | TK_ID '=' EXPRESSAO
 
-   66 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO
-   67       | TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
+   67 $@2: %empty
 
-   68 $@2: %empty
+   68 DECLARACAO: TK_ID $@2 DCL_ENDERECO
 
-   69 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' $@2 BLOCO
+   69 DCL_ENDERECO: '[' TK_LITERAL ']' DCL_ENDERECO
+   70             | '[' TK_LITERAL ']'
 
-   70 $@3: %empty
+   71 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO
+   72       | TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 
-   71 CMD_DOWHILE: TK_DO $@3 BLOCO TK_WHILE '(' EXPRESSAO ')'
+   73 $@3: %empty
 
-   72 @4: %empty
+   74 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' $@3 BLOCO
 
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   75 $@4: %empty
 
-   74 $@5: %empty
+   76 CMD_DOWHILE: TK_DO $@4 BLOCO TK_WHILE '(' EXPRESSAO ')'
 
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@5 '{' BLOCO_SWITCH '}'
+   77 @5: %empty
 
-   76 BLOCO_SWITCH: BLOCO_SWITCH EXP_CASE
-   77             | %empty
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
-   78 EXP_CASE: TK_CASE EXPRESSAO BLOCO
-   79         | TK_DEFAULT BLOCO
+   79 $@6: %empty
 
-   80 CMD_BREAK: TK_BREAK ';'
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@6 '{' BLOCO_SWITCH '}'
 
-   81 CMD_CONTINUE: TK_CONTINUE ';'
+   81 BLOCO_SWITCH: BLOCO_SWITCH EXP_CASE
+   82             | %empty
 
-   82 CMD_OUT: TK_OUT '(' EXPRESSAO ')' ';'
+   83 EXP_CASE: TK_CASE EXPRESSAO BLOCO
+   84         | TK_DEFAULT BLOCO
 
-   83 OP_RELACIONAL: '<'
-   84              | '>'
-   85              | TK_OP_MAIORIGUAL
-   86              | TK_OP_MENORIGUAL
+   85 CMD_BREAK: TK_BREAK ';'
+
+   86 CMD_CONTINUE: TK_CONTINUE ';'
+
+   87 CMD_OUT: TK_OUT '(' EXPRESSAO ')' ';'
+
+   88 OP_RELACIONAL: '<'
+   89              | '>'
+   90              | TK_OP_MAIORIGUAL
+   91              | TK_OP_MENORIGUAL
 
 
 Terminais, com as regras onde eles aparecem
 
-    $end (0) 0
-    '#' (35) 16
-    '(' (40) 1 23 24 25 26 66 67 69 71 73 75 82
-    ')' (41) 1 23 24 25 26 66 67 69 71 73 75 82
-    '*' (42)
-    '+' (43)
-    ',' (44) 17 59
-    '-' (45)
-    '/' (47)
-    ';' (59) 6 15 73 80 81 82
-    '<' (60) 83
-    '=' (61) 49 50 51 52 62
-    '>' (62) 84
-    '[' (91) 28 50 64 65
-    ']' (93) 28 50 64 65
-    '{' (123) 3 75
-    '}' (125) 3 75
-    error (256)
-    TK_LITERAL (258) 21 28 64 65
-    TK_ID (259) 22 49 50 51 52 53 54 55 56 61 62 63 75
-    TK_MAIN (260) 1
-    TK_VAR (261) 57
-    TK_TIPO (262) 1 24 25
-    TK_IF (263) 66 67
-    TK_ELSE (264) 67
-    TK_WHILE (265) 69 71
-    TK_DO (266) 71
-    TK_FOR (267) 73
-    TK_SWITCH (268) 75
-    TK_CASE (269) 78
-    TK_BREAK (270) 80
-    TK_CONTINUE (271) 81
-    TK_DEFAULT (272) 79
-    TK_OP_IGUALDADE (273) 43
-    TK_OP_DESIGUALDADE (274)
-    TK_OP_MAIORIGUAL (275) 85
-    TK_OP_MENORIGUAL (276) 86
-    TK_OP_NOT (277) 35
-    TK_OP_LOGICAL_AND (278) 45
-    TK_OP_AND (279)
-    TK_OP_LOGICAL_OR (280) 47
-    TK_OP_XOR (281)
-    TK_OP_IOR (282)
-    TK_OP_ADD (283) 30 39 51
-    TK_OP_MUL (284) 37 52
-    TK_OP_SUB (285)
-    TK_OP_UN_ADD (286) 31 33 53 55
-    TK_OP_UN_SUB (287) 32 54 56
-    TK_TIPO_INDEFINIDO (288)
-    TK_TIPO_INT (289)
-    TK_TIPO_FLOAT (290)
-    TK_TIPO_CHAR (291)
-    TK_TIPO_BOOL (292)
-    TK_TIPO_STRING (293)
-    TK_TIPO_VETOR (294)
-    TK_TIPO_VOID (295)
-    TK_CLASSE_VARIAVEL (296)
-    TK_CLASSE_FUNCAO (297)
-    TK_FIM (298)
-    TK_ERROR (299)
-    TK_CTX_BLOCO (300)
-    TK_CTX_IF (301)
-    TK_CTX_WHILE (302)
-    TK_CTX_FOR (303)
-    TK_CTX_CASE (304)
-    TK_OUT (305) 82
-    TK_IN (306) 25 26
+$end (0) 0
+'#' (35) 16
+'(' (40) 1 24 25 26 27 71 72 74 76 78 80 87
+')' (41) 1 24 25 26 27 71 72 74 76 78 80 87
+'*' (42)
+'+' (43)
+',' (44) 17 63
+'-' (45)
+'/' (47)
+';' (59) 6 15 78 85 86 87
+'<' (60) 88
+'=' (61) 50 51 52 53 54 66
+'>' (62) 89
+'?' (63) 29 51
+'[' (91) 29 51 55 56 69 70
+']' (93) 29 51 55 56 69 70
+'{' (123) 3 80
+'}' (125) 3 80
+error (256)
+TK_LITERAL (258) 21 29 69 70
+TK_ID (259) 22 23 50 51 52 53 54 57 58 59 60 65 66 68 80
+TK_MAIN (260) 1
+TK_VAR (261) 61
+TK_TIPO (262) 1 25 26
+TK_IF (263) 71 72
+TK_ELSE (264) 72
+TK_WHILE (265) 74 76
+TK_DO (266) 76
+TK_FOR (267) 78
+TK_SWITCH (268) 80
+TK_CASE (269) 83
+TK_BREAK (270) 85
+TK_CONTINUE (271) 86
+TK_DEFAULT (272) 84
+TK_OP_IGUALDADE (273) 44
+TK_OP_DESIGUALDADE (274)
+TK_OP_MAIORIGUAL (275) 90
+TK_OP_MENORIGUAL (276) 91
+TK_OP_NOT (277) 36
+TK_OP_LOGICAL_AND (278) 46
+TK_OP_AND (279)
+TK_OP_LOGICAL_OR (280) 48
+TK_OP_XOR (281)
+TK_OP_IOR (282)
+TK_OP_ADD (283) 31 40 53
+TK_OP_MUL (284) 38 54
+TK_OP_SUB (285)
+TK_OP_UN_ADD (286) 32 34 57 59
+TK_OP_UN_SUB (287) 33 58 60
+TK_TIPO_INDEFINIDO (288)
+TK_TIPO_INT (289)
+TK_TIPO_FLOAT (290)
+TK_TIPO_CHAR (291)
+TK_TIPO_BOOL (292)
+TK_TIPO_STRING (293)
+TK_TIPO_VETOR (294)
+TK_TIPO_VOID (295)
+TK_CLASSE_VARIAVEL (296)
+TK_CLASSE_FUNCAO (297)
+TK_FIM (298)
+TK_ERROR (299)
+TK_CTX_BLOCO (300)
+TK_CTX_IF (301)
+TK_CTX_WHILE (302)
+TK_CTX_FOR (303)
+TK_CTX_CASE (304)
+TK_OUT (305) 87
+TK_IN (306) 26 27
 
 
 Não terminais com as regras onde eles aparecem
 
-    $accept (68)
-        à esquerda: 0
-    S (69)
-        à esquerda: 1
-        à direita: 0
-    BLOCO (70)
-        à esquerda: 3
-        à direita: 1 66 67 69 71 73 78 79
-    $@1 (71)
-        à esquerda: 2
-        à direita: 3
-    COMANDOS (72)
-        à esquerda: 4 5
-        à direita: 3 4
-    COMANDO (73)
-        à esquerda: 6 7 8 9 10 11 12 13 14 15 16
-        à direita: 4
-    COMANDOS_FOR (74)
-        à esquerda: 17 18
-        à direita: 17 73
-    COMANDO_FOR (75)
-        à esquerda: 19 20
-        à direita: 17 18
-    EXP_SIMPLES (76)
-        à esquerda: 21 22 23 24 25 26
-        à direita: 27
-    EXP_POSFIXA (77)
-        à esquerda: 27 28
-        à direita: 28 29 30 31 32 33
-    EXP_UNARIA (78)
-        à esquerda: 29 30 31 32 33
-        à direita: 34
-    EXP_NOT (79)
-        à esquerda: 34 35
-        à direita: 35 36 37
-    EXP_ARITMETICA_MUL (80)
-        à esquerda: 36 37
-        à direita: 37 38 39
-    EXP_ARITMETICA_ADD (81)
-        à esquerda: 38 39
-        à direita: 39 40 41
-    EXP_RELACIONAL (82)
-        à esquerda: 40 41
-        à direita: 41 42 43
-    EXP_IGUALDADE (83)
-        à esquerda: 42 43
-        à direita: 43 44 45
-    EXP_LOGICAL_AND (84)
-        à esquerda: 44 45
-        à direita: 45 46 47
-    EXP_LOGICAL_OR (85)
-        à esquerda: 46 47
-        à direita: 47 48
-    EXPRESSAO (86)
-        à esquerda: 48
-        à direita: 23 24 49 50 51 52 62 66 67 69 71 73 78 82
-    ATRIBUICAO (87)
-        à esquerda: 49 50 51 52
-        à direita: 19 58
-    CMD_UNARIO (88)
-        à esquerda: 53 54 55 56
-        à direita: 15 20
-    CMD_DECLARACOES (89)
-        à esquerda: 57 58
-        à direita: 6 73
-    LIST_DECLARACOES (90)
-        à esquerda: 59 60
-        à direita: 57 59
-    DECLARACAO (91)
-        à esquerda: 61 62 63
-        à direita: 59 60
-    DCL_ENDERECO (92)
-        à esquerda: 64 65
-        à direita: 63 64
-    CMD_IF (93)
-        à esquerda: 66 67
-        à direita: 7
-    CMD_WHILE (94)
-        à esquerda: 69
-        à direita: 8
-    $@2 (95)
-        à esquerda: 68
-        à direita: 69
-    CMD_DOWHILE (96)
-        à esquerda: 71
-        à direita: 9
-    $@3 (97)
-        à esquerda: 70
-        à direita: 71
-    CMD_FOR (98)
-        à esquerda: 73
-        à direita: 10
-    @4 (99)
-        à esquerda: 72
-        à direita: 73
-    CMD_SWITCH (100)
-        à esquerda: 75
-        à direita: 11
-    $@5 (101)
-        à esquerda: 74
-        à direita: 75
-    BLOCO_SWITCH (102)
-        à esquerda: 76 77
-        à direita: 75 76
-    EXP_CASE (103)
-        à esquerda: 78 79
-        à direita: 76
-    CMD_BREAK (104)
-        à esquerda: 80
-        à direita: 12
-    CMD_CONTINUE (105)
-        à esquerda: 81
-        à direita: 13
-    CMD_OUT (106)
-        à esquerda: 82
-        à direita: 14
-    OP_RELACIONAL (107)
-        à esquerda: 83 84 85 86
-        à direita: 41
+$accept (69)
+    à esquerda: 0
+S (70)
+    à esquerda: 1, à direita: 0
+BLOCO (71)
+    à esquerda: 3, à direita: 1 71 72 74 76 78 83 84
+$@1 (72)
+    à esquerda: 2, à direita: 3
+COMANDOS (73)
+    à esquerda: 4 5, à direita: 3 4
+COMANDO (74)
+    à esquerda: 6 7 8 9 10 11 12 13 14 15 16, à direita: 4
+COMANDOS_FOR (75)
+    à esquerda: 17 18, à direita: 17 78
+COMANDO_FOR (76)
+    à esquerda: 19 20, à direita: 17 18
+EXP_SIMPLES (77)
+    à esquerda: 21 22 23 24 25 26 27, à direita: 28
+EXP_POSFIXA (78)
+    à esquerda: 28 29, à direita: 29 30 31 32 33 34
+EXP_UNARIA (79)
+    à esquerda: 30 31 32 33 34, à direita: 35
+EXP_NOT (80)
+    à esquerda: 35 36, à direita: 36 37 38
+EXP_ARITMETICA_MUL (81)
+    à esquerda: 37 38, à direita: 38 39 40
+EXP_ARITMETICA_ADD (82)
+    à esquerda: 39 40, à direita: 40 41 42
+EXP_RELACIONAL (83)
+    à esquerda: 41 42, à direita: 42 43 44
+EXP_IGUALDADE (84)
+    à esquerda: 43 44, à direita: 44 45 46
+EXP_LOGICAL_AND (85)
+    à esquerda: 45 46, à direita: 46 47 48
+EXP_LOGICAL_OR (86)
+    à esquerda: 47 48, à direita: 48 49
+EXPRESSAO (87)
+    à esquerda: 49, à direita: 24 25 50 51 52 53 54 55 56 66 71 72
+    74 76 78 83 87
+ATRIBUICAO (88)
+    à esquerda: 50 51 52 53 54, à direita: 19 62
+ENDERECO (89)
+    à esquerda: 55 56, à direita: 23 52 55
+CMD_UNARIO (90)
+    à esquerda: 57 58 59 60, à direita: 15 20
+CMD_DECLARACOES (91)
+    à esquerda: 61 62, à direita: 6 78
+LIST_DECLARACOES (92)
+    à esquerda: 63 64, à direita: 61 63
+DECLARACAO (93)
+    à esquerda: 65 66 68, à direita: 63 64
+$@2 (94)
+    à esquerda: 67, à direita: 68
+DCL_ENDERECO (95)
+    à esquerda: 69 70, à direita: 68 69
+CMD_IF (96)
+    à esquerda: 71 72, à direita: 7
+CMD_WHILE (97)
+    à esquerda: 74, à direita: 8
+$@3 (98)
+    à esquerda: 73, à direita: 74
+CMD_DOWHILE (99)
+    à esquerda: 76, à direita: 9
+$@4 (100)
+    à esquerda: 75, à direita: 76
+CMD_FOR (101)
+    à esquerda: 78, à direita: 10
+@5 (102)
+    à esquerda: 77, à direita: 78
+CMD_SWITCH (103)
+    à esquerda: 80, à direita: 11
+$@6 (104)
+    à esquerda: 79, à direita: 80
+BLOCO_SWITCH (105)
+    à esquerda: 81 82, à direita: 80 81
+EXP_CASE (106)
+    à esquerda: 83 84, à direita: 81
+CMD_BREAK (107)
+    à esquerda: 85, à direita: 12
+CMD_CONTINUE (108)
+    à esquerda: 86, à direita: 13
+CMD_OUT (109)
+    à esquerda: 87, à direita: 14
+OP_RELACIONAL (110)
+    à esquerda: 88 89 90 91, à direita: 42
 
 
 Estado 0
@@ -438,124 +417,127 @@ Estado 9
     TK_OP_UN_SUB  deslocar, e ir ao estado 20
     TK_OUT        deslocar, e ir ao estado 21
     '#'           deslocar, e ir ao estado 22
+    '?'           deslocar, e ir ao estado 23
 
     $padrão  reduzir usando a regra 5 (COMANDOS)
 
-    COMANDOS         ir ao estado 23
-    COMANDO          ir ao estado 24
-    ATRIBUICAO       ir ao estado 25
-    CMD_UNARIO       ir ao estado 26
-    CMD_DECLARACOES  ir ao estado 27
-    CMD_IF           ir ao estado 28
-    CMD_WHILE        ir ao estado 29
-    CMD_DOWHILE      ir ao estado 30
-    CMD_FOR          ir ao estado 31
-    CMD_SWITCH       ir ao estado 32
-    CMD_BREAK        ir ao estado 33
-    CMD_CONTINUE     ir ao estado 34
-    CMD_OUT          ir ao estado 35
+    COMANDOS         ir ao estado 24
+    COMANDO          ir ao estado 25
+    ATRIBUICAO       ir ao estado 26
+    CMD_UNARIO       ir ao estado 27
+    CMD_DECLARACOES  ir ao estado 28
+    CMD_IF           ir ao estado 29
+    CMD_WHILE        ir ao estado 30
+    CMD_DOWHILE      ir ao estado 31
+    CMD_FOR          ir ao estado 32
+    CMD_SWITCH       ir ao estado 33
+    CMD_BREAK        ir ao estado 34
+    CMD_CONTINUE     ir ao estado 35
+    CMD_OUT          ir ao estado 36
 
 
 Estado 10
 
-   49 ATRIBUICAO: TK_ID . '=' EXPRESSAO
-   50           | TK_ID . '[' EXPRESSAO ']' '=' EXPRESSAO
-   51           | TK_ID . TK_OP_ADD '=' EXPRESSAO
-   52           | TK_ID . TK_OP_MUL '=' EXPRESSAO
-   55 CMD_UNARIO: TK_ID . TK_OP_UN_ADD
-   56           | TK_ID . TK_OP_UN_SUB
+   50 ATRIBUICAO: TK_ID . '=' EXPRESSAO
+   52           | TK_ID . ENDERECO '=' EXPRESSAO
+   53           | TK_ID . TK_OP_ADD '=' EXPRESSAO
+   54           | TK_ID . TK_OP_MUL '=' EXPRESSAO
+   59 CMD_UNARIO: TK_ID . TK_OP_UN_ADD
+   60           | TK_ID . TK_OP_UN_SUB
 
-    TK_OP_ADD     deslocar, e ir ao estado 36
-    TK_OP_MUL     deslocar, e ir ao estado 37
-    TK_OP_UN_ADD  deslocar, e ir ao estado 38
-    TK_OP_UN_SUB  deslocar, e ir ao estado 39
-    '='           deslocar, e ir ao estado 40
-    '['           deslocar, e ir ao estado 41
+    TK_OP_ADD     deslocar, e ir ao estado 37
+    TK_OP_MUL     deslocar, e ir ao estado 38
+    TK_OP_UN_ADD  deslocar, e ir ao estado 39
+    TK_OP_UN_SUB  deslocar, e ir ao estado 40
+    '='           deslocar, e ir ao estado 41
+    '['           deslocar, e ir ao estado 42
+
+    ENDERECO  ir ao estado 43
 
 
 Estado 11
 
-   57 CMD_DECLARACOES: TK_VAR . LIST_DECLARACOES
+   61 CMD_DECLARACOES: TK_VAR . LIST_DECLARACOES
 
-    TK_ID  deslocar, e ir ao estado 42
+    TK_ID  deslocar, e ir ao estado 44
 
-    LIST_DECLARACOES  ir ao estado 43
-    DECLARACAO        ir ao estado 44
+    LIST_DECLARACOES  ir ao estado 45
+    DECLARACAO        ir ao estado 46
 
 
 Estado 12
 
-   66 CMD_IF: TK_IF . '(' EXPRESSAO ')' BLOCO
-   67       | TK_IF . '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
+   71 CMD_IF: TK_IF . '(' EXPRESSAO ')' BLOCO
+   72       | TK_IF . '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 
-    '('  deslocar, e ir ao estado 45
+    '('  deslocar, e ir ao estado 47
 
 
 Estado 13
 
-   69 CMD_WHILE: TK_WHILE . '(' EXPRESSAO ')' $@2 BLOCO
+   74 CMD_WHILE: TK_WHILE . '(' EXPRESSAO ')' $@3 BLOCO
 
-    '('  deslocar, e ir ao estado 46
+    '('  deslocar, e ir ao estado 48
 
 
 Estado 14
 
-   71 CMD_DOWHILE: TK_DO . $@3 BLOCO TK_WHILE '(' EXPRESSAO ')'
+   76 CMD_DOWHILE: TK_DO . $@4 BLOCO TK_WHILE '(' EXPRESSAO ')'
 
-    $padrão  reduzir usando a regra 70 ($@3)
+    $padrão  reduzir usando a regra 75 ($@4)
 
-    $@3  ir ao estado 47
+    $@4  ir ao estado 49
 
 
 Estado 15
 
-   73 CMD_FOR: TK_FOR . @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   78 CMD_FOR: TK_FOR . @5 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
-    $padrão  reduzir usando a regra 72 (@4)
+    $padrão  reduzir usando a regra 77 (@5)
 
-    @4  ir ao estado 48
+    @5  ir ao estado 50
 
 
 Estado 16
 
-   75 CMD_SWITCH: TK_SWITCH . '(' TK_ID ')' $@5 '{' BLOCO_SWITCH '}'
+   80 CMD_SWITCH: TK_SWITCH . '(' TK_ID ')' $@6 '{' BLOCO_SWITCH '}'
 
-    '('  deslocar, e ir ao estado 49
+    '('  deslocar, e ir ao estado 51
 
 
 Estado 17
 
-   80 CMD_BREAK: TK_BREAK . ';'
+   85 CMD_BREAK: TK_BREAK . ';'
 
-    ';'  deslocar, e ir ao estado 50
+    ';'  deslocar, e ir ao estado 52
 
 
 Estado 18
 
-   81 CMD_CONTINUE: TK_CONTINUE . ';'
+   86 CMD_CONTINUE: TK_CONTINUE . ';'
 
-    ';'  deslocar, e ir ao estado 51
+    ';'  deslocar, e ir ao estado 53
 
 
 Estado 19
 
-   53 CMD_UNARIO: TK_OP_UN_ADD . TK_ID
+   57 CMD_UNARIO: TK_OP_UN_ADD . TK_ID
 
-    TK_ID  deslocar, e ir ao estado 52
+    TK_ID  deslocar, e ir ao estado 54
 
 
 Estado 20
 
-   54 CMD_UNARIO: TK_OP_UN_SUB . TK_ID
+   58 CMD_UNARIO: TK_OP_UN_SUB . TK_ID
 
-    TK_ID  deslocar, e ir ao estado 53
+    TK_ID  deslocar, e ir ao estado 55
 
 
 Estado 21
 
-   82 CMD_OUT: TK_OUT . '(' EXPRESSAO ')' ';'
+   87 CMD_OUT: TK_OUT . '(' EXPRESSAO ')' ';'
 
-    '('  deslocar, e ir ao estado 54
+    '('  deslocar, e ir ao estado 56
 
 
 Estado 22
@@ -567,12 +549,19 @@ Estado 22
 
 Estado 23
 
-    3 BLOCO: '{' $@1 COMANDOS . '}'
+   51 ATRIBUICAO: '?' . TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO
 
-    '}'  deslocar, e ir ao estado 55
+    TK_ID  deslocar, e ir ao estado 57
 
 
 Estado 24
+
+    3 BLOCO: '{' $@1 COMANDOS . '}'
+
+    '}'  deslocar, e ir ao estado 58
+
+
+Estado 25
 
     4 COMANDOS: COMANDO . COMANDOS
 
@@ -589,1593 +578,1762 @@ Estado 24
     TK_OP_UN_SUB  deslocar, e ir ao estado 20
     TK_OUT        deslocar, e ir ao estado 21
     '#'           deslocar, e ir ao estado 22
+    '?'           deslocar, e ir ao estado 23
 
     $padrão  reduzir usando a regra 5 (COMANDOS)
 
-    COMANDOS         ir ao estado 56
-    COMANDO          ir ao estado 24
-    ATRIBUICAO       ir ao estado 25
-    CMD_UNARIO       ir ao estado 26
-    CMD_DECLARACOES  ir ao estado 27
-    CMD_IF           ir ao estado 28
-    CMD_WHILE        ir ao estado 29
-    CMD_DOWHILE      ir ao estado 30
-    CMD_FOR          ir ao estado 31
-    CMD_SWITCH       ir ao estado 32
-    CMD_BREAK        ir ao estado 33
-    CMD_CONTINUE     ir ao estado 34
-    CMD_OUT          ir ao estado 35
-
-
-Estado 25
-
-   58 CMD_DECLARACOES: ATRIBUICAO .
-
-    $padrão  reduzir usando a regra 58 (CMD_DECLARACOES)
+    COMANDOS         ir ao estado 59
+    COMANDO          ir ao estado 25
+    ATRIBUICAO       ir ao estado 26
+    CMD_UNARIO       ir ao estado 27
+    CMD_DECLARACOES  ir ao estado 28
+    CMD_IF           ir ao estado 29
+    CMD_WHILE        ir ao estado 30
+    CMD_DOWHILE      ir ao estado 31
+    CMD_FOR          ir ao estado 32
+    CMD_SWITCH       ir ao estado 33
+    CMD_BREAK        ir ao estado 34
+    CMD_CONTINUE     ir ao estado 35
+    CMD_OUT          ir ao estado 36
 
 
 Estado 26
 
-   15 COMANDO: CMD_UNARIO . ';'
+   62 CMD_DECLARACOES: ATRIBUICAO .
 
-    ';'  deslocar, e ir ao estado 57
+    $padrão  reduzir usando a regra 62 (CMD_DECLARACOES)
 
 
 Estado 27
 
-    6 COMANDO: CMD_DECLARACOES . ';'
+   15 COMANDO: CMD_UNARIO . ';'
 
-    ';'  deslocar, e ir ao estado 58
+    ';'  deslocar, e ir ao estado 60
 
 
 Estado 28
+
+    6 COMANDO: CMD_DECLARACOES . ';'
+
+    ';'  deslocar, e ir ao estado 61
+
+
+Estado 29
 
     7 COMANDO: CMD_IF .
 
     $padrão  reduzir usando a regra 7 (COMANDO)
 
 
-Estado 29
+Estado 30
 
     8 COMANDO: CMD_WHILE .
 
     $padrão  reduzir usando a regra 8 (COMANDO)
 
 
-Estado 30
+Estado 31
 
     9 COMANDO: CMD_DOWHILE .
 
     $padrão  reduzir usando a regra 9 (COMANDO)
 
 
-Estado 31
+Estado 32
 
    10 COMANDO: CMD_FOR .
 
     $padrão  reduzir usando a regra 10 (COMANDO)
 
 
-Estado 32
+Estado 33
 
    11 COMANDO: CMD_SWITCH .
 
     $padrão  reduzir usando a regra 11 (COMANDO)
 
 
-Estado 33
+Estado 34
 
    12 COMANDO: CMD_BREAK .
 
     $padrão  reduzir usando a regra 12 (COMANDO)
 
 
-Estado 34
+Estado 35
 
    13 COMANDO: CMD_CONTINUE .
 
     $padrão  reduzir usando a regra 13 (COMANDO)
 
 
-Estado 35
+Estado 36
 
    14 COMANDO: CMD_OUT .
 
     $padrão  reduzir usando a regra 14 (COMANDO)
 
 
-Estado 36
-
-   51 ATRIBUICAO: TK_ID TK_OP_ADD . '=' EXPRESSAO
-
-    '='  deslocar, e ir ao estado 59
-
-
 Estado 37
 
-   52 ATRIBUICAO: TK_ID TK_OP_MUL . '=' EXPRESSAO
+   53 ATRIBUICAO: TK_ID TK_OP_ADD . '=' EXPRESSAO
 
-    '='  deslocar, e ir ao estado 60
+    '='  deslocar, e ir ao estado 62
 
 
 Estado 38
 
-   55 CMD_UNARIO: TK_ID TK_OP_UN_ADD .
+   54 ATRIBUICAO: TK_ID TK_OP_MUL . '=' EXPRESSAO
 
-    $padrão  reduzir usando a regra 55 (CMD_UNARIO)
+    '='  deslocar, e ir ao estado 63
 
 
 Estado 39
 
-   56 CMD_UNARIO: TK_ID TK_OP_UN_SUB .
+   59 CMD_UNARIO: TK_ID TK_OP_UN_ADD .
 
-    $padrão  reduzir usando a regra 56 (CMD_UNARIO)
+    $padrão  reduzir usando a regra 59 (CMD_UNARIO)
 
 
 Estado 40
 
-   49 ATRIBUICAO: TK_ID '=' . EXPRESSAO
+   60 CMD_UNARIO: TK_ID TK_OP_UN_SUB .
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 80
+    $padrão  reduzir usando a regra 60 (CMD_UNARIO)
 
 
 Estado 41
 
-   50 ATRIBUICAO: TK_ID '[' . EXPRESSAO ']' '=' EXPRESSAO
+   50 ATRIBUICAO: TK_ID '=' . EXPRESSAO
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
 
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 81
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 84
 
 
 Estado 42
 
-   61 DECLARACAO: TK_ID .
-   62           | TK_ID . '=' EXPRESSAO
-   63           | TK_ID . DCL_ENDERECO
+   55 ENDERECO: '[' . EXPRESSAO ']' ENDERECO
+   56         | '[' . EXPRESSAO ']'
 
-    '='  deslocar, e ir ao estado 82
-    '['  deslocar, e ir ao estado 83
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
 
-    $padrão  reduzir usando a regra 61 (DECLARACAO)
-
-    DCL_ENDERECO  ir ao estado 84
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 85
 
 
 Estado 43
 
-   57 CMD_DECLARACOES: TK_VAR LIST_DECLARACOES .
+   52 ATRIBUICAO: TK_ID ENDERECO . '=' EXPRESSAO
 
-    $padrão  reduzir usando a regra 57 (CMD_DECLARACOES)
+    '='  deslocar, e ir ao estado 86
 
 
 Estado 44
 
-   59 LIST_DECLARACOES: DECLARACAO . ',' LIST_DECLARACOES
-   60                 | DECLARACAO .
+   65 DECLARACAO: TK_ID .
+   66           | TK_ID . '=' EXPRESSAO
+   68           | TK_ID . $@2 DCL_ENDERECO
 
-    ','  deslocar, e ir ao estado 85
+    '='  deslocar, e ir ao estado 87
 
-    $padrão  reduzir usando a regra 60 (LIST_DECLARACOES)
+    '['       reduzir usando a regra 67 ($@2)
+    $padrão  reduzir usando a regra 65 (DECLARACAO)
+
+    $@2  ir ao estado 88
 
 
 Estado 45
 
-   66 CMD_IF: TK_IF '(' . EXPRESSAO ')' BLOCO
-   67       | TK_IF '(' . EXPRESSAO ')' BLOCO TK_ELSE BLOCO
+   61 CMD_DECLARACOES: TK_VAR LIST_DECLARACOES .
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 86
+    $padrão  reduzir usando a regra 61 (CMD_DECLARACOES)
 
 
 Estado 46
 
-   69 CMD_WHILE: TK_WHILE '(' . EXPRESSAO ')' $@2 BLOCO
+   63 LIST_DECLARACOES: DECLARACAO . ',' LIST_DECLARACOES
+   64                 | DECLARACAO .
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
+    ','  deslocar, e ir ao estado 89
 
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 87
+    $padrão  reduzir usando a regra 64 (LIST_DECLARACOES)
 
 
 Estado 47
 
-   71 CMD_DOWHILE: TK_DO $@3 . BLOCO TK_WHILE '(' EXPRESSAO ')'
+   71 CMD_IF: TK_IF '(' . EXPRESSAO ')' BLOCO
+   72       | TK_IF '(' . EXPRESSAO ')' BLOCO TK_ELSE BLOCO
 
-    '{'  deslocar, e ir ao estado 7
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
 
-    BLOCO  ir ao estado 88
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 90
 
 
 Estado 48
 
-   73 CMD_FOR: TK_FOR @4 . '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+   74 CMD_WHILE: TK_WHILE '(' . EXPRESSAO ')' $@3 BLOCO
 
-    '('  deslocar, e ir ao estado 89
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 91
 
 
 Estado 49
 
-   75 CMD_SWITCH: TK_SWITCH '(' . TK_ID ')' $@5 '{' BLOCO_SWITCH '}'
+   76 CMD_DOWHILE: TK_DO $@4 . BLOCO TK_WHILE '(' EXPRESSAO ')'
 
-    TK_ID  deslocar, e ir ao estado 90
+    '{'  deslocar, e ir ao estado 7
+
+    BLOCO  ir ao estado 92
 
 
 Estado 50
 
-   80 CMD_BREAK: TK_BREAK ';' .
+   78 CMD_FOR: TK_FOR @5 . '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
 
-    $padrão  reduzir usando a regra 80 (CMD_BREAK)
+    '('  deslocar, e ir ao estado 93
 
 
 Estado 51
 
-   81 CMD_CONTINUE: TK_CONTINUE ';' .
+   80 CMD_SWITCH: TK_SWITCH '(' . TK_ID ')' $@6 '{' BLOCO_SWITCH '}'
 
-    $padrão  reduzir usando a regra 81 (CMD_CONTINUE)
+    TK_ID  deslocar, e ir ao estado 94
 
 
 Estado 52
 
-   53 CMD_UNARIO: TK_OP_UN_ADD TK_ID .
+   85 CMD_BREAK: TK_BREAK ';' .
 
-    $padrão  reduzir usando a regra 53 (CMD_UNARIO)
+    $padrão  reduzir usando a regra 85 (CMD_BREAK)
 
 
 Estado 53
 
-   54 CMD_UNARIO: TK_OP_UN_SUB TK_ID .
+   86 CMD_CONTINUE: TK_CONTINUE ';' .
 
-    $padrão  reduzir usando a regra 54 (CMD_UNARIO)
+    $padrão  reduzir usando a regra 86 (CMD_CONTINUE)
 
 
 Estado 54
 
-   82 CMD_OUT: TK_OUT '(' . EXPRESSAO ')' ';'
+   57 CMD_UNARIO: TK_OP_UN_ADD TK_ID .
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 91
+    $padrão  reduzir usando a regra 57 (CMD_UNARIO)
 
 
 Estado 55
+
+   58 CMD_UNARIO: TK_OP_UN_SUB TK_ID .
+
+    $padrão  reduzir usando a regra 58 (CMD_UNARIO)
+
+
+Estado 56
+
+   87 CMD_OUT: TK_OUT '(' . EXPRESSAO ')' ';'
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 95
+
+
+Estado 57
+
+   51 ATRIBUICAO: '?' TK_ID . '[' EXPRESSAO ']' '=' EXPRESSAO
+
+    '['  deslocar, e ir ao estado 96
+
+
+Estado 58
 
     3 BLOCO: '{' $@1 COMANDOS '}' .
 
     $padrão  reduzir usando a regra 3 (BLOCO)
 
 
-Estado 56
+Estado 59
 
     4 COMANDOS: COMANDO COMANDOS .
 
     $padrão  reduzir usando a regra 4 (COMANDOS)
 
 
-Estado 57
+Estado 60
 
    15 COMANDO: CMD_UNARIO ';' .
 
     $padrão  reduzir usando a regra 15 (COMANDO)
 
 
-Estado 58
+Estado 61
 
     6 COMANDO: CMD_DECLARACOES ';' .
 
     $padrão  reduzir usando a regra 6 (COMANDO)
 
 
-Estado 59
+Estado 62
 
-   51 ATRIBUICAO: TK_ID TK_OP_ADD '=' . EXPRESSAO
+   53 ATRIBUICAO: TK_ID TK_OP_ADD '=' . EXPRESSAO
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
 
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 92
-
-
-Estado 60
-
-   52 ATRIBUICAO: TK_ID TK_OP_MUL '=' . EXPRESSAO
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 93
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 97
 
 
-Estado 61
+Estado 63
+
+   54 ATRIBUICAO: TK_ID TK_OP_MUL '=' . EXPRESSAO
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 98
+
+
+Estado 64
 
    21 EXP_SIMPLES: TK_LITERAL .
 
     $padrão  reduzir usando a regra 21 (EXP_SIMPLES)
 
 
-Estado 62
-
-   22 EXP_SIMPLES: TK_ID .
-
-    $padrão  reduzir usando a regra 22 (EXP_SIMPLES)
-
-
-Estado 63
-
-   24 EXP_SIMPLES: TK_TIPO . '(' EXPRESSAO ')'
-
-    '('  deslocar, e ir ao estado 94
-
-
-Estado 64
-
-   35 EXP_NOT: TK_OP_NOT . EXP_NOT
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES  ir ao estado 70
-    EXP_POSFIXA  ir ao estado 71
-    EXP_UNARIA   ir ao estado 72
-    EXP_NOT      ir ao estado 95
-
-
 Estado 65
 
-   30 EXP_UNARIA: TK_OP_ADD . EXP_POSFIXA
+   22 EXP_SIMPLES: TK_ID .
+   23            | TK_ID . ENDERECO
 
-    TK_LITERAL  deslocar, e ir ao estado 61
-    TK_ID       deslocar, e ir ao estado 62
-    TK_TIPO     deslocar, e ir ao estado 63
-    TK_IN       deslocar, e ir ao estado 68
-    '('         deslocar, e ir ao estado 69
+    '['  deslocar, e ir ao estado 42
 
-    EXP_SIMPLES  ir ao estado 70
-    EXP_POSFIXA  ir ao estado 96
+    '['       [reduzir usando a regra 22 (EXP_SIMPLES)]
+    $padrão  reduzir usando a regra 22 (EXP_SIMPLES)
+
+    ENDERECO  ir ao estado 99
 
 
 Estado 66
 
-   31 EXP_UNARIA: TK_OP_UN_ADD . EXP_POSFIXA
+   25 EXP_SIMPLES: TK_TIPO . '(' EXPRESSAO ')'
 
-    TK_LITERAL  deslocar, e ir ao estado 61
-    TK_ID       deslocar, e ir ao estado 62
-    TK_TIPO     deslocar, e ir ao estado 63
-    TK_IN       deslocar, e ir ao estado 68
-    '('         deslocar, e ir ao estado 69
-
-    EXP_SIMPLES  ir ao estado 70
-    EXP_POSFIXA  ir ao estado 97
+    '('  deslocar, e ir ao estado 100
 
 
 Estado 67
 
-   32 EXP_UNARIA: TK_OP_UN_SUB . EXP_POSFIXA
+   36 EXP_NOT: TK_OP_NOT . EXP_NOT
 
-    TK_LITERAL  deslocar, e ir ao estado 61
-    TK_ID       deslocar, e ir ao estado 62
-    TK_TIPO     deslocar, e ir ao estado 63
-    TK_IN       deslocar, e ir ao estado 68
-    '('         deslocar, e ir ao estado 69
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
 
-    EXP_SIMPLES  ir ao estado 70
-    EXP_POSFIXA  ir ao estado 98
+    EXP_SIMPLES  ir ao estado 74
+    EXP_POSFIXA  ir ao estado 75
+    EXP_UNARIA   ir ao estado 76
+    EXP_NOT      ir ao estado 101
 
 
 Estado 68
 
-   25 EXP_SIMPLES: TK_IN . '(' TK_TIPO ')'
-   26            | TK_IN . '(' ')'
+   31 EXP_UNARIA: TK_OP_ADD . EXP_POSFIXA
 
-    '('  deslocar, e ir ao estado 99
+    TK_LITERAL  deslocar, e ir ao estado 64
+    TK_ID       deslocar, e ir ao estado 65
+    TK_TIPO     deslocar, e ir ao estado 66
+    TK_IN       deslocar, e ir ao estado 71
+    '('         deslocar, e ir ao estado 72
+    '?'         deslocar, e ir ao estado 73
+
+    EXP_SIMPLES  ir ao estado 74
+    EXP_POSFIXA  ir ao estado 102
 
 
 Estado 69
 
-   23 EXP_SIMPLES: '(' . EXPRESSAO ')'
+   32 EXP_UNARIA: TK_OP_UN_ADD . EXP_POSFIXA
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
+    TK_LITERAL  deslocar, e ir ao estado 64
+    TK_ID       deslocar, e ir ao estado 65
+    TK_TIPO     deslocar, e ir ao estado 66
+    TK_IN       deslocar, e ir ao estado 71
+    '('         deslocar, e ir ao estado 72
+    '?'         deslocar, e ir ao estado 73
 
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 100
+    EXP_SIMPLES  ir ao estado 74
+    EXP_POSFIXA  ir ao estado 103
 
 
 Estado 70
 
-   27 EXP_POSFIXA: EXP_SIMPLES .
+   33 EXP_UNARIA: TK_OP_UN_SUB . EXP_POSFIXA
 
-    $padrão  reduzir usando a regra 27 (EXP_POSFIXA)
+    TK_LITERAL  deslocar, e ir ao estado 64
+    TK_ID       deslocar, e ir ao estado 65
+    TK_TIPO     deslocar, e ir ao estado 66
+    TK_IN       deslocar, e ir ao estado 71
+    '('         deslocar, e ir ao estado 72
+    '?'         deslocar, e ir ao estado 73
+
+    EXP_SIMPLES  ir ao estado 74
+    EXP_POSFIXA  ir ao estado 104
 
 
 Estado 71
 
-   28 EXP_POSFIXA: EXP_POSFIXA . '[' TK_LITERAL ']'
-   29 EXP_UNARIA: EXP_POSFIXA .
-   33           | EXP_POSFIXA . TK_OP_UN_ADD
+   26 EXP_SIMPLES: TK_IN . '(' TK_TIPO ')'
+   27            | TK_IN . '(' ')'
 
-    TK_OP_UN_ADD  deslocar, e ir ao estado 101
-    '['           deslocar, e ir ao estado 102
-
-    $padrão  reduzir usando a regra 29 (EXP_UNARIA)
+    '('  deslocar, e ir ao estado 105
 
 
 Estado 72
 
-   34 EXP_NOT: EXP_UNARIA .
+   24 EXP_SIMPLES: '(' . EXPRESSAO ')'
 
-    $padrão  reduzir usando a regra 34 (EXP_NOT)
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 106
 
 
 Estado 73
 
-   36 EXP_ARITMETICA_MUL: EXP_NOT .
+   29 EXP_POSFIXA: '?' . EXP_POSFIXA '[' TK_LITERAL ']'
 
-    $padrão  reduzir usando a regra 36 (EXP_ARITMETICA_MUL)
+    TK_LITERAL  deslocar, e ir ao estado 64
+    TK_ID       deslocar, e ir ao estado 65
+    TK_TIPO     deslocar, e ir ao estado 66
+    TK_IN       deslocar, e ir ao estado 71
+    '('         deslocar, e ir ao estado 72
+    '?'         deslocar, e ir ao estado 73
+
+    EXP_SIMPLES  ir ao estado 74
+    EXP_POSFIXA  ir ao estado 107
 
 
 Estado 74
 
-   37 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL . TK_OP_MUL EXP_NOT
-   38 EXP_ARITMETICA_ADD: EXP_ARITMETICA_MUL .
-
-    TK_OP_MUL  deslocar, e ir ao estado 103
-
-    $padrão  reduzir usando a regra 38 (EXP_ARITMETICA_ADD)
-
-
-Estado 75
-
-   39 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD . TK_OP_ADD EXP_ARITMETICA_MUL
-   40 EXP_RELACIONAL: EXP_ARITMETICA_ADD .
-
-    TK_OP_ADD  deslocar, e ir ao estado 104
-
-    $padrão  reduzir usando a regra 40 (EXP_RELACIONAL)
-
-
-Estado 76
-
-   41 EXP_RELACIONAL: EXP_RELACIONAL . OP_RELACIONAL EXP_ARITMETICA_ADD
-   42 EXP_IGUALDADE: EXP_RELACIONAL .
-
-    TK_OP_MAIORIGUAL  deslocar, e ir ao estado 105
-    TK_OP_MENORIGUAL  deslocar, e ir ao estado 106
-    '<'               deslocar, e ir ao estado 107
-    '>'               deslocar, e ir ao estado 108
-
-    $padrão  reduzir usando a regra 42 (EXP_IGUALDADE)
-
-    OP_RELACIONAL  ir ao estado 109
-
-
-Estado 77
-
-   43 EXP_IGUALDADE: EXP_IGUALDADE . TK_OP_IGUALDADE EXP_RELACIONAL
-   44 EXP_LOGICAL_AND: EXP_IGUALDADE .
-
-    TK_OP_IGUALDADE  deslocar, e ir ao estado 110
-
-    $padrão  reduzir usando a regra 44 (EXP_LOGICAL_AND)
-
-
-Estado 78
-
-   45 EXP_LOGICAL_AND: EXP_LOGICAL_AND . TK_OP_LOGICAL_AND EXP_IGUALDADE
-   46 EXP_LOGICAL_OR: EXP_LOGICAL_AND .
-
-    TK_OP_LOGICAL_AND  deslocar, e ir ao estado 111
-
-    $padrão  reduzir usando a regra 46 (EXP_LOGICAL_OR)
-
-
-Estado 79
-
-   47 EXP_LOGICAL_OR: EXP_LOGICAL_OR . TK_OP_LOGICAL_OR EXP_LOGICAL_AND
-   48 EXPRESSAO: EXP_LOGICAL_OR .
-
-    TK_OP_LOGICAL_OR  deslocar, e ir ao estado 112
-
-    $padrão  reduzir usando a regra 48 (EXPRESSAO)
-
-
-Estado 80
-
-   49 ATRIBUICAO: TK_ID '=' EXPRESSAO .
-
-    $padrão  reduzir usando a regra 49 (ATRIBUICAO)
-
-
-Estado 81
-
-   50 ATRIBUICAO: TK_ID '[' EXPRESSAO . ']' '=' EXPRESSAO
-
-    ']'  deslocar, e ir ao estado 113
-
-
-Estado 82
-
-   62 DECLARACAO: TK_ID '=' . EXPRESSAO
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 114
-
-
-Estado 83
-
-   64 DCL_ENDERECO: '[' . TK_LITERAL ']' DCL_ENDERECO
-   65             | '[' . TK_LITERAL ']'
-
-    TK_LITERAL  deslocar, e ir ao estado 115
-
-
-Estado 84
-
-   63 DECLARACAO: TK_ID DCL_ENDERECO .
-
-    $padrão  reduzir usando a regra 63 (DECLARACAO)
-
-
-Estado 85
-
-   59 LIST_DECLARACOES: DECLARACAO ',' . LIST_DECLARACOES
-
-    TK_ID  deslocar, e ir ao estado 42
-
-    LIST_DECLARACOES  ir ao estado 116
-    DECLARACAO        ir ao estado 44
-
-
-Estado 86
-
-   66 CMD_IF: TK_IF '(' EXPRESSAO . ')' BLOCO
-   67       | TK_IF '(' EXPRESSAO . ')' BLOCO TK_ELSE BLOCO
-
-    ')'  deslocar, e ir ao estado 117
-
-
-Estado 87
-
-   69 CMD_WHILE: TK_WHILE '(' EXPRESSAO . ')' $@2 BLOCO
-
-    ')'  deslocar, e ir ao estado 118
-
-
-Estado 88
-
-   71 CMD_DOWHILE: TK_DO $@3 BLOCO . TK_WHILE '(' EXPRESSAO ')'
-
-    TK_WHILE  deslocar, e ir ao estado 119
-
-
-Estado 89
-
-   73 CMD_FOR: TK_FOR @4 '(' . CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
-
-    TK_ID   deslocar, e ir ao estado 120
-    TK_VAR  deslocar, e ir ao estado 11
-
-    ATRIBUICAO       ir ao estado 25
-    CMD_DECLARACOES  ir ao estado 121
-
-
-Estado 90
-
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID . ')' $@5 '{' BLOCO_SWITCH '}'
-
-    ')'  deslocar, e ir ao estado 122
-
-
-Estado 91
-
-   82 CMD_OUT: TK_OUT '(' EXPRESSAO . ')' ';'
-
-    ')'  deslocar, e ir ao estado 123
-
-
-Estado 92
-
-   51 ATRIBUICAO: TK_ID TK_OP_ADD '=' EXPRESSAO .
-
-    $padrão  reduzir usando a regra 51 (ATRIBUICAO)
-
-
-Estado 93
-
-   52 ATRIBUICAO: TK_ID TK_OP_MUL '=' EXPRESSAO .
-
-    $padrão  reduzir usando a regra 52 (ATRIBUICAO)
-
-
-Estado 94
-
-   24 EXP_SIMPLES: TK_TIPO '(' . EXPRESSAO ')'
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 124
-
-
-Estado 95
-
-   35 EXP_NOT: TK_OP_NOT EXP_NOT .
-
-    $padrão  reduzir usando a regra 35 (EXP_NOT)
-
-
-Estado 96
-
-   28 EXP_POSFIXA: EXP_POSFIXA . '[' TK_LITERAL ']'
-   30 EXP_UNARIA: TK_OP_ADD EXP_POSFIXA .
-
-    '['  deslocar, e ir ao estado 102
-
-    $padrão  reduzir usando a regra 30 (EXP_UNARIA)
-
-
-Estado 97
-
-   28 EXP_POSFIXA: EXP_POSFIXA . '[' TK_LITERAL ']'
-   31 EXP_UNARIA: TK_OP_UN_ADD EXP_POSFIXA .
-
-    '['  deslocar, e ir ao estado 102
-
-    $padrão  reduzir usando a regra 31 (EXP_UNARIA)
-
-
-Estado 98
-
-   28 EXP_POSFIXA: EXP_POSFIXA . '[' TK_LITERAL ']'
-   32 EXP_UNARIA: TK_OP_UN_SUB EXP_POSFIXA .
-
-    '['  deslocar, e ir ao estado 102
-
-    $padrão  reduzir usando a regra 32 (EXP_UNARIA)
-
-
-Estado 99
-
-   25 EXP_SIMPLES: TK_IN '(' . TK_TIPO ')'
-   26            | TK_IN '(' . ')'
-
-    TK_TIPO  deslocar, e ir ao estado 125
-    ')'      deslocar, e ir ao estado 126
-
-
-Estado 100
-
-   23 EXP_SIMPLES: '(' EXPRESSAO . ')'
-
-    ')'  deslocar, e ir ao estado 127
-
-
-Estado 101
-
-   33 EXP_UNARIA: EXP_POSFIXA TK_OP_UN_ADD .
-
-    $padrão  reduzir usando a regra 33 (EXP_UNARIA)
-
-
-Estado 102
-
-   28 EXP_POSFIXA: EXP_POSFIXA '[' . TK_LITERAL ']'
-
-    TK_LITERAL  deslocar, e ir ao estado 128
-
-
-Estado 103
-
-   37 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL TK_OP_MUL . EXP_NOT
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES  ir ao estado 70
-    EXP_POSFIXA  ir ao estado 71
-    EXP_UNARIA   ir ao estado 72
-    EXP_NOT      ir ao estado 129
-
-
-Estado 104
-
-   39 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD TK_OP_ADD . EXP_ARITMETICA_MUL
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 130
-
-
-Estado 105
-
-   85 OP_RELACIONAL: TK_OP_MAIORIGUAL .
-
-    $padrão  reduzir usando a regra 85 (OP_RELACIONAL)
-
-
-Estado 106
-
-   86 OP_RELACIONAL: TK_OP_MENORIGUAL .
-
-    $padrão  reduzir usando a regra 86 (OP_RELACIONAL)
-
-
-Estado 107
-
-   83 OP_RELACIONAL: '<' .
-
-    $padrão  reduzir usando a regra 83 (OP_RELACIONAL)
-
-
-Estado 108
-
-   84 OP_RELACIONAL: '>' .
-
-    $padrão  reduzir usando a regra 84 (OP_RELACIONAL)
-
-
-Estado 109
-
-   41 EXP_RELACIONAL: EXP_RELACIONAL OP_RELACIONAL . EXP_ARITMETICA_ADD
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 131
-
-
-Estado 110
-
-   43 EXP_IGUALDADE: EXP_IGUALDADE TK_OP_IGUALDADE . EXP_RELACIONAL
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 132
-
-
-Estado 111
-
-   45 EXP_LOGICAL_AND: EXP_LOGICAL_AND TK_OP_LOGICAL_AND . EXP_IGUALDADE
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 133
-
-
-Estado 112
-
-   47 EXP_LOGICAL_OR: EXP_LOGICAL_OR TK_OP_LOGICAL_OR . EXP_LOGICAL_AND
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 134
-
-
-Estado 113
-
-   50 ATRIBUICAO: TK_ID '[' EXPRESSAO ']' . '=' EXPRESSAO
-
-    '='  deslocar, e ir ao estado 135
-
-
-Estado 114
-
-   62 DECLARACAO: TK_ID '=' EXPRESSAO .
-
-    $padrão  reduzir usando a regra 62 (DECLARACAO)
-
-
-Estado 115
-
-   64 DCL_ENDERECO: '[' TK_LITERAL . ']' DCL_ENDERECO
-   65             | '[' TK_LITERAL . ']'
-
-    ']'  deslocar, e ir ao estado 136
-
-
-Estado 116
-
-   59 LIST_DECLARACOES: DECLARACAO ',' LIST_DECLARACOES .
-
-    $padrão  reduzir usando a regra 59 (LIST_DECLARACOES)
-
-
-Estado 117
-
-   66 CMD_IF: TK_IF '(' EXPRESSAO ')' . BLOCO
-   67       | TK_IF '(' EXPRESSAO ')' . BLOCO TK_ELSE BLOCO
-
-    '{'  deslocar, e ir ao estado 7
-
-    BLOCO  ir ao estado 137
-
-
-Estado 118
-
-   69 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' . $@2 BLOCO
-
-    $padrão  reduzir usando a regra 68 ($@2)
-
-    $@2  ir ao estado 138
-
-
-Estado 119
-
-   71 CMD_DOWHILE: TK_DO $@3 BLOCO TK_WHILE . '(' EXPRESSAO ')'
-
-    '('  deslocar, e ir ao estado 139
-
-
-Estado 120
-
-   49 ATRIBUICAO: TK_ID . '=' EXPRESSAO
-   50           | TK_ID . '[' EXPRESSAO ']' '=' EXPRESSAO
-   51           | TK_ID . TK_OP_ADD '=' EXPRESSAO
-   52           | TK_ID . TK_OP_MUL '=' EXPRESSAO
-
-    TK_OP_ADD  deslocar, e ir ao estado 36
-    TK_OP_MUL  deslocar, e ir ao estado 37
-    '='        deslocar, e ir ao estado 40
-    '['        deslocar, e ir ao estado 41
-
-
-Estado 121
-
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES . ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
-
-    ';'  deslocar, e ir ao estado 140
-
-
-Estado 122
-
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' . $@5 '{' BLOCO_SWITCH '}'
-
-    $padrão  reduzir usando a regra 74 ($@5)
-
-    $@5  ir ao estado 141
-
-
-Estado 123
-
-   82 CMD_OUT: TK_OUT '(' EXPRESSAO ')' . ';'
-
-    ';'  deslocar, e ir ao estado 142
-
-
-Estado 124
-
-   24 EXP_SIMPLES: TK_TIPO '(' EXPRESSAO . ')'
-
-    ')'  deslocar, e ir ao estado 143
-
-
-Estado 125
-
-   25 EXP_SIMPLES: TK_IN '(' TK_TIPO . ')'
-
-    ')'  deslocar, e ir ao estado 144
-
-
-Estado 126
-
-   26 EXP_SIMPLES: TK_IN '(' ')' .
-
-    $padrão  reduzir usando a regra 26 (EXP_SIMPLES)
-
-
-Estado 127
-
-   23 EXP_SIMPLES: '(' EXPRESSAO ')' .
-
-    $padrão  reduzir usando a regra 23 (EXP_SIMPLES)
-
-
-Estado 128
-
-   28 EXP_POSFIXA: EXP_POSFIXA '[' TK_LITERAL . ']'
-
-    ']'  deslocar, e ir ao estado 145
-
-
-Estado 129
-
-   37 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT .
-
-    $padrão  reduzir usando a regra 37 (EXP_ARITMETICA_MUL)
-
-
-Estado 130
-
-   37 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL . TK_OP_MUL EXP_NOT
-   39 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL .
-
-    TK_OP_MUL  deslocar, e ir ao estado 103
-
-    $padrão  reduzir usando a regra 39 (EXP_ARITMETICA_ADD)
-
-
-Estado 131
-
-   39 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD . TK_OP_ADD EXP_ARITMETICA_MUL
-   41 EXP_RELACIONAL: EXP_RELACIONAL OP_RELACIONAL EXP_ARITMETICA_ADD .
-
-    TK_OP_ADD  deslocar, e ir ao estado 104
-
-    $padrão  reduzir usando a regra 41 (EXP_RELACIONAL)
-
-
-Estado 132
-
-   41 EXP_RELACIONAL: EXP_RELACIONAL . OP_RELACIONAL EXP_ARITMETICA_ADD
-   43 EXP_IGUALDADE: EXP_IGUALDADE TK_OP_IGUALDADE EXP_RELACIONAL .
-
-    TK_OP_MAIORIGUAL  deslocar, e ir ao estado 105
-    TK_OP_MENORIGUAL  deslocar, e ir ao estado 106
-    '<'               deslocar, e ir ao estado 107
-    '>'               deslocar, e ir ao estado 108
-
-    $padrão  reduzir usando a regra 43 (EXP_IGUALDADE)
-
-    OP_RELACIONAL  ir ao estado 109
-
-
-Estado 133
-
-   43 EXP_IGUALDADE: EXP_IGUALDADE . TK_OP_IGUALDADE EXP_RELACIONAL
-   45 EXP_LOGICAL_AND: EXP_LOGICAL_AND TK_OP_LOGICAL_AND EXP_IGUALDADE .
-
-    TK_OP_IGUALDADE  deslocar, e ir ao estado 110
-
-    $padrão  reduzir usando a regra 45 (EXP_LOGICAL_AND)
-
-
-Estado 134
-
-   45 EXP_LOGICAL_AND: EXP_LOGICAL_AND . TK_OP_LOGICAL_AND EXP_IGUALDADE
-   47 EXP_LOGICAL_OR: EXP_LOGICAL_OR TK_OP_LOGICAL_OR EXP_LOGICAL_AND .
-
-    TK_OP_LOGICAL_AND  deslocar, e ir ao estado 111
-
-    $padrão  reduzir usando a regra 47 (EXP_LOGICAL_OR)
-
-
-Estado 135
-
-   50 ATRIBUICAO: TK_ID '[' EXPRESSAO ']' '=' . EXPRESSAO
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 146
-
-
-Estado 136
-
-   64 DCL_ENDERECO: '[' TK_LITERAL ']' . DCL_ENDERECO
-   65             | '[' TK_LITERAL ']' .
-
-    '['  deslocar, e ir ao estado 83
-
-    $padrão  reduzir usando a regra 65 (DCL_ENDERECO)
-
-    DCL_ENDERECO  ir ao estado 147
-
-
-Estado 137
-
-   66 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO .
-   67       | TK_IF '(' EXPRESSAO ')' BLOCO . TK_ELSE BLOCO
-
-    TK_ELSE  deslocar, e ir ao estado 148
-
-    $padrão  reduzir usando a regra 66 (CMD_IF)
-
-
-Estado 138
-
-   69 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' $@2 . BLOCO
-
-    '{'  deslocar, e ir ao estado 7
-
-    BLOCO  ir ao estado 149
-
-
-Estado 139
-
-   71 CMD_DOWHILE: TK_DO $@3 BLOCO TK_WHILE '(' . EXPRESSAO ')'
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 150
-
-
-Estado 140
-
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' . EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
-
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
-
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 151
-
-
-Estado 141
-
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@5 . '{' BLOCO_SWITCH '}'
-
-    '{'  deslocar, e ir ao estado 152
-
-
-Estado 142
-
-   82 CMD_OUT: TK_OUT '(' EXPRESSAO ')' ';' .
-
-    $padrão  reduzir usando a regra 82 (CMD_OUT)
-
-
-Estado 143
-
-   24 EXP_SIMPLES: TK_TIPO '(' EXPRESSAO ')' .
-
-    $padrão  reduzir usando a regra 24 (EXP_SIMPLES)
-
-
-Estado 144
-
-   25 EXP_SIMPLES: TK_IN '(' TK_TIPO ')' .
-
-    $padrão  reduzir usando a regra 25 (EXP_SIMPLES)
-
-
-Estado 145
-
-   28 EXP_POSFIXA: EXP_POSFIXA '[' TK_LITERAL ']' .
+   28 EXP_POSFIXA: EXP_SIMPLES .
 
     $padrão  reduzir usando a regra 28 (EXP_POSFIXA)
 
 
-Estado 146
+Estado 75
 
-   50 ATRIBUICAO: TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO .
+   30 EXP_UNARIA: EXP_POSFIXA .
+   34           | EXP_POSFIXA . TK_OP_UN_ADD
+
+    TK_OP_UN_ADD  deslocar, e ir ao estado 108
+
+    $padrão  reduzir usando a regra 30 (EXP_UNARIA)
+
+
+Estado 76
+
+   35 EXP_NOT: EXP_UNARIA .
+
+    $padrão  reduzir usando a regra 35 (EXP_NOT)
+
+
+Estado 77
+
+   37 EXP_ARITMETICA_MUL: EXP_NOT .
+
+    $padrão  reduzir usando a regra 37 (EXP_ARITMETICA_MUL)
+
+
+Estado 78
+
+   38 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL . TK_OP_MUL EXP_NOT
+   39 EXP_ARITMETICA_ADD: EXP_ARITMETICA_MUL .
+
+    TK_OP_MUL  deslocar, e ir ao estado 109
+
+    $padrão  reduzir usando a regra 39 (EXP_ARITMETICA_ADD)
+
+
+Estado 79
+
+   40 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD . TK_OP_ADD EXP_ARITMETICA_MUL
+   41 EXP_RELACIONAL: EXP_ARITMETICA_ADD .
+
+    TK_OP_ADD  deslocar, e ir ao estado 110
+
+    $padrão  reduzir usando a regra 41 (EXP_RELACIONAL)
+
+
+Estado 80
+
+   42 EXP_RELACIONAL: EXP_RELACIONAL . OP_RELACIONAL EXP_ARITMETICA_ADD
+   43 EXP_IGUALDADE: EXP_RELACIONAL .
+
+    TK_OP_MAIORIGUAL  deslocar, e ir ao estado 111
+    TK_OP_MENORIGUAL  deslocar, e ir ao estado 112
+    '<'               deslocar, e ir ao estado 113
+    '>'               deslocar, e ir ao estado 114
+
+    $padrão  reduzir usando a regra 43 (EXP_IGUALDADE)
+
+    OP_RELACIONAL  ir ao estado 115
+
+
+Estado 81
+
+   44 EXP_IGUALDADE: EXP_IGUALDADE . TK_OP_IGUALDADE EXP_RELACIONAL
+   45 EXP_LOGICAL_AND: EXP_IGUALDADE .
+
+    TK_OP_IGUALDADE  deslocar, e ir ao estado 116
+
+    $padrão  reduzir usando a regra 45 (EXP_LOGICAL_AND)
+
+
+Estado 82
+
+   46 EXP_LOGICAL_AND: EXP_LOGICAL_AND . TK_OP_LOGICAL_AND EXP_IGUALDADE
+   47 EXP_LOGICAL_OR: EXP_LOGICAL_AND .
+
+    TK_OP_LOGICAL_AND  deslocar, e ir ao estado 117
+
+    $padrão  reduzir usando a regra 47 (EXP_LOGICAL_OR)
+
+
+Estado 83
+
+   48 EXP_LOGICAL_OR: EXP_LOGICAL_OR . TK_OP_LOGICAL_OR EXP_LOGICAL_AND
+   49 EXPRESSAO: EXP_LOGICAL_OR .
+
+    TK_OP_LOGICAL_OR  deslocar, e ir ao estado 118
+
+    $padrão  reduzir usando a regra 49 (EXPRESSAO)
+
+
+Estado 84
+
+   50 ATRIBUICAO: TK_ID '=' EXPRESSAO .
 
     $padrão  reduzir usando a regra 50 (ATRIBUICAO)
 
 
-Estado 147
+Estado 85
 
-   64 DCL_ENDERECO: '[' TK_LITERAL ']' DCL_ENDERECO .
+   55 ENDERECO: '[' EXPRESSAO . ']' ENDERECO
+   56         | '[' EXPRESSAO . ']'
 
-    $padrão  reduzir usando a regra 64 (DCL_ENDERECO)
+    ']'  deslocar, e ir ao estado 119
 
 
-Estado 148
+Estado 86
 
-   67 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE . BLOCO
+   52 ATRIBUICAO: TK_ID ENDERECO '=' . EXPRESSAO
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 120
+
+
+Estado 87
+
+   66 DECLARACAO: TK_ID '=' . EXPRESSAO
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 121
+
+
+Estado 88
+
+   68 DECLARACAO: TK_ID $@2 . DCL_ENDERECO
+
+    '['  deslocar, e ir ao estado 122
+
+    DCL_ENDERECO  ir ao estado 123
+
+
+Estado 89
+
+   63 LIST_DECLARACOES: DECLARACAO ',' . LIST_DECLARACOES
+
+    TK_ID  deslocar, e ir ao estado 44
+
+    LIST_DECLARACOES  ir ao estado 124
+    DECLARACAO        ir ao estado 46
+
+
+Estado 90
+
+   71 CMD_IF: TK_IF '(' EXPRESSAO . ')' BLOCO
+   72       | TK_IF '(' EXPRESSAO . ')' BLOCO TK_ELSE BLOCO
+
+    ')'  deslocar, e ir ao estado 125
+
+
+Estado 91
+
+   74 CMD_WHILE: TK_WHILE '(' EXPRESSAO . ')' $@3 BLOCO
+
+    ')'  deslocar, e ir ao estado 126
+
+
+Estado 92
+
+   76 CMD_DOWHILE: TK_DO $@4 BLOCO . TK_WHILE '(' EXPRESSAO ')'
+
+    TK_WHILE  deslocar, e ir ao estado 127
+
+
+Estado 93
+
+   78 CMD_FOR: TK_FOR @5 '(' . CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+
+    TK_ID   deslocar, e ir ao estado 128
+    TK_VAR  deslocar, e ir ao estado 11
+    '?'     deslocar, e ir ao estado 23
+
+    ATRIBUICAO       ir ao estado 26
+    CMD_DECLARACOES  ir ao estado 129
+
+
+Estado 94
+
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID . ')' $@6 '{' BLOCO_SWITCH '}'
+
+    ')'  deslocar, e ir ao estado 130
+
+
+Estado 95
+
+   87 CMD_OUT: TK_OUT '(' EXPRESSAO . ')' ';'
+
+    ')'  deslocar, e ir ao estado 131
+
+
+Estado 96
+
+   51 ATRIBUICAO: '?' TK_ID '[' . EXPRESSAO ']' '=' EXPRESSAO
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 132
+
+
+Estado 97
+
+   53 ATRIBUICAO: TK_ID TK_OP_ADD '=' EXPRESSAO .
+
+    $padrão  reduzir usando a regra 53 (ATRIBUICAO)
+
+
+Estado 98
+
+   54 ATRIBUICAO: TK_ID TK_OP_MUL '=' EXPRESSAO .
+
+    $padrão  reduzir usando a regra 54 (ATRIBUICAO)
+
+
+Estado 99
+
+   23 EXP_SIMPLES: TK_ID ENDERECO .
+
+    $padrão  reduzir usando a regra 23 (EXP_SIMPLES)
+
+
+Estado 100
+
+   25 EXP_SIMPLES: TK_TIPO '(' . EXPRESSAO ')'
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 133
+
+
+Estado 101
+
+   36 EXP_NOT: TK_OP_NOT EXP_NOT .
+
+    $padrão  reduzir usando a regra 36 (EXP_NOT)
+
+
+Estado 102
+
+   31 EXP_UNARIA: TK_OP_ADD EXP_POSFIXA .
+
+    $padrão  reduzir usando a regra 31 (EXP_UNARIA)
+
+
+Estado 103
+
+   32 EXP_UNARIA: TK_OP_UN_ADD EXP_POSFIXA .
+
+    $padrão  reduzir usando a regra 32 (EXP_UNARIA)
+
+
+Estado 104
+
+   33 EXP_UNARIA: TK_OP_UN_SUB EXP_POSFIXA .
+
+    $padrão  reduzir usando a regra 33 (EXP_UNARIA)
+
+
+Estado 105
+
+   26 EXP_SIMPLES: TK_IN '(' . TK_TIPO ')'
+   27            | TK_IN '(' . ')'
+
+    TK_TIPO  deslocar, e ir ao estado 134
+    ')'      deslocar, e ir ao estado 135
+
+
+Estado 106
+
+   24 EXP_SIMPLES: '(' EXPRESSAO . ')'
+
+    ')'  deslocar, e ir ao estado 136
+
+
+Estado 107
+
+   29 EXP_POSFIXA: '?' EXP_POSFIXA . '[' TK_LITERAL ']'
+
+    '['  deslocar, e ir ao estado 137
+
+
+Estado 108
+
+   34 EXP_UNARIA: EXP_POSFIXA TK_OP_UN_ADD .
+
+    $padrão  reduzir usando a regra 34 (EXP_UNARIA)
+
+
+Estado 109
+
+   38 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL TK_OP_MUL . EXP_NOT
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES  ir ao estado 74
+    EXP_POSFIXA  ir ao estado 75
+    EXP_UNARIA   ir ao estado 76
+    EXP_NOT      ir ao estado 138
+
+
+Estado 110
+
+   40 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD TK_OP_ADD . EXP_ARITMETICA_MUL
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 139
+
+
+Estado 111
+
+   90 OP_RELACIONAL: TK_OP_MAIORIGUAL .
+
+    $padrão  reduzir usando a regra 90 (OP_RELACIONAL)
+
+
+Estado 112
+
+   91 OP_RELACIONAL: TK_OP_MENORIGUAL .
+
+    $padrão  reduzir usando a regra 91 (OP_RELACIONAL)
+
+
+Estado 113
+
+   88 OP_RELACIONAL: '<' .
+
+    $padrão  reduzir usando a regra 88 (OP_RELACIONAL)
+
+
+Estado 114
+
+   89 OP_RELACIONAL: '>' .
+
+    $padrão  reduzir usando a regra 89 (OP_RELACIONAL)
+
+
+Estado 115
+
+   42 EXP_RELACIONAL: EXP_RELACIONAL OP_RELACIONAL . EXP_ARITMETICA_ADD
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 140
+
+
+Estado 116
+
+   44 EXP_IGUALDADE: EXP_IGUALDADE TK_OP_IGUALDADE . EXP_RELACIONAL
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 141
+
+
+Estado 117
+
+   46 EXP_LOGICAL_AND: EXP_LOGICAL_AND TK_OP_LOGICAL_AND . EXP_IGUALDADE
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 142
+
+
+Estado 118
+
+   48 EXP_LOGICAL_OR: EXP_LOGICAL_OR TK_OP_LOGICAL_OR . EXP_LOGICAL_AND
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 143
+
+
+Estado 119
+
+   55 ENDERECO: '[' EXPRESSAO ']' . ENDERECO
+   56         | '[' EXPRESSAO ']' .
+
+    '['  deslocar, e ir ao estado 42
+
+    '['       [reduzir usando a regra 56 (ENDERECO)]
+    $padrão  reduzir usando a regra 56 (ENDERECO)
+
+    ENDERECO  ir ao estado 144
+
+
+Estado 120
+
+   52 ATRIBUICAO: TK_ID ENDERECO '=' EXPRESSAO .
+
+    $padrão  reduzir usando a regra 52 (ATRIBUICAO)
+
+
+Estado 121
+
+   66 DECLARACAO: TK_ID '=' EXPRESSAO .
+
+    $padrão  reduzir usando a regra 66 (DECLARACAO)
+
+
+Estado 122
+
+   69 DCL_ENDERECO: '[' . TK_LITERAL ']' DCL_ENDERECO
+   70             | '[' . TK_LITERAL ']'
+
+    TK_LITERAL  deslocar, e ir ao estado 145
+
+
+Estado 123
+
+   68 DECLARACAO: TK_ID $@2 DCL_ENDERECO .
+
+    $padrão  reduzir usando a regra 68 (DECLARACAO)
+
+
+Estado 124
+
+   63 LIST_DECLARACOES: DECLARACAO ',' LIST_DECLARACOES .
+
+    $padrão  reduzir usando a regra 63 (LIST_DECLARACOES)
+
+
+Estado 125
+
+   71 CMD_IF: TK_IF '(' EXPRESSAO ')' . BLOCO
+   72       | TK_IF '(' EXPRESSAO ')' . BLOCO TK_ELSE BLOCO
 
     '{'  deslocar, e ir ao estado 7
 
-    BLOCO  ir ao estado 153
+    BLOCO  ir ao estado 146
 
 
-Estado 149
+Estado 126
 
-   69 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' $@2 BLOCO .
+   74 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' . $@3 BLOCO
 
-    $padrão  reduzir usando a regra 69 (CMD_WHILE)
+    $padrão  reduzir usando a regra 73 ($@3)
+
+    $@3  ir ao estado 147
 
 
-Estado 150
+Estado 127
 
-   71 CMD_DOWHILE: TK_DO $@3 BLOCO TK_WHILE '(' EXPRESSAO . ')'
+   76 CMD_DOWHILE: TK_DO $@4 BLOCO TK_WHILE . '(' EXPRESSAO ')'
+
+    '('  deslocar, e ir ao estado 148
+
+
+Estado 128
+
+   50 ATRIBUICAO: TK_ID . '=' EXPRESSAO
+   52           | TK_ID . ENDERECO '=' EXPRESSAO
+   53           | TK_ID . TK_OP_ADD '=' EXPRESSAO
+   54           | TK_ID . TK_OP_MUL '=' EXPRESSAO
+
+    TK_OP_ADD  deslocar, e ir ao estado 37
+    TK_OP_MUL  deslocar, e ir ao estado 38
+    '='        deslocar, e ir ao estado 41
+    '['        deslocar, e ir ao estado 42
+
+    ENDERECO  ir ao estado 43
+
+
+Estado 129
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES . ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+
+    ';'  deslocar, e ir ao estado 149
+
+
+Estado 130
+
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' . $@6 '{' BLOCO_SWITCH '}'
+
+    $padrão  reduzir usando a regra 79 ($@6)
+
+    $@6  ir ao estado 150
+
+
+Estado 131
+
+   87 CMD_OUT: TK_OUT '(' EXPRESSAO ')' . ';'
+
+    ';'  deslocar, e ir ao estado 151
+
+
+Estado 132
+
+   51 ATRIBUICAO: '?' TK_ID '[' EXPRESSAO . ']' '=' EXPRESSAO
+
+    ']'  deslocar, e ir ao estado 152
+
+
+Estado 133
+
+   25 EXP_SIMPLES: TK_TIPO '(' EXPRESSAO . ')'
+
+    ')'  deslocar, e ir ao estado 153
+
+
+Estado 134
+
+   26 EXP_SIMPLES: TK_IN '(' TK_TIPO . ')'
 
     ')'  deslocar, e ir ao estado 154
 
 
+Estado 135
+
+   27 EXP_SIMPLES: TK_IN '(' ')' .
+
+    $padrão  reduzir usando a regra 27 (EXP_SIMPLES)
+
+
+Estado 136
+
+   24 EXP_SIMPLES: '(' EXPRESSAO ')' .
+
+    $padrão  reduzir usando a regra 24 (EXP_SIMPLES)
+
+
+Estado 137
+
+   29 EXP_POSFIXA: '?' EXP_POSFIXA '[' . TK_LITERAL ']'
+
+    TK_LITERAL  deslocar, e ir ao estado 155
+
+
+Estado 138
+
+   38 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL TK_OP_MUL EXP_NOT .
+
+    $padrão  reduzir usando a regra 38 (EXP_ARITMETICA_MUL)
+
+
+Estado 139
+
+   38 EXP_ARITMETICA_MUL: EXP_ARITMETICA_MUL . TK_OP_MUL EXP_NOT
+   40 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD TK_OP_ADD EXP_ARITMETICA_MUL .
+
+    TK_OP_MUL  deslocar, e ir ao estado 109
+
+    $padrão  reduzir usando a regra 40 (EXP_ARITMETICA_ADD)
+
+
+Estado 140
+
+   40 EXP_ARITMETICA_ADD: EXP_ARITMETICA_ADD . TK_OP_ADD EXP_ARITMETICA_MUL
+   42 EXP_RELACIONAL: EXP_RELACIONAL OP_RELACIONAL EXP_ARITMETICA_ADD .
+
+    TK_OP_ADD  deslocar, e ir ao estado 110
+
+    $padrão  reduzir usando a regra 42 (EXP_RELACIONAL)
+
+
+Estado 141
+
+   42 EXP_RELACIONAL: EXP_RELACIONAL . OP_RELACIONAL EXP_ARITMETICA_ADD
+   44 EXP_IGUALDADE: EXP_IGUALDADE TK_OP_IGUALDADE EXP_RELACIONAL .
+
+    TK_OP_MAIORIGUAL  deslocar, e ir ao estado 111
+    TK_OP_MENORIGUAL  deslocar, e ir ao estado 112
+    '<'               deslocar, e ir ao estado 113
+    '>'               deslocar, e ir ao estado 114
+
+    $padrão  reduzir usando a regra 44 (EXP_IGUALDADE)
+
+    OP_RELACIONAL  ir ao estado 115
+
+
+Estado 142
+
+   44 EXP_IGUALDADE: EXP_IGUALDADE . TK_OP_IGUALDADE EXP_RELACIONAL
+   46 EXP_LOGICAL_AND: EXP_LOGICAL_AND TK_OP_LOGICAL_AND EXP_IGUALDADE .
+
+    TK_OP_IGUALDADE  deslocar, e ir ao estado 116
+
+    $padrão  reduzir usando a regra 46 (EXP_LOGICAL_AND)
+
+
+Estado 143
+
+   46 EXP_LOGICAL_AND: EXP_LOGICAL_AND . TK_OP_LOGICAL_AND EXP_IGUALDADE
+   48 EXP_LOGICAL_OR: EXP_LOGICAL_OR TK_OP_LOGICAL_OR EXP_LOGICAL_AND .
+
+    TK_OP_LOGICAL_AND  deslocar, e ir ao estado 117
+
+    $padrão  reduzir usando a regra 48 (EXP_LOGICAL_OR)
+
+
+Estado 144
+
+   55 ENDERECO: '[' EXPRESSAO ']' ENDERECO .
+
+    $padrão  reduzir usando a regra 55 (ENDERECO)
+
+
+Estado 145
+
+   69 DCL_ENDERECO: '[' TK_LITERAL . ']' DCL_ENDERECO
+   70             | '[' TK_LITERAL . ']'
+
+    ']'  deslocar, e ir ao estado 156
+
+
+Estado 146
+
+   71 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO .
+   72       | TK_IF '(' EXPRESSAO ')' BLOCO . TK_ELSE BLOCO
+
+    TK_ELSE  deslocar, e ir ao estado 157
+
+    $padrão  reduzir usando a regra 71 (CMD_IF)
+
+
+Estado 147
+
+   74 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' $@3 . BLOCO
+
+    '{'  deslocar, e ir ao estado 7
+
+    BLOCO  ir ao estado 158
+
+
+Estado 148
+
+   76 CMD_DOWHILE: TK_DO $@4 BLOCO TK_WHILE '(' . EXPRESSAO ')'
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 159
+
+
+Estado 149
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' . EXPRESSAO ';' COMANDOS_FOR ')' BLOCO
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 160
+
+
+Estado 150
+
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@6 . '{' BLOCO_SWITCH '}'
+
+    '{'  deslocar, e ir ao estado 161
+
+
 Estado 151
 
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO . ';' COMANDOS_FOR ')' BLOCO
+   87 CMD_OUT: TK_OUT '(' EXPRESSAO ')' ';' .
 
-    ';'  deslocar, e ir ao estado 155
+    $padrão  reduzir usando a regra 87 (CMD_OUT)
 
 
 Estado 152
 
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@5 '{' . BLOCO_SWITCH '}'
+   51 ATRIBUICAO: '?' TK_ID '[' EXPRESSAO ']' . '=' EXPRESSAO
 
-    $padrão  reduzir usando a regra 77 (BLOCO_SWITCH)
-
-    BLOCO_SWITCH  ir ao estado 156
+    '='  deslocar, e ir ao estado 162
 
 
 Estado 153
 
-   67 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO .
+   25 EXP_SIMPLES: TK_TIPO '(' EXPRESSAO ')' .
 
-    $padrão  reduzir usando a regra 67 (CMD_IF)
+    $padrão  reduzir usando a regra 25 (EXP_SIMPLES)
 
 
 Estado 154
 
-   71 CMD_DOWHILE: TK_DO $@3 BLOCO TK_WHILE '(' EXPRESSAO ')' .
+   26 EXP_SIMPLES: TK_IN '(' TK_TIPO ')' .
 
-    $padrão  reduzir usando a regra 71 (CMD_DOWHILE)
+    $padrão  reduzir usando a regra 26 (EXP_SIMPLES)
 
 
 Estado 155
 
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' . COMANDOS_FOR ')' BLOCO
+   29 EXP_POSFIXA: '?' EXP_POSFIXA '[' TK_LITERAL . ']'
 
-    TK_ID         deslocar, e ir ao estado 10
-    TK_OP_UN_ADD  deslocar, e ir ao estado 19
-    TK_OP_UN_SUB  deslocar, e ir ao estado 20
-
-    COMANDOS_FOR  ir ao estado 157
-    COMANDO_FOR   ir ao estado 158
-    ATRIBUICAO    ir ao estado 159
-    CMD_UNARIO    ir ao estado 160
+    ']'  deslocar, e ir ao estado 163
 
 
 Estado 156
 
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@5 '{' BLOCO_SWITCH . '}'
-   76 BLOCO_SWITCH: BLOCO_SWITCH . EXP_CASE
+   69 DCL_ENDERECO: '[' TK_LITERAL ']' . DCL_ENDERECO
+   70             | '[' TK_LITERAL ']' .
 
-    TK_CASE     deslocar, e ir ao estado 161
-    TK_DEFAULT  deslocar, e ir ao estado 162
-    '}'         deslocar, e ir ao estado 163
+    '['  deslocar, e ir ao estado 122
 
-    EXP_CASE  ir ao estado 164
+    $padrão  reduzir usando a regra 70 (DCL_ENDERECO)
+
+    DCL_ENDERECO  ir ao estado 164
 
 
 Estado 157
 
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR . ')' BLOCO
+   72 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE . BLOCO
 
-    ')'  deslocar, e ir ao estado 165
+    '{'  deslocar, e ir ao estado 7
+
+    BLOCO  ir ao estado 165
 
 
 Estado 158
 
+   74 CMD_WHILE: TK_WHILE '(' EXPRESSAO ')' $@3 BLOCO .
+
+    $padrão  reduzir usando a regra 74 (CMD_WHILE)
+
+
+Estado 159
+
+   76 CMD_DOWHILE: TK_DO $@4 BLOCO TK_WHILE '(' EXPRESSAO . ')'
+
+    ')'  deslocar, e ir ao estado 166
+
+
+Estado 160
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' EXPRESSAO . ';' COMANDOS_FOR ')' BLOCO
+
+    ';'  deslocar, e ir ao estado 167
+
+
+Estado 161
+
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@6 '{' . BLOCO_SWITCH '}'
+
+    $padrão  reduzir usando a regra 82 (BLOCO_SWITCH)
+
+    BLOCO_SWITCH  ir ao estado 168
+
+
+Estado 162
+
+   51 ATRIBUICAO: '?' TK_ID '[' EXPRESSAO ']' '=' . EXPRESSAO
+
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
+
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 169
+
+
+Estado 163
+
+   29 EXP_POSFIXA: '?' EXP_POSFIXA '[' TK_LITERAL ']' .
+
+    $padrão  reduzir usando a regra 29 (EXP_POSFIXA)
+
+
+Estado 164
+
+   69 DCL_ENDERECO: '[' TK_LITERAL ']' DCL_ENDERECO .
+
+    $padrão  reduzir usando a regra 69 (DCL_ENDERECO)
+
+
+Estado 165
+
+   72 CMD_IF: TK_IF '(' EXPRESSAO ')' BLOCO TK_ELSE BLOCO .
+
+    $padrão  reduzir usando a regra 72 (CMD_IF)
+
+
+Estado 166
+
+   76 CMD_DOWHILE: TK_DO $@4 BLOCO TK_WHILE '(' EXPRESSAO ')' .
+
+    $padrão  reduzir usando a regra 76 (CMD_DOWHILE)
+
+
+Estado 167
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' EXPRESSAO ';' . COMANDOS_FOR ')' BLOCO
+
+    TK_ID         deslocar, e ir ao estado 10
+    TK_OP_UN_ADD  deslocar, e ir ao estado 19
+    TK_OP_UN_SUB  deslocar, e ir ao estado 20
+    '?'           deslocar, e ir ao estado 23
+
+    COMANDOS_FOR  ir ao estado 170
+    COMANDO_FOR   ir ao estado 171
+    ATRIBUICAO    ir ao estado 172
+    CMD_UNARIO    ir ao estado 173
+
+
+Estado 168
+
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@6 '{' BLOCO_SWITCH . '}'
+   81 BLOCO_SWITCH: BLOCO_SWITCH . EXP_CASE
+
+    TK_CASE     deslocar, e ir ao estado 174
+    TK_DEFAULT  deslocar, e ir ao estado 175
+    '}'         deslocar, e ir ao estado 176
+
+    EXP_CASE  ir ao estado 177
+
+
+Estado 169
+
+   51 ATRIBUICAO: '?' TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO .
+
+    $padrão  reduzir usando a regra 51 (ATRIBUICAO)
+
+
+Estado 170
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR . ')' BLOCO
+
+    ')'  deslocar, e ir ao estado 178
+
+
+Estado 171
+
    17 COMANDOS_FOR: COMANDO_FOR . ',' COMANDOS_FOR
    18             | COMANDO_FOR .
 
-    ','  deslocar, e ir ao estado 166
+    ','  deslocar, e ir ao estado 179
 
     $padrão  reduzir usando a regra 18 (COMANDOS_FOR)
 
 
-Estado 159
+Estado 172
 
    19 COMANDO_FOR: ATRIBUICAO .
 
     $padrão  reduzir usando a regra 19 (COMANDO_FOR)
 
 
-Estado 160
+Estado 173
 
    20 COMANDO_FOR: CMD_UNARIO .
 
     $padrão  reduzir usando a regra 20 (COMANDO_FOR)
 
 
-Estado 161
+Estado 174
 
-   78 EXP_CASE: TK_CASE . EXPRESSAO BLOCO
+   83 EXP_CASE: TK_CASE . EXPRESSAO BLOCO
 
-    TK_LITERAL    deslocar, e ir ao estado 61
-    TK_ID         deslocar, e ir ao estado 62
-    TK_TIPO       deslocar, e ir ao estado 63
-    TK_OP_NOT     deslocar, e ir ao estado 64
-    TK_OP_ADD     deslocar, e ir ao estado 65
-    TK_OP_UN_ADD  deslocar, e ir ao estado 66
-    TK_OP_UN_SUB  deslocar, e ir ao estado 67
-    TK_IN         deslocar, e ir ao estado 68
-    '('           deslocar, e ir ao estado 69
+    TK_LITERAL    deslocar, e ir ao estado 64
+    TK_ID         deslocar, e ir ao estado 65
+    TK_TIPO       deslocar, e ir ao estado 66
+    TK_OP_NOT     deslocar, e ir ao estado 67
+    TK_OP_ADD     deslocar, e ir ao estado 68
+    TK_OP_UN_ADD  deslocar, e ir ao estado 69
+    TK_OP_UN_SUB  deslocar, e ir ao estado 70
+    TK_IN         deslocar, e ir ao estado 71
+    '('           deslocar, e ir ao estado 72
+    '?'           deslocar, e ir ao estado 73
 
-    EXP_SIMPLES         ir ao estado 70
-    EXP_POSFIXA         ir ao estado 71
-    EXP_UNARIA          ir ao estado 72
-    EXP_NOT             ir ao estado 73
-    EXP_ARITMETICA_MUL  ir ao estado 74
-    EXP_ARITMETICA_ADD  ir ao estado 75
-    EXP_RELACIONAL      ir ao estado 76
-    EXP_IGUALDADE       ir ao estado 77
-    EXP_LOGICAL_AND     ir ao estado 78
-    EXP_LOGICAL_OR      ir ao estado 79
-    EXPRESSAO           ir ao estado 167
-
-
-Estado 162
-
-   79 EXP_CASE: TK_DEFAULT . BLOCO
-
-    '{'  deslocar, e ir ao estado 7
-
-    BLOCO  ir ao estado 168
+    EXP_SIMPLES         ir ao estado 74
+    EXP_POSFIXA         ir ao estado 75
+    EXP_UNARIA          ir ao estado 76
+    EXP_NOT             ir ao estado 77
+    EXP_ARITMETICA_MUL  ir ao estado 78
+    EXP_ARITMETICA_ADD  ir ao estado 79
+    EXP_RELACIONAL      ir ao estado 80
+    EXP_IGUALDADE       ir ao estado 81
+    EXP_LOGICAL_AND     ir ao estado 82
+    EXP_LOGICAL_OR      ir ao estado 83
+    EXPRESSAO           ir ao estado 180
 
 
-Estado 163
+Estado 175
 
-   75 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@5 '{' BLOCO_SWITCH '}' .
-
-    $padrão  reduzir usando a regra 75 (CMD_SWITCH)
-
-
-Estado 164
-
-   76 BLOCO_SWITCH: BLOCO_SWITCH EXP_CASE .
-
-    $padrão  reduzir usando a regra 76 (BLOCO_SWITCH)
-
-
-Estado 165
-
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' . BLOCO
+   84 EXP_CASE: TK_DEFAULT . BLOCO
 
     '{'  deslocar, e ir ao estado 7
 
-    BLOCO  ir ao estado 169
+    BLOCO  ir ao estado 181
 
 
-Estado 166
+Estado 176
+
+   80 CMD_SWITCH: TK_SWITCH '(' TK_ID ')' $@6 '{' BLOCO_SWITCH '}' .
+
+    $padrão  reduzir usando a regra 80 (CMD_SWITCH)
+
+
+Estado 177
+
+   81 BLOCO_SWITCH: BLOCO_SWITCH EXP_CASE .
+
+    $padrão  reduzir usando a regra 81 (BLOCO_SWITCH)
+
+
+Estado 178
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' . BLOCO
+
+    '{'  deslocar, e ir ao estado 7
+
+    BLOCO  ir ao estado 182
+
+
+Estado 179
 
    17 COMANDOS_FOR: COMANDO_FOR ',' . COMANDOS_FOR
 
     TK_ID         deslocar, e ir ao estado 10
     TK_OP_UN_ADD  deslocar, e ir ao estado 19
     TK_OP_UN_SUB  deslocar, e ir ao estado 20
+    '?'           deslocar, e ir ao estado 23
 
-    COMANDOS_FOR  ir ao estado 170
-    COMANDO_FOR   ir ao estado 158
-    ATRIBUICAO    ir ao estado 159
-    CMD_UNARIO    ir ao estado 160
+    COMANDOS_FOR  ir ao estado 183
+    COMANDO_FOR   ir ao estado 171
+    ATRIBUICAO    ir ao estado 172
+    CMD_UNARIO    ir ao estado 173
 
 
-Estado 167
+Estado 180
 
-   78 EXP_CASE: TK_CASE EXPRESSAO . BLOCO
+   83 EXP_CASE: TK_CASE EXPRESSAO . BLOCO
 
     '{'  deslocar, e ir ao estado 7
 
-    BLOCO  ir ao estado 171
+    BLOCO  ir ao estado 184
 
 
-Estado 168
+Estado 181
 
-   79 EXP_CASE: TK_DEFAULT BLOCO .
+   84 EXP_CASE: TK_DEFAULT BLOCO .
 
-    $padrão  reduzir usando a regra 79 (EXP_CASE)
-
-
-Estado 169
-
-   73 CMD_FOR: TK_FOR @4 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO .
-
-    $padrão  reduzir usando a regra 73 (CMD_FOR)
+    $padrão  reduzir usando a regra 84 (EXP_CASE)
 
 
-Estado 170
+Estado 182
+
+   78 CMD_FOR: TK_FOR @5 '(' CMD_DECLARACOES ';' EXPRESSAO ';' COMANDOS_FOR ')' BLOCO .
+
+    $padrão  reduzir usando a regra 78 (CMD_FOR)
+
+
+Estado 183
 
    17 COMANDOS_FOR: COMANDO_FOR ',' COMANDOS_FOR .
 
     $padrão  reduzir usando a regra 17 (COMANDOS_FOR)
 
 
-Estado 171
+Estado 184
 
-   78 EXP_CASE: TK_CASE EXPRESSAO BLOCO .
+   83 EXP_CASE: TK_CASE EXPRESSAO BLOCO .
 
-    $padrão  reduzir usando a regra 78 (EXP_CASE)
+    $padrão  reduzir usando a regra 83 (EXP_CASE)
