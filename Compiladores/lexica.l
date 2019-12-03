@@ -28,7 +28,8 @@ STRING      \"(\\.|[^"\\])*\"
 
 "main"							{ return TK_MAIN; 																}
 "if"							{ return TK_IF; 																}
-"var"							{ return TK_VAR; 																}
+"new"							{ return TK_VAR; 																}
+"def"							{ return TK_DEF; 																}
 "else"							{ return TK_ELSE;																}
 "while"							{ return TK_WHILE;																}
 "do"							{ return TK_DO;																	}
@@ -39,6 +40,7 @@ STRING      \"(\\.|[^"\\])*\"
 
 "break"							{ return TK_BREAK;																}
 "continue"						{ return TK_CONTINUE;															}
+"return"						{ return TK_RETORNO;															}
 
 "out"							{ return TK_OUT;																}
 "in"							{ return TK_IN;																	}

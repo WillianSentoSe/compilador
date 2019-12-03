@@ -1,10 +1,20 @@
+def fun()
+{
+	new a = "abc";
+
+	return a;
+}
+
+def fun2()
+{
+	new b = "def";
+
+	return b;
+}
+
 int main()
 {
-	var a[2][2];
-
-	a[1][1] = 2;
-
-	out(a[1][1]);
+	new c;
 }
 
 

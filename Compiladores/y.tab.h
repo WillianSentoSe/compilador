@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.4.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -53,51 +53,53 @@ extern int yydebug;
     TK_ID = 259,
     TK_MAIN = 260,
     TK_VAR = 261,
-    TK_TIPO = 262,
-    TK_IF = 263,
-    TK_ELSE = 264,
-    TK_WHILE = 265,
-    TK_DO = 266,
-    TK_FOR = 267,
-    TK_SWITCH = 268,
-    TK_CASE = 269,
-    TK_BREAK = 270,
-    TK_CONTINUE = 271,
-    TK_DEFAULT = 272,
-    TK_OP_IGUALDADE = 273,
-    TK_OP_DESIGUALDADE = 274,
-    TK_OP_MAIORIGUAL = 275,
-    TK_OP_MENORIGUAL = 276,
-    TK_OP_NOT = 277,
-    TK_OP_LOGICAL_AND = 278,
-    TK_OP_AND = 279,
-    TK_OP_LOGICAL_OR = 280,
-    TK_OP_XOR = 281,
-    TK_OP_IOR = 282,
-    TK_OP_ADD = 283,
-    TK_OP_MUL = 284,
-    TK_OP_SUB = 285,
-    TK_OP_UN_ADD = 286,
-    TK_OP_UN_SUB = 287,
-    TK_TIPO_INDEFINIDO = 288,
-    TK_TIPO_INT = 289,
-    TK_TIPO_FLOAT = 290,
-    TK_TIPO_CHAR = 291,
-    TK_TIPO_BOOL = 292,
-    TK_TIPO_STRING = 293,
-    TK_TIPO_VETOR = 294,
-    TK_TIPO_VOID = 295,
-    TK_CLASSE_VARIAVEL = 296,
-    TK_CLASSE_FUNCAO = 297,
-    TK_FIM = 298,
-    TK_ERROR = 299,
-    TK_CTX_BLOCO = 300,
-    TK_CTX_IF = 301,
-    TK_CTX_WHILE = 302,
-    TK_CTX_FOR = 303,
-    TK_CTX_CASE = 304,
-    TK_OUT = 305,
-    TK_IN = 306
+    TK_DEF = 262,
+    TK_TIPO = 263,
+    TK_IF = 264,
+    TK_ELSE = 265,
+    TK_WHILE = 266,
+    TK_DO = 267,
+    TK_FOR = 268,
+    TK_SWITCH = 269,
+    TK_CASE = 270,
+    TK_BREAK = 271,
+    TK_CONTINUE = 272,
+    TK_RETORNO = 273,
+    TK_DEFAULT = 274,
+    TK_OP_IGUALDADE = 275,
+    TK_OP_DESIGUALDADE = 276,
+    TK_OP_MAIORIGUAL = 277,
+    TK_OP_MENORIGUAL = 278,
+    TK_OP_NOT = 279,
+    TK_OP_LOGICAL_AND = 280,
+    TK_OP_AND = 281,
+    TK_OP_LOGICAL_OR = 282,
+    TK_OP_XOR = 283,
+    TK_OP_IOR = 284,
+    TK_OP_ADD = 285,
+    TK_OP_MUL = 286,
+    TK_OP_SUB = 287,
+    TK_OP_UN_ADD = 288,
+    TK_OP_UN_SUB = 289,
+    TK_TIPO_INDEFINIDO = 290,
+    TK_TIPO_INT = 291,
+    TK_TIPO_FLOAT = 292,
+    TK_TIPO_CHAR = 293,
+    TK_TIPO_BOOL = 294,
+    TK_TIPO_STRING = 295,
+    TK_TIPO_VETOR = 296,
+    TK_TIPO_VOID = 297,
+    TK_CLASSE_VARIAVEL = 298,
+    TK_CLASSE_FUNCAO = 299,
+    TK_FIM = 300,
+    TK_ERROR = 301,
+    TK_CTX_BLOCO = 302,
+    TK_CTX_IF = 303,
+    TK_CTX_WHILE = 304,
+    TK_CTX_FOR = 305,
+    TK_CTX_CASE = 306,
+    TK_OUT = 307,
+    TK_IN = 308
   };
 #endif
 /* Tokens.  */
@@ -105,51 +107,53 @@ extern int yydebug;
 #define TK_ID 259
 #define TK_MAIN 260
 #define TK_VAR 261
-#define TK_TIPO 262
-#define TK_IF 263
-#define TK_ELSE 264
-#define TK_WHILE 265
-#define TK_DO 266
-#define TK_FOR 267
-#define TK_SWITCH 268
-#define TK_CASE 269
-#define TK_BREAK 270
-#define TK_CONTINUE 271
-#define TK_DEFAULT 272
-#define TK_OP_IGUALDADE 273
-#define TK_OP_DESIGUALDADE 274
-#define TK_OP_MAIORIGUAL 275
-#define TK_OP_MENORIGUAL 276
-#define TK_OP_NOT 277
-#define TK_OP_LOGICAL_AND 278
-#define TK_OP_AND 279
-#define TK_OP_LOGICAL_OR 280
-#define TK_OP_XOR 281
-#define TK_OP_IOR 282
-#define TK_OP_ADD 283
-#define TK_OP_MUL 284
-#define TK_OP_SUB 285
-#define TK_OP_UN_ADD 286
-#define TK_OP_UN_SUB 287
-#define TK_TIPO_INDEFINIDO 288
-#define TK_TIPO_INT 289
-#define TK_TIPO_FLOAT 290
-#define TK_TIPO_CHAR 291
-#define TK_TIPO_BOOL 292
-#define TK_TIPO_STRING 293
-#define TK_TIPO_VETOR 294
-#define TK_TIPO_VOID 295
-#define TK_CLASSE_VARIAVEL 296
-#define TK_CLASSE_FUNCAO 297
-#define TK_FIM 298
-#define TK_ERROR 299
-#define TK_CTX_BLOCO 300
-#define TK_CTX_IF 301
-#define TK_CTX_WHILE 302
-#define TK_CTX_FOR 303
-#define TK_CTX_CASE 304
-#define TK_OUT 305
-#define TK_IN 306
+#define TK_DEF 262
+#define TK_TIPO 263
+#define TK_IF 264
+#define TK_ELSE 265
+#define TK_WHILE 266
+#define TK_DO 267
+#define TK_FOR 268
+#define TK_SWITCH 269
+#define TK_CASE 270
+#define TK_BREAK 271
+#define TK_CONTINUE 272
+#define TK_RETORNO 273
+#define TK_DEFAULT 274
+#define TK_OP_IGUALDADE 275
+#define TK_OP_DESIGUALDADE 276
+#define TK_OP_MAIORIGUAL 277
+#define TK_OP_MENORIGUAL 278
+#define TK_OP_NOT 279
+#define TK_OP_LOGICAL_AND 280
+#define TK_OP_AND 281
+#define TK_OP_LOGICAL_OR 282
+#define TK_OP_XOR 283
+#define TK_OP_IOR 284
+#define TK_OP_ADD 285
+#define TK_OP_MUL 286
+#define TK_OP_SUB 287
+#define TK_OP_UN_ADD 288
+#define TK_OP_UN_SUB 289
+#define TK_TIPO_INDEFINIDO 290
+#define TK_TIPO_INT 291
+#define TK_TIPO_FLOAT 292
+#define TK_TIPO_CHAR 293
+#define TK_TIPO_BOOL 294
+#define TK_TIPO_STRING 295
+#define TK_TIPO_VETOR 296
+#define TK_TIPO_VOID 297
+#define TK_CLASSE_VARIAVEL 298
+#define TK_CLASSE_FUNCAO 299
+#define TK_FIM 300
+#define TK_ERROR 301
+#define TK_CTX_BLOCO 302
+#define TK_CTX_IF 303
+#define TK_CTX_WHILE 304
+#define TK_CTX_FOR 305
+#define TK_CTX_CASE 306
+#define TK_OUT 307
+#define TK_IN 308
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

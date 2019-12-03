@@ -39,8 +39,20 @@ struct simbolo {
 	string tmpTamanho;
 	int tamanho;
 	int tipoElemento;
-	vector<int> dimensoes;
 };
+
+struct funcao {
+	int tipo;
+	string identificador;
+	string label;
+	string labelRetorno;
+
+	struct funcao* pai;
+};
+
+unordered_map<string, funcao> ListaDeFuncoes;
+
+struct funcao* funcaoAtual;
 
 class Contexto
 {
@@ -78,8 +90,6 @@ Contexto* contextoAtual;
 int proximoContexto = 0;
 string espacamentoDeIndexacao;
 
-vector<int> saltos;
-vector<string> tmpSaltos;
 Pilha_alternador* alternador_atual = NULL;
 
 int yylex(void);
@@ -116,6 +126,9 @@ void novoSimbolo(string, string, int, int tamanho = 0, string tmpTamanho = "", i
 simbolo* getSimbolo(string, Contexto* contexto = NULL);
 simbolo* getSimboloPilha(string);
 
+funcao* getFuncao(string);
+bool isFunDeclared(string);
+
 Contexto* novoContexto();
 void empilharContexto(int tipo, string = "", string = "");
 void desempilharContexto();
@@ -129,6 +142,9 @@ void desempilharAlternador();
 void empilharCase();
 void desempilharContexto();
 
+void empilharFuncao(int, string);
+void definirRetornoFuncao(int);
+
 void declararString(atributos*, string, bool antecipado = false);
 int tamanhoString(string);
 
@@ -137,7 +153,7 @@ string valorPadrao(int);
 %}
 
 %token TK_LITERAL TK_ID
-%token TK_MAIN TK_VAR TK_TIPO TK_IF TK_ELSE TK_WHILE TK_DO TK_FOR TK_SWITCH TK_CASE TK_BREAK TK_CONTINUE TK_DEFAULT
+%token TK_MAIN TK_VAR TK_DEF TK_TIPO TK_IF TK_ELSE TK_WHILE TK_DO TK_FOR TK_SWITCH TK_CASE TK_BREAK TK_CONTINUE TK_RETORNO TK_DEFAULT
 %token TK_OP_IGUALDADE TK_OP_DESIGUALDADE TK_OP_MAIORIGUAL TK_OP_MENORIGUAL TK_OP_NOT TK_OP_LOGICAL_AND TK_OP_AND TK_OP_LOGICAL_OR TK_OP_XOR TK_OP_IOR TK_OP_ADD TK_OP_MUL TK_OP_SUB 
 %token TK_OP_UN_ADD TK_OP_UN_SUB
 %token TK_TIPO_INDEFINIDO TK_TIPO_INT TK_TIPO_FLOAT TK_TIPO_CHAR TK_TIPO_BOOL TK_TIPO_STRING TK_TIPO_VETOR TK_TIPO_VOID
@@ -154,14 +170,15 @@ string valorPadrao(int);
 
 %%
 
-S 					: TK_TIPO TK_MAIN '(' ')' BLOCO
+S 					: COMANDOS_EXTERNOS TK_TIPO TK_MAIN '(' ')' BLOCO
 					{
 						cout << "\n/*Compilador Ç*/\n";
 						cout << "\n#include <stdio.h>";
 						cout << "\n#include <stdlib.h>";
 						cout << "\n#include <string.h>\n\n";
 						cout << "#define true 1\n#define false 0\n\n";
-						cout << "int main(void)\n{\n" << $5.declaracao + "\n" + $5.traducao + $5.desalocacao << "\n\treturn 0;\n}\n"; 
+						cout << $1.declaracao + "\n" << $1.traducao <<$1.desalocacao;
+						cout << "int main(void)\n{\n" << $6.declaracao + "\n" + $6.traducao + $6.desalocacao << "\n\treturn 0;\n}\n"; 
 					}
 					;
 
@@ -179,7 +196,41 @@ BLOCO				: '{'
 						$$.declaracao = $3.declaracao;
 						$$.desalocacao = "\n" + $3.desalocacao;
 					}
+					| COMANDO
 					;
+
+DCL_FUNCAO			: TK_DEF TK_ID '(' ')' {empilharFuncao(TK_TIPO_VOID, "$2.label");} BLOCO
+					{
+
+						if (funcaoAtual == NULL) yyerror("NÃO ERA PRA ISSO TER ACONTECIDO AAAAA...");
+
+						$$.tipo = funcaoAtual->tipo;
+						$$.label = funcaoAtual->label;
+
+						$$.declaracao = typeName($$.tipo) + " " + $$.label + " ();\n";
+
+						$$.traducao = typeName($$.tipo) + " " + $$.label + " ()\n{\n";
+						$$.traducao += $6.declaracao + $6.traducao + "}\n\n";
+					}
+					;
+
+COMANDOS_EXTERNOS	: COMANDO_EXTERNO COMANDOS_EXTERNOS
+					{
+						$$.declaracao = $1.declaracao + $2.declaracao;
+						$$.traducao = $1.traducao + $2.traducao;
+						$$.desalocacao = $1.desalocacao + $2.desalocacao;
+					}
+					|
+					{
+						$$.traducao = "";
+						$$.declaracao = "";
+						$$.desalocacao = "";
+					}
+					;
+
+COMANDO_EXTERNO 	: DCL_FUNCAO
+					;
+
 
 COMANDOS			: COMANDO COMANDOS
 					{
@@ -191,10 +242,12 @@ COMANDOS			: COMANDO COMANDOS
 					{
 						$$.traducao = "";
 						$$.declaracao = "";
+						$$.desalocacao = "";
 					}
 					;
 
 COMANDO 			: CMD_DECLARACOES ';'
+					| CMD_RETORNO
 					| CMD_IF
 					| CMD_WHILE
 					| CMD_DOWHILE
@@ -286,55 +339,6 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.tamanho = s->tamanho;
 						$$.tmpTamanho = s->tmpTamanho;
 						$$.identificador = $1.label;
-					}
-					| TK_ID ENDERECO
-					{
-						simbolo *smb = getSimboloPilha($1.label);
-
-						int tipo = smb->tipoElemento;
-
-						$$.tipo = tipo;
-						$$.tamanho = smb->tamanho;
-
-						string tmpSalto = nextTMP();
-						string tmpAux = nextTMP();
-						string tmp = nextTMP();
-						string tmpEndereco = nextTMP();
-
-						$$.declaracao = $2.declaracao;
-						$$.declaracao += dcl(TK_TIPO_INT, tmpSalto);
-						$$.declaracao += dcl(TK_TIPO_INT, tmpAux);
-						$$.declaracao += dcl(tipo, tmp);
-						$$.declaracao += dcl(tipo, tmpEndereco, "*");
-
-						$$.traducao = $2.traducao;
-						$$.traducao += cmd(tmpSalto + " = 0");
-
-						$$.desalocacao = $2.desalocacao;
-						$$.tmpTamanho = smb->tmpTamanho;
-						$$.identificador = $1.label;
-						$$.dinamico = false;
-
-						for (int i = 0; i < tmpSaltos.size(); i++)
-						{
-							string aux = tmpSaltos.at(i);
-
-							int multiplicador = 1;
-
-							for (int j = i; j >= 0; j--)
-							{
-								multiplicador *= smb->dimensoes.at(j);
-							}
-
-							$$.traducao += cmd(tmpAux + " = " + aux + " * " + to_string(multiplicador));
-							$$.traducao += cmd(tmpSalto + " = " + tmpSalto + " + " + tmpAux);
-						}
-
-						tmpSaltos.clear();
-
-						$$.traducao += cmd(tmpEndereco + " = " + smb->label + "[" + tmpSalto + "]");
-						$$.traducao += cmd(tmp + " = *" + tmpEndereco);
-						$$.label = tmp;
 					}
 					| '(' EXPRESSAO ')'
 					{
@@ -512,10 +516,17 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.label = tmp;
 						$$.dinamico = true;
 					}
+					| TK_ID '(' {} ')'
+					{
+						if (!isDeclared($1.label))
+						{
+							yyerror("Função (" + $1.label + ") não definida.");
+						}
+					}
 					;
 
 EXP_POSFIXA			: EXP_SIMPLES
-					| '?' EXP_POSFIXA '[' TK_LITERAL ']'
+					| EXP_POSFIXA '[' TK_LITERAL ']'
 					{
 						if ($1.identificador == "")
 						{
@@ -840,10 +851,8 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						$$.traducao += cmd($1.label + " = " + $3.label);
 						$$.desalocacao = $3.desalocacao;
 					}
-					| '?' TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO
+					| TK_ID '[' EXPRESSAO ']' '=' EXPRESSAO
 					{
-						// OBSOLETO
-						/*
 						if (!isDeclared($1.label))
 						{
 							yyerror("Vetor '" + $1.label + "' não declarado.");
@@ -934,101 +943,7 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 							$$.traducao += cmd(tmpPonteiro + " = (char*)realloc(" + tmpPonteiro + ", " + tmpTamanho + ")");
 							$$.traducao += cmd("strcpy(" + tmpPonteiro + ", " + $6.label + ")");
 						}
-						*/
-					}
-					| TK_ID ENDERECO '=' EXPRESSAO
-					{
-						if (!isDeclared($1.label))
-						{
-							yyerror("Variável '" + $1.label + "' nao declarada.");
-						}
 
-						$1.tipo = getTipo($1.label);
-
-						$$.traducao = "";
-						$$.declaracao = "";
-
-						simbolo *smb = getSimboloPilha($1.label);
-
-						if (smb->tipoElemento == TK_TIPO_INDEFINIDO)
-						{
-							smb->tipoElemento = $4.tipo;
-
-							string tmpI = nextTMP();
-							string tmpPonteiro = nextTMP();
-
-							$$.declaracao += dcl(TK_TIPO_INT, tmpI);
-							$$.declaracao += dcl(smb->tipoElemento, tmpPonteiro, "*");
-
-							for (int i = 0; i < smb->tamanho; i++)
-							{
-								string tmpValor = nextTMP();
-								$$.declaracao += dcl(smb->tipoElemento, tmpValor);
-
-								$$.traducao += cmd(tmpI + " = " + to_string(i));
-
-								if (smb->tipoElemento != TK_TIPO_STRING)
-								{
-									$$.traducao += cmd(tmpValor + " = " + valorPadrao(smb->tipoElemento));
-									$$.traducao += cmd(tmpPonteiro + " = &" + tmpValor);
-									$$.traducao += cmd(smb->label + "[" + tmpI + "] = " + tmpPonteiro);
-								}
-								else
-								{
-									$$.traducao += cmd(tmpValor + " = (char*)malloc(sizeof(char))");
-									$$.traducao += cmd("strcpy(" + tmpValor + ", \"\")");
-									$$.traducao += cmd(smb->label + "[" + tmpI + "] = " + tmpValor);
-
-									$$.desalocacao += cmd("free(" + tmpValor + ")");
-								}
-							}
-						}
-
-						$$.declaracao += $2.declaracao;
-						$$.declaracao += $4.declaracao;
-
-						$$.traducao += $2.traducao;
-						$$.traducao += $4.traducao;
-
-						$$.desalocacao += $2.desalocacao;
-						$$.desalocacao += $4.desalocacao;
-
-						int tipo = smb->tipoElemento;
-
-						string tmpEndereco = nextTMP();
-						string tmpAux = nextTMP();
-
-						$$.declaracao += dcl(TK_TIPO_INT, tmpEndereco);
-						$$.declaracao += dcl(TK_TIPO_INT, tmpAux);
-
-						$$.traducao += cmd(tmpEndereco + " = 0");
-
-						for (int i = 0; i < tmpSaltos.size(); i++)
-						{
-							string aux = tmpSaltos.at(i);
-
-							int multiplicador = 1;
-
-							for (int j = i; j >= 0; j--)
-							{
-								multiplicador *= smb->dimensoes.at(j);
-							}
-
-							$$.traducao += cmd(tmpAux + " = " + aux + " * " + to_string(multiplicador));
-							$$.traducao += cmd(tmpEndereco + " = " + tmpEndereco + " + " + tmpAux);
-						}
-
-						tmpSaltos.clear();
-
-						//converterTipo(&$$, $1.tipo, &$4);
-
-						if ($4.dinamico)
-						{
-							$$.traducao += cmd(getSimboloPilha($1.label)->tmpTamanho + " = " + to_string($4.tamanho));
-						}
-
-						$1.label = getLabel($1.label);
-						$$.traducao += cmd($1.label + "[" + tmpEndereco + "] = &" + $4.label);
 					}
 					| TK_ID TK_OP_ADD '=' EXPRESSAO
 					{
@@ -1085,35 +1000,6 @@ ATRIBUICAO			: TK_ID '=' EXPRESSAO
 						$1.label = smb->label;
 						$$.traducao += cmd($1.label + " = " + $1.label + " " + $2.traducao + " " + $4.label);
 						$$.desalocacao = $3.desalocacao;
-					}
-					;
-
-ENDERECO 			: '[' EXPRESSAO ']' ENDERECO
-					{
-						if ($2.tipo != TK_TIPO_INT)
-						{
-							yyerror("Esperado tipo (int).");
-						}
-
-						tmpSaltos.insert(tmpSaltos.end(), $2.label);
-
-						$$.traducao = $2.traducao + $4.traducao;
-						$$.declaracao = $2.declaracao + $4.declaracao;
-						$$.desalocacao = $2.desalocacao + $4.desalocacao;
-
-					}
-					| '[' EXPRESSAO ']'
-					{
-						if ($2.tipo != TK_TIPO_INT)
-						{
-							yyerror("Esperado tipo (int)");
-						}
-
-						tmpSaltos.insert(tmpSaltos.end(), $2.label);
-
-						$$.traducao = $2.traducao;
-						$$.declaracao = $2.declaracao;
-						$$.desalocacao = $2.desalocacao;
 					}
 					;
 
@@ -1270,32 +1156,27 @@ DECLARACAO 			: TK_ID
 							//$$.traducao += cmd(tmpTamanho + " = " + to_string($3.tamanho));
 						}
 					}
-					| TK_ID { saltos.clear(); } DCL_ENDERECO
+					| TK_ID DCL_ENDERECO
 					{
 						if (getSimbolo($1.label, contextoAtual) != NULL)
 							yyerror("Variável '" + $1.label + "' já foi declarada nesse contexto.");
 
 						string varVetor = nextVAR();
 						string tmpTamanho = nextTMP();
-						int tamanhoVetor = $3.tamanho;
+						int tamanhoVetor = $2.tamanho;
 
 						$$.declaracao += dcl(TK_TIPO_VETOR, varVetor);
 						$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
 
-						$$.traducao += cmd(tmpTamanho + " = " + to_string(tamanhoVetor));
+						$$.traducao += cmd(tmpTamanho + " = " + to_string($2.tamanho));
 						$$.traducao += dclVetor(TK_TIPO_INDEFINIDO, varVetor, tmpTamanho);
 
 						novoSimbolo($1.label, varVetor, TK_TIPO_VETOR, tamanhoVetor);
-
-						vector<int> vetorDimensoes(saltos);
-						getSimbolo($1.label)->dimensoes = vetorDimensoes;
-						saltos.clear();
 
 						$$.tipo = TK_TIPO_INDEFINIDO;
 						$$.tamanho = tamanhoVetor;
 
 						//$$.desalocacao += cmd("free(" + varVetor +")"); 
-
 					}
 					;
 
@@ -1310,10 +1191,6 @@ DCL_ENDERECO		: '[' TK_LITERAL ']' DCL_ENDERECO
 							yyerror("Um vetor deve ter tamanho >= 1.");
 
 						$$.tamanho = $4.tamanho * tamanho;
-
-						//cout << "----- " << $$.tamanho << "aaa\n";
-
-						saltos.insert(saltos.end(), tamanho);
 					}
 					| '[' TK_LITERAL ']'
 					{
@@ -1326,7 +1203,6 @@ DCL_ENDERECO		: '[' TK_LITERAL ']' DCL_ENDERECO
 							yyerror("Um vetor deve ter tamanho >= 1.");
 
 						$$.tamanho = tamanho;
-						saltos.insert(saltos.end(), 1);
 					}
 					;
 
@@ -1632,6 +1508,23 @@ EXP_CASE			: TK_CASE EXPRESSAO BLOCO
 						$$.desalocacao += $2.desalocacao;
 
 						alternador_atual->lblDefault = lblDefault;
+					}
+					;
+
+CMD_RETORNO			: TK_RETORNO EXPRESSAO ';'
+					{
+						$$.declaracao = $2.declaracao;
+						$$.traducao = $2.traducao;
+						$$.desalocacao = $2.desalocacao;
+
+						$$.tipo = $2.tipo;
+
+						if (funcaoAtual == NULL) yyerror("Comando Inválido.");
+
+						if (funcaoAtual->tipo == TK_TIPO_VOID) funcaoAtual->tipo = $$.tipo;
+						else if (funcaoAtual->tipo != $$.tipo) yyerror("Impossivel converter (" + typeName(funcaoAtual->tipo, true) + ") para (" + typeName($$.tipo, true) + ").");
+
+						$$.traducao += cmd("return " + $2.label);
 					}
 					;
 
@@ -2217,6 +2110,21 @@ simbolo* getSimbolo(string id, Contexto* contexto)
 	}
 }
 
+funcao* getFuncao(string identificador)
+{
+	if (ListaDeFuncoes.find(identificador) != ListaDeFuncoes.end())
+	{
+		return &(ListaDeFuncoes[identificador]);
+	}
+
+	return NULL;
+}
+
+bool isFunDeclared(string identificador)
+{
+	return getFuncao(identificador) != NULL; 
+}
+
 simbolo* getSimboloPilha(string id)
 {
 	Contexto* it = contextoAtual;
@@ -2307,4 +2215,25 @@ string valorPadrao(int tipo)
 	}
 
 	return aux;
+}
+
+void empilharFuncao(int tipo, string identificador)
+{
+	struct funcao* novaFuncao;
+	novaFuncao->tipo = tipo;
+	novaFuncao->identificador = identificador;
+	novaFuncao->label = nextLBL();
+	novaFuncao->labelRetorno = "";
+	if (funcaoAtual == NULL) novaFuncao->pai = NULL;
+
+	funcaoAtual = novaFuncao;
+
+	ListaDeFuncoes[identificador] = *funcaoAtual;
+}
+
+void definirRetornoFuncao(int tipo)
+{
+	if (funcaoAtual == NULL) yyerror("Não era pra isso ter acontecido!");
+
+	funcaoAtual->tipo = tipo;
 }
