@@ -44,10 +44,7 @@ struct simbolo {
 struct funcao {
 	int tipo;
 	string identificador;
-	string label;
-	string labelRetorno;
-
-	struct funcao* pai;
+	vector<int> tipoParam;
 };
 
 unordered_map<string, funcao> ListaDeFuncoes;
@@ -142,7 +139,8 @@ void desempilharAlternador();
 void empilharCase();
 void desempilharContexto();
 
-void empilharFuncao(int, string);
+void empilharNovaFuncao(string);
+void addFuncao(string, funcao*);
 void definirRetornoFuncao(int);
 
 void declararString(atributos*, string, bool antecipado = false);
@@ -177,8 +175,8 @@ S 					: COMANDOS_EXTERNOS TK_TIPO TK_MAIN '(' ')' BLOCO
 						cout << "\n#include <stdlib.h>";
 						cout << "\n#include <string.h>\n\n";
 						cout << "#define true 1\n#define false 0\n\n";
-						cout << $1.declaracao + "\n" << $1.traducao <<$1.desalocacao;
-						cout << "int main(void)\n{\n" << $6.declaracao + "\n" + $6.traducao + $6.desalocacao << "\n\treturn 0;\n}\n"; 
+						cout << $1.declaracao + "\n" << $1.traducao << $1.desalocacao;
+						cout << "int main(void)\n{\n" << $6.declaracao + "\n" + $6.traducao + $6.desalocacao << "\n\treturn 0;\n}\n";
 					}
 					;
 
@@ -199,13 +197,15 @@ BLOCO				: '{'
 					| COMANDO
 					;
 
-DCL_FUNCAO			: TK_DEF TK_ID '(' ')' {empilharFuncao(TK_TIPO_VOID, "$2.label");} BLOCO
+DCL_FUNCAO			: TK_DEF TK_ID '(' ')' { empilharNovaFuncao($2.label); } BLOCO
 					{
 
 						if (funcaoAtual == NULL) yyerror("NÃO ERA PRA ISSO TER ACONTECIDO AAAAA...");
 
 						$$.tipo = funcaoAtual->tipo;
-						$$.label = funcaoAtual->label;
+						$$.label = funcaoAtual->identificador;
+
+						//addFuncao($2.label, funcaoAtual);
 
 						$$.declaracao = typeName($$.tipo) + " " + $$.label + " ();\n";
 
@@ -288,6 +288,27 @@ COMANDO_FOR 		: ATRIBUICAO
 					{
 						$$.traducao = $1.traducao;
 						$$.declaracao = $1.declaracao;
+					}
+					;
+
+LISTA_PARAM			: TK_ID ',' LISTA_PARAM
+					{
+						if (!isDeclared($1.label))
+						{
+							yyerror("Variável '" + $1.label + "' não declarada.");
+						}
+
+						$$.traducao = getLabel($1.label) + ", " + $3.traducao;
+					}
+					| TK_ID
+					{
+						if (!isDeclared($1.label))
+						{
+							yyerror("Variável '" + $1.label + "' não declarada.");
+						}
+
+						$$.traducao = getLabel($1.label);
+						$$.tipo = getTipo($1.label);
 					}
 					;
 
@@ -516,12 +537,22 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.label = tmp;
 						$$.dinamico = true;
 					}
-					| TK_ID '(' {} ')'
+					| TK_ID '(' LISTA_PARAM ')'
 					{
-						if (!isDeclared($1.label))
+						if (!isFunDeclared($1.label))
 						{
 							yyerror("Função (" + $1.label + ") não definida.");
 						}
+
+						$$.label = nextTMP();
+						$$.tipo = ListaDeFuncoes[$1.label].tipo;
+
+						$$.declaracao = dcl($$.tipo, $$.label);
+						$$.traducao = cmd($$.label + " = " + ListaDeFuncoes[$1.label].identificador + "(" + $3.traducao + ")");
+
+						$$.desalocacao = "";
+						$$.dinamico = false;
+						$$.tamanho = 0;
 					}
 					;
 
@@ -1121,6 +1152,9 @@ DECLARACAO 			: TK_ID
 						novoSimbolo($1.label, var, TK_TIPO_INDEFINIDO);
 						//tabela_simbolos[$1.label] = {TK_TIPO_INDEFINIDO, -1, -1, true, newLabel};
 						$1.label = var;
+						$$.traducao = "";
+						$$.declaracao = "";
+						$$.desalocacao = "";
 
 						//$$.traducao = "";
 					}
@@ -1165,10 +1199,10 @@ DECLARACAO 			: TK_ID
 						string tmpTamanho = nextTMP();
 						int tamanhoVetor = $2.tamanho;
 
-						$$.declaracao += dcl(TK_TIPO_VETOR, varVetor);
+						$$.declaracao = dcl(TK_TIPO_VETOR, varVetor);
 						$$.declaracao += dcl(TK_TIPO_INT, tmpTamanho);
 
-						$$.traducao += cmd(tmpTamanho + " = " + to_string($2.tamanho));
+						$$.traducao = cmd(tmpTamanho + " = " + to_string($2.tamanho));
 						$$.traducao += dclVetor(TK_TIPO_INDEFINIDO, varVetor, tmpTamanho);
 
 						novoSimbolo($1.label, varVetor, TK_TIPO_VETOR, tamanhoVetor);
@@ -1203,6 +1237,10 @@ DCL_ENDERECO		: '[' TK_LITERAL ']' DCL_ENDERECO
 							yyerror("Um vetor deve ter tamanho >= 1.");
 
 						$$.tamanho = tamanho;
+
+						$$.traducao = "";
+						$$.declaracao = "";
+						$$.desalocacao = "";
 					}
 					;
 
@@ -2217,18 +2255,20 @@ string valorPadrao(int tipo)
 	return aux;
 }
 
-void empilharFuncao(int tipo, string identificador)
+void empilharNovaFuncao(string label)
 {
-	struct funcao* novaFuncao;
-	novaFuncao->tipo = tipo;
-	novaFuncao->identificador = identificador;
-	novaFuncao->label = nextLBL();
-	novaFuncao->labelRetorno = "";
-	if (funcaoAtual == NULL) novaFuncao->pai = NULL;
+	funcao novaFuncao;
+	novaFuncao.tipo = TK_TIPO_VOID;
+	novaFuncao.identificador = nextLBL();
 
-	funcaoAtual = novaFuncao;
+	ListaDeFuncoes[label] = novaFuncao;
+	funcaoAtual = &(ListaDeFuncoes[label]);
+}
 
-	ListaDeFuncoes[identificador] = *funcaoAtual;
+void addFuncao(string label, funcao* f)
+{
+	cout << "epilhei" << label << " -- " << typeName(funcaoAtual->tipo) << "\n";
+	ListaDeFuncoes[label] = *f;
 }
 
 void definirRetornoFuncao(int tipo)
