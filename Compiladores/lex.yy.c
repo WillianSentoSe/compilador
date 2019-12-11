@@ -906,27 +906,27 @@ YY_RULE_SETUP
 case 19:
 YY_RULE_SETUP
 #line 48 "lexica.l"
-{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
+{ yylval.tipo = TK_TIPO_INT; yylval.traducao = yytext; 		return TK_TIPO;		}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 49 "lexica.l"
-{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}
+{ yylval.tipo = TK_TIPO_FLOAT; yylval.traducao = yytext; 	return TK_TIPO;		}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 50 "lexica.l"
-{ yylval.tipo = TK_TIPO_CHAR; 	return TK_TIPO;									}
+{ yylval.tipo = TK_TIPO_CHAR; yylval.traducao = yytext; 	return TK_TIPO;		}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 51 "lexica.l"
-{ yylval.tipo = TK_TIPO_BOOL; 	return TK_TIPO;									}
+{ yylval.tipo = TK_TIPO_BOOL; yylval.traducao = yytext; 	return TK_TIPO;		}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 52 "lexica.l"
-{ yylval.tipo = TK_TIPO_STRING;	return TK_TIPO;									}
+{ yylval.tipo = TK_TIPO_STRING; yylval.traducao = yytext;	return TK_TIPO;		}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP

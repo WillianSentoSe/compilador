@@ -45,11 +45,11 @@ STRING      \"(\\.|[^"\\])*\"
 "out"							{ return TK_OUT;																}
 "in"							{ return TK_IN;																	}
 
-"int"							{ yylval.tipo = TK_TIPO_INT; 	return TK_TIPO;									}
-"float"							{ yylval.tipo = TK_TIPO_FLOAT; 	return TK_TIPO;									}
-"char"							{ yylval.tipo = TK_TIPO_CHAR; 	return TK_TIPO;									}
-"bool"							{ yylval.tipo = TK_TIPO_BOOL; 	return TK_TIPO;									}
-"string"						{ yylval.tipo = TK_TIPO_STRING;	return TK_TIPO;									}
+"int"							{ yylval.tipo = TK_TIPO_INT; yylval.traducao = yytext; 		return TK_TIPO;		}
+"float"							{ yylval.tipo = TK_TIPO_FLOAT; yylval.traducao = yytext; 	return TK_TIPO;		}
+"char"							{ yylval.tipo = TK_TIPO_CHAR; yylval.traducao = yytext; 	return TK_TIPO;		}
+"bool"							{ yylval.tipo = TK_TIPO_BOOL; yylval.traducao = yytext; 	return TK_TIPO;		}
+"string"						{ yylval.tipo = TK_TIPO_STRING; yylval.traducao = yytext;	return TK_TIPO;		}
 
 ">="							{ yylval.traducao = yytext; return TK_OP_MAIORIGUAL;							}
 "<="							{ yylval.traducao = yytext; return TK_OP_MENORIGUAL;							}

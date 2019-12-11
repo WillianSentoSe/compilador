@@ -1,17 +1,12 @@
-def fun()
+def fun (string a, int b)
 {
-	new b = "def";
-
-	return b;
+	for(new i = 0; i < b; i++)
+	{
+		out(a);
+	}
 }
 
 int main()
 {
-	new a = 1;
-	new b = 0;
-	new s = 3;
-
-	new c = fun(a, b);
-
-	out(c);
+	fun('a');
 }

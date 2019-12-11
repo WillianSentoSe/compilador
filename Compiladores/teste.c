@@ -1,4 +1,4 @@
 
- [LINHA 10] (!)
- | Função (fun) não definida.
+ [LINHA 11] (!)
+ | Foram passados 1 argumento(s). A Função 'fun' requer 2 argumento(s).
 

@@ -31,6 +31,8 @@ struct atributos {
 
 	string declaracaoDeFuncao;
 	string traducaoDeFuncao;
+
+	int indexLista;
 };
 
 struct simbolo {
@@ -45,11 +47,15 @@ struct funcao {
 	int tipo;
 	string identificador;
 	vector<int> tipoParam;
+	vector<int>::iterator it;
+
+	int argumentosPassados;
 };
 
 unordered_map<string, funcao> ListaDeFuncoes;
 
 struct funcao* funcaoAtual;
+struct funcao* auxFuncao;
 
 class Contexto
 {
@@ -148,6 +154,8 @@ int tamanhoString(string);
 
 string valorPadrao(int);
 
+void printVector(vector<int> const &input);
+
 %}
 
 %token TK_LITERAL TK_ID
@@ -210,7 +218,22 @@ DCL_FUNCAO			: TK_DEF TK_ID '(' ')' { empilharNovaFuncao($2.label); } BLOCO
 						$$.declaracao = typeName($$.tipo) + " " + $$.label + " ();\n";
 
 						$$.traducao = typeName($$.tipo) + " " + $$.label + " ()\n{\n";
-						$$.traducao += $6.declaracao + $6.traducao + "}\n\n";
+						$$.traducao += $6.declaracao + $6.traducao + "\treturn;\n}\n\n";
+					}
+					| TK_DEF TK_ID '(' { empilharNovaFuncao($2.label); empilharContexto(TK_CTX_BLOCO);} LISTA_DCL_PARAM ')' BLOCO
+					{
+						if (funcaoAtual == NULL) yyerror("NÃO ERA PRA ISSO TER ACONTECIDO AAAAA...");
+
+						$$.tipo = funcaoAtual->tipo;
+						$$.label = funcaoAtual->identificador;
+
+						//addFuncao($2.label, funcaoAtual);
+						$$.declaracao = typeName($$.tipo) + " " + $$.label + " (" + $5.traducao + ");\n";
+
+						$$.traducao = typeName($$.tipo) + " " + $$.label + " (" + $5.traducao + ")\n{\n";
+						$$.traducao += $7.declaracao + $7.traducao + "\treturn;\n}\n\n";
+
+						desempilharContexto();
 					}
 					;
 
@@ -229,6 +252,7 @@ COMANDOS_EXTERNOS	: COMANDO_EXTERNO COMANDOS_EXTERNOS
 					;
 
 COMANDO_EXTERNO 	: DCL_FUNCAO
+					| COMANDOS
 					;
 
 
@@ -247,6 +271,7 @@ COMANDOS			: COMANDO COMANDOS
 					;
 
 COMANDO 			: CMD_DECLARACOES ';'
+					| CMD_FUNCAO
 					| CMD_RETORNO
 					| CMD_IF
 					| CMD_WHILE
@@ -291,24 +316,76 @@ COMANDO_FOR 		: ATRIBUICAO
 					}
 					;
 
-LISTA_PARAM			: TK_ID ',' LISTA_PARAM
+LISTA_PARAM			: LISTA_PARAM ',' EXPRESSAO
 					{
-						if (!isDeclared($1.label))
-						{
-							yyerror("Variável '" + $1.label + "' não declarada.");
-						}
+						$$.traducao = $1.traducao + $3.traducao;
+						$$.declaracao = $1.declaracao + $3.declaracao;
+						$$.desalocacao = $1.desalocacao + $3.desalocacao; 
+						$$.label = $1.label + ", " + $3.label;
+						$$.dinamico = $1.dinamico || $2.dinamico;
 
-						$$.traducao = getLabel($1.label) + ", " + $3.traducao;
+						$$.indexLista = auxFuncao->argumentosPassados++;
+
+						if (auxFuncao->argumentosPassados > auxFuncao->tipoParam.size())
+							yyerror("A Função requer " + to_string(auxFuncao->tipoParam.size()) + " argumentos. Foram passados " + to_string(auxFuncao->argumentosPassados) + " argumentos");
+
+						if (!auxFuncao) yyerror("Funcao não declarada");
+						if(auxFuncao->tipoParam[$$.indexLista] != $3.tipo)
+						{
+							yyerror("O tipo do argumento '" + to_string($$.indexLista + 1) + "' da função esperado é (" + typeName(auxFuncao->tipoParam[$$.indexLista]) + "). O tipo passado foi ("+ typeName($3.tipo) + ").");
+						}
 					}
-					| TK_ID
+					| EXPRESSAO
 					{
-						if (!isDeclared($1.label))
+						$$.traducao = $1.traducao;
+						$$.declaracao = $1.declaracao;
+						$$.desalocacao = $1.desalocacao; 
+						$$.label = $1.label;
+						$$.tipo = $1.tipo;
+
+						if (!auxFuncao) yyerror("Funcao não declarada");
+
+						auxFuncao->argumentosPassados = 1;
+						$$.indexLista = 0;
+
+						if(auxFuncao->tipoParam[$$.indexLista] != $1.tipo)
 						{
-							yyerror("Variável '" + $1.label + "' não declarada.");
+							yyerror("O tipo do argumento '"+ to_string($$.indexLista + 1) +"' da função esperado é (" + typeName(auxFuncao->tipoParam[$$.indexLista]) + "). O tipo passado foi ("+ typeName($1.tipo) +").");
 						}
 
-						$$.traducao = getLabel($1.label);
-						$$.tipo = getTipo($1.label);
+						$$.dinamico = $1.dinamico;
+					}
+					;
+
+LISTA_DCL_PARAM		: TK_TIPO TK_ID ',' LISTA_DCL_PARAM
+					{
+
+						if (isDeclared($2.label))
+						{
+							yyerror("Variável '" + $2.label + "' Já foi declarada anteriormente.");
+						}
+
+						funcaoAtual->it = funcaoAtual->tipoParam.insert(funcaoAtual->it, $1.tipo);
+
+						string var = nextVAR();
+						novoSimbolo($2.label, var, $1.tipo);
+						$$.traducao = typeName($1.tipo) + " " + getLabel($2.label) + ", " + $4.traducao;
+					}
+					| TK_TIPO TK_ID
+					{
+
+						if (isDeclared($2.label))
+						{
+							yyerror("Variável '" + $2.label + "' Já foi declarada anteriormente.");
+						}
+
+						funcaoAtual->it = funcaoAtual->tipoParam.end();
+						funcaoAtual->it = funcaoAtual->tipoParam.insert(funcaoAtual->it, $1.tipo);
+						string var = nextVAR();
+						novoSimbolo($2.label, var, $1.tipo);
+						$$.traducao = typeName($1.tipo) + " " + getLabel($2.label);
+						$$.tipo = $1.tipo;
+
 					}
 					;
 
@@ -537,21 +614,53 @@ EXP_SIMPLES			: TK_LITERAL
 						$$.label = tmp;
 						$$.dinamico = true;
 					}
-					| TK_ID '(' LISTA_PARAM ')'
+					| TK_ID '(' { auxFuncao = getFuncao($1.label); } LISTA_PARAM ')'
 					{
 						if (!isFunDeclared($1.label))
 						{
 							yyerror("Função (" + $1.label + ") não definida.");
 						}
 
+						int qntArgs = $4.indexLista + 1;
+
+						if (auxFuncao->tipoParam.size() != auxFuncao->argumentosPassados)
+						{
+							yyerror("Foram passados " + to_string(qntArgs) + " argumento(s). A Função '" + $1.label + "' requer " + to_string(auxFuncao->tipoParam.size()) + " argumento(s).");
+
+						}
+
 						$$.label = nextTMP();
 						$$.tipo = ListaDeFuncoes[$1.label].tipo;
 
-						$$.declaracao = dcl($$.tipo, $$.label);
-						$$.traducao = cmd($$.label + " = " + ListaDeFuncoes[$1.label].identificador + "(" + $3.traducao + ")");
+						$$.declaracao = $4.declaracao;
+						$$.declaracao += dcl($$.tipo, $$.label);
 
-						$$.desalocacao = "";
-						$$.dinamico = false;
+						$$.traducao = $4.traducao;
+						$$.traducao += cmd($$.label + " = " + ListaDeFuncoes[$1.label].identificador + "(" + $4.label + ")");
+
+						$$.desalocacao = $4.desalocacao;
+						$$.dinamico = $4.dinamico;
+						$$.tamanho = 0;
+					}
+					| TK_ID '(' ')'
+					{
+						if (!isFunDeclared($1.label))
+						{
+							yyerror("Função (" + $1.label + ") não definida.");
+						}
+
+						if (ListaDeFuncoes[$1.label].tipoParam.size() != 0)
+						{
+							yyerror("Foram passados 0 argumento(s). A Função '" + $1.label + "' requer " + to_string(ListaDeFuncoes[$1.label].tipoParam.size()) + " argumento(s).");
+
+						}
+
+						$$.tipo = ListaDeFuncoes[$1.label].tipo;
+
+						$$.declaracao = dcl($$.tipo, $$.label);
+
+						$$.traducao = cmd($$.label + " = " + ListaDeFuncoes[$1.label].identificador + "()");
+
 						$$.tamanho = 0;
 					}
 					;
@@ -1581,6 +1690,50 @@ CMD_CONTINUE		: TK_CONTINUE ';'
 					}
 					;
 
+CMD_FUNCAO			: TK_ID '(' { auxFuncao = getFuncao($1.label); } LISTA_PARAM ')' ';'
+					{
+						if (!isFunDeclared($1.label))
+						{
+							yyerror("Função (" + $1.label + ") não definida.");
+						}
+
+						int qntArgs = $4.indexLista + 1;
+
+						if (auxFuncao->tipoParam.size() != qntArgs)
+						{
+							yyerror("Foram passados " + to_string(qntArgs) + " argumento(s). A Função '" + $1.label + "' requer " + to_string(auxFuncao->tipoParam.size()) + " argumento(s).");
+						}
+
+						$$.tipo = ListaDeFuncoes[$1.label].tipo;
+
+						$$.declaracao = $4.declaracao;
+
+						$$.traducao = $4.traducao;
+						$$.traducao += cmd(ListaDeFuncoes[$1.label].identificador + "(" + $4.label + ")");
+
+						$$.desalocacao = $4.desalocacao;
+						$$.dinamico = $4.dinamico;
+						$$.tamanho = 0;
+					}
+					| TK_ID '(' ')' ';'
+					{
+						if (!isFunDeclared($1.label))
+						{
+							yyerror("Função (" + $1.label + ") não definida.");
+						}
+
+						if (ListaDeFuncoes[$1.label].tipoParam.size() != 0)
+						{
+							yyerror("Foram passados 0 argumento(s). A Função '" + $1.label + "' requer " + to_string(ListaDeFuncoes[$1.label].tipoParam.size()) + " argumento(s).");
+						}
+
+						$$.tipo = ListaDeFuncoes[$1.label].tipo;
+						$$.traducao = cmd(ListaDeFuncoes[$1.label].identificador + "()");
+
+						$$.tamanho = 0;
+					}
+					;
+
 CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 					{
 						/*
@@ -1730,6 +1883,7 @@ int yyparse();
 
 int main( int argc, char* argv[] )
 {
+	empilharContexto(TK_CTX_BLOCO);
 	yyparse();
 
 	return 0;
@@ -2261,6 +2415,8 @@ void empilharNovaFuncao(string label)
 	novaFuncao.tipo = TK_TIPO_VOID;
 	novaFuncao.identificador = nextLBL();
 
+	novaFuncao.argumentosPassados = 0;
+
 	ListaDeFuncoes[label] = novaFuncao;
 	funcaoAtual = &(ListaDeFuncoes[label]);
 }
@@ -2276,4 +2432,10 @@ void definirRetornoFuncao(int tipo)
 	if (funcaoAtual == NULL) yyerror("Não era pra isso ter acontecido!");
 
 	funcaoAtual->tipo = tipo;
+}
+
+void printVector(vector<int> const &input)
+{
+	for (int i = 0; i < input.size(); i++)
+		cout << typeName(input.at(i)) << ' ';
 }
