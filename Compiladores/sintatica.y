@@ -252,7 +252,15 @@ COMANDOS_EXTERNOS	: COMANDO_EXTERNO COMANDOS_EXTERNOS
 					;
 
 COMANDO_EXTERNO 	: DCL_FUNCAO
-					| COMANDOS
+					| CMD_DECLARACAO_GLB ';'
+					;
+
+CMD_DECLARACAO_GLB  : TK_VAR TK_ID '=' TK_LITERAL
+					{
+						string var = nextVAR();
+						$$.traducao = cmd(typeName($4.tipo) + " " + var + " = " + $4.traducao);
+						novoSimbolo($2.label, var, $4.tipo);
+					}
 					;
 
 
@@ -1745,6 +1753,9 @@ CMD_OUT  			: TK_OUT '(' EXPRESSAO ')' ';'
 						int tipo = ($3.tipo != TK_TIPO_VETOR)? $3.tipo : getSimboloPilha($3.identificador)->tipoElemento;
 
 						char aux;
+
+						$$.traducao = "";
+						$$.declaracao = "";
 
 						switch (tipo)
 						{

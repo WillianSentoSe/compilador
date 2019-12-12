@@ -1,12 +1,6 @@
-def fun (string a, int b)
-{
-	for(new i = 0; i < b; i++)
-	{
-		out(a);
-	}
-}
-
 int main()
 {
-	fun('a');
+	new M[2][2];
+	M[0] = "abc";
+	out(M);
 }
